@@ -915,7 +915,7 @@ function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hid
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
 const ov={on:true,yaw:.6,pitch:.62}; let lastDrag=0;
 function setOverview(on){ ov.on=on; camK=2.2; $('btnView').textContent=on?'回到我':'全景';
-}
+  showWalkUI(me.phase==='walk'); } // the joystick stays in both views whenever you're walking
 $('btnView').onclick=()=>{ if(self) setOverview(!ov.on); };
 const joy={x:0,y:0,id:null,reset(){ this.x=this.y=0; this.id=null; $('knob').style.transform=''; }};
 {
@@ -1154,7 +1154,10 @@ renderer.setAnimationLoop(()=>{
   }
   if(ov.on||!self){ overviewWant(t,dt); camK+=(1.4-camK)*Math.min(1,dt*2); }
   else {
-    let cx=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*cam.dist, cy=cam.ty+Math.sin(cam.pitch)*cam.dist, cz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*cam.dist;
+    // pull the camera in if a tree crown would sit between it and the character
+    let dd=cam.dist; for(let i=0;i<12;i++){ const px=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dd, pz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dd;
+      if(!OBST.some(o=>o.kind==='tree'&&Math.hypot(px-o.x,pz-o.z)<2.3)||dd<2) break; dd*=.85; }
+    let cx=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dd, cy=cam.ty+Math.sin(cam.pitch)*dd, cz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dd;
     const g=hAt(cx,cz)+.35; if(cy<g) cy=g;
     wantPos.set(cx,cy,cz); wantLook.set(cam.tx,cam.ty,cam.tz);
     camK+=(14-camK)*Math.min(1,dt*1.6);
