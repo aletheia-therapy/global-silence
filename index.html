@@ -767,9 +767,10 @@ class Person{
     const el=document.createElement('div'); el.className='tag';
     this.imgEl=document.createElement('img'); this.imgEl.alt=''; this.imgEl.style.display='none';
     this.nameEl=document.createElement('div'); this.nameEl.className='tn';
-    this.metaEl=document.createElement('div'); this.metaEl.className='tm';
+    this.countryEl=document.createElement('div'); this.countryEl.className='tm';
+    this.methodEl=document.createElement('div'); this.methodEl.className='tm';
     this.timeEl=document.createElement('div'); this.timeEl.className='tt';
-    el.append(this.imgEl,this.nameEl,this.metaEl,this.timeEl); tagsEl.appendChild(el); this.tagEl=el;
+    el.append(this.imgEl,this.nameEl,this.countryEl,this.methodEl,this.timeEl); tagsEl.appendChild(el); this.tagEl=el;
     el.addEventListener('click',()=>personCard(this));
     this.setInfo(info);
   }
@@ -777,8 +778,9 @@ class Person{
     if((info.gender&&info.gender!==this.info.gender)||(info.robe&&info.robe!==this.info.robe)){
       scene.remove(this.k.g); this.k=makeKid({...this.info,...info}); scene.add(this.k.g); }
     Object.assign(this.info,info);
-    this.nameEl.textContent=this.info.name+(this.remote?'':'（你）');
-    this.metaEl.textContent=[this.info.country,this.info.method].filter(Boolean).join('・');
+    this.nameEl.textContent=this.info.name;
+    this.countryEl.textContent=this.info.country||''; this.countryEl.style.display=this.info.country?'':'none';
+    this.methodEl.textContent=this.info.method||''; this.methodEl.style.display=this.info.method?'':'none';
   }
   setSnap(url){ this.imgEl.src=url; this.hasImg=true; }
   get phase(){ return this.remote?this.info.phase:me.phase; }
