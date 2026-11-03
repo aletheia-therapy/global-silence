@@ -275,10 +275,10 @@ const SNAP_MS=4000, STATE_MS=5000;
 /* ===================== terrain math ===================== */
 const R0=26;
 const edgeR=a=>R0+2.6*Math.sin(3*a+1.1)+1.8*Math.sin(5*a+2.3)+1.1*Math.sin(8*a+.4);
-const POND={x:1,z:-8,r:3};
+const POND={x:1,z:-8,r:4.5};
 const topH=(x,z)=>.55*Math.sin(x*.16+.5)*Math.cos(z*.13)+.35*Math.sin(x*.29+z*.23)
   +2.2*Math.exp(-((x-10)**2+(z-9)**2)/60)+1.5*Math.exp(-((x+12)**2+(z-9)**2)/40)
-  -1.1*Math.exp(-((x-POND.x)**2+(z-POND.z)**2)/6.5);
+  -1.3*Math.exp(-((x-POND.x)**2+(z-POND.z)**2)/14.6);
 function hAt(x,z){
   const d=Math.hypot(x,z), R=edgeR(Math.atan2(z,x)), top=topH(x,z);
   if(d<=R-1.5) return top;
@@ -452,7 +452,7 @@ function windify(mat,amp){
 { // a few small flower patches — the lawn stays clean
   const r=rng(21), N=170, fl=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.055,1),windify(new THREE.MeshStandardMaterial({roughness:.6}),0),N);
   const m=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), p=new THREE.Vector3(), c=new THREE.Color();
-  const patches=[[POND.x+3.6,POND.z+1.5],[POND.x-3.4,POND.z-1],[-11,2],[12,-2],[-4,-16],[9,13]]; let n=0;
+  const patches=[[POND.x+5.4,POND.z+2],[POND.x-5.2,POND.z-1.2],[-11,2],[12,-2],[-4,-16],[9,13]]; let n=0;
   for(let i=0;i<N;i++){ const [px,pz]=patches[i%patches.length], a=r()*6.28, d=Math.sqrt(r())*1.6, x=px+Math.cos(a)*d, z=pz+Math.sin(a)*d;
     if(!walkable(x,z)||Math.hypot(x-POND.x,z-POND.z)<POND.r+.2) continue;
     p.set(x,hAt(x,z)+.06,z); sc.setScalar(.8+r()*.6); m.compose(p,q,sc); fl.setMatrixAt(n,m);
@@ -491,16 +491,16 @@ function bush(x,z,s){
 { const [ax,az]=polar(-1.95,.84); pine(ax,az,1.3); const [bx,bz]=polar(.55,.5); roundTree(bx,bz,1.15);
   [[2.9,.66,1],[-.9,.5,.8],[1.6,.78,.9],[-2.4,.82,.85]].forEach(([a,f,s])=>{ const [x,z]=polar(a,f); bush(x,z,s); });
   [[2.2,.8,1.05,'p'],[-.45,.86,.95,'p'],[-2.3,.42,1,'r'],[1.05,.74,.95,'r'],[-2.85,.86,.9,'p']].forEach(([a,f,s,k])=>{ const [x,z]=polar(a,f); (k==='p'?pine:roundTree)(x,z,s); });
-  pine(POND.x+4.2,POND.z-2.6,.8); pine(POND.x-3.6,POND.z-3,.7); roundTree(POND.x-4.4,POND.z+2.2,.75); }
+  pine(POND.x+5.6,POND.z-4.4,.85); pine(POND.x-5.4,POND.z-4.5,.75); roundTree(POND.x-6.6,POND.z+3.3,.8); }
 /* pond rim: stones, reeds, lily pads */
 { const r=rng(55);
-  for(let i=0;i<14;i++){ const a=i/14*Math.PI*2+r()*.3, d=POND.r+.15+r()*.3, x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d;
+  for(let i=0;i<22;i++){ const a=i/22*Math.PI*2+r()*.3, d=POND.r+.15+r()*.3, x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d;
     const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.18+r()*.2,0),new THREE.MeshStandardMaterial({color:['#9b958b','#8a857c','#a8a196'][i%3],roughness:.95,flatShading:true})); m.scale.y=.55; m.position.set(x,hAt(x,z)+.05,z); m.rotation.y=r()*6; m.castShadow=m.receiveShadow=true; scene.add(m); }
   const reedMat=windify(new THREE.MeshStandardMaterial({color:'#6f8f45',roughness:.9}),.25);
-  for(let i=0;i<22;i++){ const a=2.4+r()*1.6, d=POND.r-.2+r()*.5, x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d, h=.6+r()*.6;
+  for(let i=0;i<34;i++){ const a=2.4+r()*1.6, d=POND.r-.2+r()*.5, x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d, h=.6+r()*.6;
     const m=new THREE.Mesh(new THREE.CylinderGeometry(.012,.02,h,4).translate(0,h/2,0),reedMat); m.position.set(x,POND.y-.05,z); m.rotation.set((r()-.5)*.2,0,(r()-.5)*.2); scene.add(m); }
   const padMat=new THREE.MeshStandardMaterial({color:'#5f8f4a',roughness:.6,side:THREE.DoubleSide});
-  for(let i=0;i<6;i++){ const a=r()*6.28, d=.6+r()*1.7, pad=new THREE.Mesh(new THREE.CircleGeometry(.22+r()*.12,12,.3,5.9),padMat);
+  for(let i=0;i<9;i++){ const a=r()*6.28, d=.9+r()*2.6, pad=new THREE.Mesh(new THREE.CircleGeometry(.22+r()*.12,12,.3,5.9),padMat);
     pad.rotation.set(-Math.PI/2,0,r()*6); pad.position.set(POND.x+Math.cos(a)*d,POND.y+.015,POND.z+Math.sin(a)*d); scene.add(pad);
     if(i%3===0){ const f=new THREE.Mesh(new THREE.IcosahedronGeometry(.07,1),new THREE.MeshStandardMaterial({color:'#f6d6e6',roughness:.5})); f.position.copy(pad.position); f.position.y+=.05; scene.add(f); } }
   OBST.push({x:POND.x,z:POND.z,r:POND.r+.25,kind:'pond'});
