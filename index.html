@@ -211,10 +211,12 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
     <ul class="checks">
       <li id="ck1">○ 鏡頭開啟</li>
       <li id="ck2">○ 畫面亮度</li>
-      <li id="ck3">○ 架好手機、坐穩</li>
+      <li id="ck3">○ 偵測到你的臉</li>
+      <li id="ck4">○ 架好手機、坐穩</li>
     </ul>
   </div>
   <p class="s-sub" id="camHint" style="margin-top:12px">準備好了再按開始，不用急。</p>
+  <p class="s-sub" style="margin:-6px 0 10px;font-size:12px;color:var(--ink-faint)">靜坐中若超過一分鐘偵測不到你，會自動起座，時數只算到你離開為止。</p>
   <div class="acts">
     <button class="btn-sec" id="camBack">返回</button>
     <button class="btn-pri" id="camOpen">開啟鏡頭</button>
@@ -855,7 +857,7 @@ chipGroup($('colors'),Object.entries(ROBES).map(([k,c])=>[k,'',c]),me.robe,v=>{ 
 let preview=null;
 function previewKid(){}
 
-$('btnStart').onclick=()=>{ $('btnStart').classList.add('hidden'); $('introForm').classList.remove('hidden'); $('intro').classList.remove('welcome'); };
+$('btnStart').onclick=()=>{ loadFace(); $('btnStart').classList.add('hidden'); $('introForm').classList.remove('hidden'); $('intro').classList.remove('welcome'); };
 $('btnEnter').onclick=()=>{
   me.name=($('inName').value.trim()||'無名同修').slice(0,16); me.country=($('inCountry').value.trim()||'地球').slice(0,16);
   ['name','country','method','gender','robe'].forEach(k=>store.set(k,me[k]));
@@ -1042,11 +1044,31 @@ $('poseOk').onclick=()=>{
     sheet('sheetCam'); resetCamCheck(); },3800);
 };
 
+/* face presence, detected on this phone only (MediaPipe) — the picture never leaves the device for this */
+const FD_VER='1.2.0', FD_BASE=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${FD_VER}`;
+const FD_MODEL='https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+const FACE_GRACE=8, FACE_LIMIT=60; // seconds: pause counting after 8s unseen, stand up after 60s
+let faceDet=null, faceState='idle', faceLoadT=0, lastFaceAt=0, lastFdTs=0;  // idle | loading | ready | failed
+async function loadFace(){
+  if(faceState!=='idle') return; faceState='loading'; faceLoadT=performance.now();
+  try{
+    const V=await import(`${FD_BASE}/vision_bundle.mjs`);
+    const fs=await V.FilesetResolver.forVisionTasks(`${FD_BASE}/wasm`);
+    const opt=d=>({baseOptions:{modelAssetPath:FD_MODEL,delegate:d},runningMode:'VIDEO',minDetectionConfidence:.4});
+    try{ faceDet=await V.FaceDetector.createFromOptions(fs,opt('GPU')); }catch{ faceDet=await V.FaceDetector.createFromOptions(fs,opt('CPU')); }
+    faceState='ready';
+  }catch(e){ console.warn('face detection unavailable',e); faceState='failed'; }
+}
+function faceSeen(v){ // true / false, or null when we can't tell
+  if(faceState!=='ready'||!v||v.readyState<2) return null;
+  try{ let ts=performance.now(); if(ts<=lastFdTs) ts=lastFdTs+1; lastFdTs=ts; return (faceDet.detectForVideo(v,ts).detections||[]).length>0; }catch{ return null; }
+}
+
 /* camera check */
 let stream=null, wakeLock=null, snapTimer=null, tickTimer=null, checkTimer=null, hiddenAt=0, lastSnap=null;
 const camPrev=$('camPrev'), sitPrev=$('sitPrev'), snapC=$('snapC'), sctx=snapC.getContext('2d',{willReadFrequently:true});
 function setCk(id,state,text){ const li=$(id); li.className=state; li.textContent=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text; }
-function resetCamCheck(){ setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','架好手機、坐穩');
+function resetCamCheck(){ setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你的臉'); setCk('ck4','','架好手機、坐穩'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
   $('camHint').textContent='準備好了再按開始，不用急。'; }
 $('camBack').onclick=()=>{ stopCamera(); me.phase='pose'; sheet('sheetPose'); sendState(); };
@@ -1062,9 +1084,13 @@ $('camOpen').onclick=async()=>{
     const lum=grabFrame(); const bright=lum>=14;
     setCk('ck2',bright?'ok':'bad',bright?'畫面亮度正常':'畫面太暗或鏡頭被遮住');
     const settled=performance.now()-t0>3000;
-    setCk('ck3',settled?'ok':'','架好手機、坐穩'+(settled?'':'…'));
-    $('camStart').disabled=!(bright&&settled);
-    $('camHint').textContent=bright?(settled?'看起來都好了。準備好就開始吧。':'把手機架穩，調整一下坐姿。'):'換個角度或開燈，讓同修看得見你。';
+    if(faceState==='loading'&&performance.now()-faceLoadT>15000) faceState='failed'; // never block anyone on a slow download
+    const f=faceSeen(camPrev); if(f) lastFaceAt=performance.now();
+    const faceOk=f===true||faceState==='failed';
+    setCk('ck3',faceOk?'ok':faceState==='loading'?'':'bad', faceState==='failed'?'臉部偵測無法使用（不影響靜坐）':faceState==='loading'?'臉部偵測準備中…':f?'偵測到你的臉':'看不到你的臉');
+    setCk('ck4',settled?'ok':'','架好手機、坐穩'+(settled?'':'…'));
+    $('camStart').disabled=!(bright&&settled&&faceOk);
+    $('camHint').textContent=!bright?'換個角度或開燈，讓同修看得見你。':!faceOk&&faceState==='ready'?'讓臉出現在畫面裡，鏡頭放在面前一兩公尺內。':settled?'看起來都好了。準備好就開始吧。':'把手機架穩，調整一下坐姿。';
   },500);
 };
 function stopCamera(){ clearInterval(checkTimer); stream?.getTracks().forEach(t=>t.stop()); stream=null; camPrev.srcObject=null; sitPrev.srcObject=null; }
@@ -1078,7 +1104,7 @@ function grabFrame(){
 $('camStart').onclick=async()=>{
   clearInterval(checkTimer);
   try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
-  me.phase='sit'; me.sitSec=0; me.paused=''; sheet('sheetSit'); bell();
+  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); sheet('sheetSit'); bell();
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
   $('sitTime').textContent='0:00'; sendState(); updateHud();
 };
@@ -1089,19 +1115,23 @@ function snap(){
 }
 function tick(){
   if(me.sitSec%10===0){ myLedgerSync(); ledgerSave(); }
-  let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住';
+  const f=document.hidden?null:faceSeen(sitPrev); if(f) lastFaceAt=performance.now();
+  const gone=faceState==='ready'&&!document.hidden?(performance.now()-lastFaceAt)/1000:0;
+  if(gone>=FACE_LIMIT){ rise('一分鐘沒有偵測到你，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
+  let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住'; else if(gone>FACE_GRACE) reason='沒有偵測到人';
   if(reason!==me.paused){ me.paused=reason; sendState(); }
   if(!reason) me.sitSec++;
   $('sitTime').textContent=fmt(me.sitSec);
   const st=$('sitStatus'), n=[...peers.values()].filter(p=>p.info.phase==='sit').length;
-  if(reason){ st.textContent=`暫停計時：${reason}`; st.classList.add('warn'); }
+  if(reason){ st.textContent=`暫停計時：${reason}`+(reason==='沒有偵測到人'?`，${Math.max(0,Math.ceil(FACE_LIMIT-gone))} 秒後自動起座`:''); st.classList.add('warn'); }
   else { st.textContent=n?`與 ${n} 位同修一起靜坐`:'靜坐中・山上只有你'; st.classList.remove('warn'); }
   updateHud();
 }
 document.addEventListener('visibilitychange',async()=>{
   if(document.hidden){ hiddenAt=Date.now(); return; }
   if(me.phase==='sit'){
-    if(Date.now()-hiddenAt>10*60*1000){ rise('離開太久，已自動起座'); return; }
+    if(Date.now()-hiddenAt>FACE_LIMIT*1000){ rise('離開畫面超過一分鐘，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
+    lastFaceAt=performance.now();
     try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
     if(!stream||stream.getVideoTracks()[0]?.readyState!=='live') rise('鏡頭中斷');
   }
