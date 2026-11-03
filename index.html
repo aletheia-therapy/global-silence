@@ -49,10 +49,10 @@ input.t:focus{border-color:var(--gold)}
 .note{font-size:12px;color:var(--ink-faint);line-height:1.7;margin-top:12px}
 
 /* HUD */
-#mtTotal{position:fixed;left:50%;top:calc(66px + var(--safe-t));transform:translateX(-50%);z-index:6;text-align:center;pointer-events:none;
-  background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:6px 16px 7px;transition:top .4s}
-#mtTotal .mt-l{font-size:11px;color:var(--ink-dim);letter-spacing:.14em}
-#mtTotal .mt-v{font-family:var(--serif);font-size:19px;letter-spacing:.06em;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+#mtTotal{position:fixed;left:50%;top:calc(64px + var(--safe-t));transform:translateX(-50%);z-index:2;pointer-events:none;display:flex;align-items:baseline;gap:6px;white-space:nowrap;
+  background:rgba(14,20,30,.42);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:3px 11px;transition:top .4s}
+#mtTotal .mt-l{font-size:11px;color:var(--ink-dim);letter-spacing:.08em}
+#mtTotal .mt-v{font-size:12px;color:var(--gold);font-variant-numeric:tabular-nums}
 body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #hud{position:fixed;left:0;right:0;top:0;z-index:5;padding:calc(10px + var(--safe-t)) 12px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
 .hud-box{pointer-events:auto;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
@@ -139,7 +139,7 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 <div id="tags"></div>
 <div id="loading">山正在成形…</div>
 
-<div id="mtTotal"><div class="mt-l">這座山累積靜默</div><div class="mt-v" id="mtVal">—</div></div>
+<div id="mtTotal"><span class="mt-l">累積靜默</span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
     <div class="hud-title">全球靜默空間</div>
