@@ -915,7 +915,7 @@ function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hid
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
 const ov={on:true,yaw:.6,pitch:.62}; let lastDrag=0;
 function setOverview(on){ ov.on=on; camK=2.2; $('btnView').textContent=on?'回到我':'全景';
-  if(me.phase==='walk') showWalkUI(!on); }
+}
 $('btnView').onclick=()=>{ if(self) setOverview(!ov.on); };
 const joy={x:0,y:0,id:null,reset(){ this.x=this.y=0; this.id=null; $('knob').style.transform=''; }};
 {
@@ -950,7 +950,7 @@ function moveSelf(dt){
   if(keys.has('w')||keys.has('arrowup')) iy=-1; if(keys.has('s')||keys.has('arrowdown')) iy=1;
   if(keys.has('a')||keys.has('arrowleft')) ix=-1; if(keys.has('d')||keys.has('arrowright')) ix=1;
   const mag=Math.min(1,Math.hypot(ix,iy)); if(mag<.08) return;
-  const fx=-Math.sin(cam.yaw), fz=-Math.cos(cam.yaw), rx=Math.cos(cam.yaw), rz=-Math.sin(cam.yaw);
+  const yaw=ov.on?ov.yaw:cam.yaw, fx=-Math.sin(yaw), fz=-Math.cos(yaw), rx=Math.cos(yaw), rz=-Math.sin(yaw);
   let mx=fx*(-iy)+rx*ix, mz=fz*(-iy)+rz*ix; const ml=Math.hypot(mx,mz); mx/=ml; mz/=ml;
   const speed=3.3*mag; let nx=self.x+mx*speed*dt, nz=self.z+mz*speed*dt;
   // collide with obstacles and other people (push out)
@@ -992,7 +992,7 @@ $('rotR').onclick=()=>{ self.r-=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('
 function sendPosNow(){ lastPosSent=0; lastPos=''; }
 $('poseUp').onclick=standUp;
 function standUp(){ clearTimeout(cineT); cam.rate=2.5; cam.pitchTarget=.42; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
-  me.phase='walk'; sheet(null); showWalkUI(!ov.on); sendState(); sendPosNow(); }
+  me.phase='walk'; sheet(null); showWalkUI(true); sendState(); sendPosNow(); }
 let cineT=null;
 $('poseOk').onclick=()=>{
   me.phase='cam'; sheet(null); sendState(); bell(.35);
@@ -1133,7 +1133,7 @@ const clock=new THREE.Clock();
 const camPos=new THREE.Vector3(70,40,70), camLook=new THREE.Vector3(0,-8,0), wantPos=new THREE.Vector3(), wantLook=new THREE.Vector3();
 let camK=2, viewOff=0;
 function overviewWant(t,dt){
-  if(performance.now()-lastDrag>2500) ov.yaw+=dt*.035;
+  if(!self&&performance.now()-lastDrag>2500) ov.yaw+=dt*.035; // slow orbit only on the welcome screen
   const asp=innerWidth/innerHeight, d=48/Math.min(1,asp*1.2), intro=me.phase==='intro';
   wantLook.set(0, intro?-15*(1/Math.min(1,asp*1.6)):-2, 0);
   wantPos.set(Math.sin(ov.yaw)*Math.cos(ov.pitch)*d, Math.sin(ov.pitch)*d+(intro?4:0), Math.cos(ov.yaw)*Math.cos(ov.pitch)*d);
@@ -1142,7 +1142,7 @@ renderer.setAnimationLoop(()=>{
   const dt=Math.min(.05,clock.getDelta()), t=clock.elapsedTime, now=performance.now();
   animateWorld(t,dt);
   if(self){
-    if(me.phase==='walk'&&!ov.on) moveSelf(dt);
+    if(me.phase==='walk') moveSelf(dt);
     self.update(dt,t);
     const cr=cam.rate||2.5;
     if(cam.pitchTarget!=null){ cam.pitch+=(cam.pitchTarget-cam.pitch)*Math.min(1,dt*cr); if(Math.abs(cam.pitch-cam.pitchTarget)<.003) cam.pitchTarget=null; }
