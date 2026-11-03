@@ -1004,6 +1004,7 @@ let preLean=null;
 $('btnDown').onclick=()=>{
   if(me.phase!=='walk') return;
   me.phase='pose'; me.lean=false; preLean=null; showWalkUI(false); sheet('sheetPose'); buildPresets(); sendState();
+  if(ov.on){ cam.yaw=ov.yaw; cam.pitch=.42; cam.dist=7; setOverview(false); } // from the panorama, glide down to the character first
   cam.yawTarget=self.r+Math.PI; cam.distTarget=6;
 };
 function buildPresets(){
@@ -1032,6 +1033,7 @@ function standUp(){ clearTimeout(cineT); cam.rate=2.5; cam.pitchTarget=.42; stop
 let cineT=null;
 $('poseOk').onclick=()=>{
   me.phase='cam'; sheet(null); sendState(); bell(.35);
+  if(ov.on){ cam.yaw=ov.yaw; setOverview(false); }
   // slow cinematic: glide in close from the front-side and watch the little one settle down
   cam.rate=.9; cam.yawTarget=self.r+.8; cam.distTarget=2.7; cam.pitchTarget=.2;
   clearTimeout(cineT); cineT=setTimeout(()=>{ if(me.phase!=='cam') return;
