@@ -49,6 +49,11 @@ input.t:focus{border-color:var(--gold)}
 .note{font-size:12px;color:var(--ink-faint);line-height:1.7;margin-top:12px}
 
 /* HUD */
+#mtTotal{position:fixed;left:50%;top:calc(66px + var(--safe-t));transform:translateX(-50%);z-index:6;text-align:center;pointer-events:none;
+  background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:6px 16px 7px;transition:top .4s}
+#mtTotal .mt-l{font-size:11px;color:var(--ink-dim);letter-spacing:.14em}
+#mtTotal .mt-v{font-family:var(--serif);font-size:19px;letter-spacing:.06em;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #hud{position:fixed;left:0;right:0;top:0;z-index:5;padding:calc(10px + var(--safe-t)) 12px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
 .hud-box{pointer-events:auto;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
 .hud-title{font-family:var(--serif);font-size:14px;letter-spacing:.14em}
@@ -129,11 +134,12 @@ input.t:focus{border-color:var(--gold)}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head>
-<body>
+<body class="on-intro">
 <canvas id="gl"></canvas>
 <div id="tags"></div>
 <div id="loading">山正在成形…</div>
 
+<div id="mtTotal"><div class="mt-l">這座山累積靜默</div><div class="mt-v" id="mtVal">—</div></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
     <div class="hud-title">全球靜默空間</div>
@@ -814,12 +820,22 @@ class Person{
 }
 
 /* ===================== state ===================== */
+/* the mountain's ledger: everyone's lifetime silence, merged between peers (each person's own number only ever grows) */
+const UID=(()=>{ let u=store.get('uid',''); if(!/^[a-z0-9]{8,24}$/.test(u)){ u=Math.random().toString(36).slice(2,10)+Date.now().toString(36); store.set('uid',u); } return u; })();
+let ledger=(()=>{ const l=store.get('ledger',{}); return l&&typeof l==='object'?l:{}; })();
+function ledgerPut(uid,t,n,c){ if(!/^[a-z0-9]{8,24}$/.test(uid)) return false; t=Math.min(1e7,Math.max(0,Math.floor(+t||0)));
+  const e=ledger[uid]; if(e&&e.t>=t){ if(n&&uid!==UID){ e.n=String(n).slice(0,16); e.c=String(c||'').slice(0,16); } return false; }
+  ledger[uid]={t,n:String(n||e?.n||'同修').slice(0,16),c:String(c||e?.c||'').slice(0,16)}; return true; }
+function ledgerSave(){ const keys=Object.keys(ledger); if(keys.length>3000){ keys.sort((a,b)=>ledger[b].t-ledger[a].t).slice(3000).forEach(k=>{ if(k!==UID) delete ledger[k]; }); } store.set('ledger',ledger); }
 const me={ id:null, name:store.get('name',''), country:store.get('country',''), method:store.get('method',METHODS[0]),
   gender:store.get('gender','boy'), robe:store.get('robe','saffron'),
   phase:'intro', sitSec:0, paused:'', lean:false, total:store.get('total',0), sessions:store.get('sessions',0), darkCam:false };
 let self=null;
+ledgerPut(UID,me.total,me.name||'同修',me.country); ledgerSave();
+function myLedgerSync(){ const t=me.total+(me.phase==='sit'?me.sitSec:0); const e=ledger[UID];
+  if(!e||t>e.t||e.n!==me.name){ ledger[UID]={t:Math.max(t,e?.t||0),n:me.name||'同修',c:me.country}; } }
 const peers=new Map(); // id -> Person
-let room=null, aSt=null, aPos=null, aSnap=null;
+let room=null, aSt=null, aPos=null, aSnap=null, aLed=null;
 
 /* ===================== intro form ===================== */
 $('inName').value=me.name; $('inCountry').value=me.country;
@@ -840,7 +856,7 @@ $('btnEnter').onclick=()=>{
   if(preview){ scene.remove(preview.k.g); preview=null; }
   self=new Person({name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,x:0,z:14,r:Math.PI},false);
   cam.yaw=ov.yaw; cam.pitch=.42; cam.dist=7; cam.tx=self.x; cam.ty=hAt(self.x,self.z)+.9; cam.tz=self.z;
-  me.phase='walk'; $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
+  document.body.classList.remove('on-intro'); me.phase='walk'; myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
   $('walkHint').classList.remove('hidden'); setTimeout(()=>$('walkHint').style.opacity='0',6000); setTimeout(()=>$('walkHint').classList.add('hidden'),7200);
   sendState();
 };
@@ -850,15 +866,19 @@ netReady.then(()=>{
   if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('hudStat').textContent='離線'; return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
-  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap');
-  room.onPeerJoin=id=>{ if(me.phase!=='intro'){ aSt.send(myState(),{target:id}); if(me.phase==='sit'&&lastSnap) aSnap.send(lastSnap,{target:id}); } };
+  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger');
+  aLed.onMessage=(d)=>{ if(!d||typeof d!=='object') return; let ch=false; const ks=Object.keys(d).slice(0,4000);
+    for(const k of ks){ if(k===UID) continue; const v=d[k]; if(v&&typeof v==='object') ch=ledgerPut(k,v.t,v.n,v.c)||ch; }
+    if(ch){ ledgerSave(); updateTotal(); } };
+  setTimeout(()=>{ myLedgerSync(); aLed.send(ledger); },1500);
+  room.onPeerJoin=id=>{ myLedgerSync(); aLed.send(ledger,{target:id}); if(me.phase!=='intro'){ aSt.send(myState(),{target:id}); if(me.phase==='sit'&&lastSnap) aSnap.send(lastSnap,{target:id}); } };
   room.onPeerLeave=id=>{ peers.get(id)?.dispose(); peers.delete(id); updateHud(); };
   aSt.onMessage=(d,{peerId})=>{
     if(!d||typeof d!=='object') return; const s=sanitize(d); if(!s) return;
     let p=peers.get(peerId);
     if(!p){ p=new Person(s,true); p.x=p.tx=s.x; p.z=p.tz=s.z; peers.set(peerId,p); }
     else { p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
-    p.info.recvAt=performance.now(); p.lastSeen=Date.now(); updateHud();
+    p.info.recvAt=performance.now(); p.lastSeen=Date.now(); if(s.uid&&s.uid!==UID&&ledgerPut(s.uid,s.total,s.name,s.country)) ledgerSave(); updateHud();
   };
   aPos.onMessage=(d,{peerId})=>{ const p=peers.get(peerId); if(!p||!d) return;
     const x=+d.x, z=+d.z, r=+d.r; if(![x,z,r].every(Number.isFinite)) return;
@@ -873,12 +893,13 @@ function sanitize(d){
     gender:d.gender==='girl'?'girl':'boy', robe:ROBES[d.robe]?d.robe:'saffron',
     x:num(d.x,-40,40), z:num(d.z,-40,40,14), r:num(d.r,-20,20), lean:!!d.lean,
     phase:['walk','pose','cam','sit'].includes(d.phase)?d.phase:'walk',
-    sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e8) };
+    sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
-  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase,sitSec:me.sitSec,paused:me.paused,total:me.total}; }
+  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase,sitSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
 function sendState(){ if(aSt&&me.phase!=='intro') aSt.send(myState()); }
 setInterval(sendState,STATE_MS);
+setInterval(()=>{ myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); },30000);
 setInterval(()=>{ const now=Date.now(); for(const [id,p] of peers) if(now-p.lastSeen>25000){ p.dispose(); peers.delete(id); } updateHud(); },5000);
 let lastPosSent=0, lastPos='';
 function maybeSendPos(now){
@@ -897,13 +918,23 @@ function everyone(){
   if(self) arr.push({person:self,name:me.name,country:me.country,phase:me.phase,total:me.total,live:me.phase==='sit'?me.sitSec:0,self:true});
   return arr;
 }
+function liveOf(uid){ // seconds not yet folded into the ledger: sessions in progress
+  if(uid===UID) return me.phase==='sit'?Math.max(0,me.total+me.sitSec-(ledger[UID]?.t||0)):0;
+  for(const p of peers.values()) if(p.info.uid===uid){ return Math.max(0,p.info.total+peerSec(p.info)-(ledger[uid]?.t||0)); }
+  return 0; }
+function mountainTotal(){ let t=0; for(const k in ledger) t+=ledger[k].t; t+=liveOf(UID); for(const p of peers.values()) if(p.info.uid) t+=liveOf(p.info.uid); return t; }
+function longFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec} 秒`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
+  return h? `${h} 小時 ${m} 分` : `${m} 分 ${s} 秒`; }
+function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotal()); }
+setInterval(updateTotal,1000);
 function updateHud(){
+  updateTotal();
   const all=everyone(), sitting=all.filter(p=>p.phase==='sit'), sum=sitting.reduce((a,p)=>a+p.live,0);
   const ps=[...peers.values()], ns=ps.filter(p=>p.info.phase==='sit').length;
   $('introLive').textContent=!room?'正在尋找山上的同修…':ps.length?`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`:'此刻山上還沒有人。你可以是第一位。';
   if(me.phase==='intro') return;
   $('hudStat').textContent=!room?'連線中…':all.length<=1?'此刻山上只有你':`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`;
-  $('hudSum').textContent=sitting.length?`此刻同坐共累積 ${hrs(sum)}`:'';
+  $('hudSum').textContent='';
 }
 let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
 let sheetOn=false;
@@ -1049,6 +1080,7 @@ function snap(){
   if(aSnap&&!document.hidden) aSnap.send(lastSnap);
 }
 function tick(){
+  if(me.sitSec%10===0){ myLedgerSync(); ledgerSave(); }
   let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住';
   if(reason!==me.paused){ me.paused=reason; sendState(); }
   if(!reason) me.sitSec++;
@@ -1072,6 +1104,7 @@ function rise(msg){
   clearInterval(snapTimer); clearInterval(tickTimer); stopCamera();
   try{ wakeLock?.release(); }catch{} wakeLock=null;
   const sec=me.sitSec; me.total+=sec; if(sec>=60) me.sessions++; store.set('total',me.total); store.set('sessions',me.sessions);
+  me.sitSec=0; myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger);
   self.hasImg=false; lastSnap=null; me.sitSec=0; me.paused='';
   standUp(); bell(.6); updateHud();
   $('endTime').textContent=sec<60?`${Math.floor(sec)} 秒`:`${Math.floor(sec/60)} 分 ${Math.floor(sec%60)} 秒`;
@@ -1115,11 +1148,23 @@ function renderRank(){
   const tabs=document.createElement('div'); tabs.className='tabs';
   [['now','這一座'],['total','累積時數']].forEach(([k,t])=>{ const b=document.createElement('button'); b.className='chip'+(rankTab===k?' on':''); b.textContent=t; b.onclick=()=>{rankTab=k;renderRank();}; tabs.appendChild(b); });
   const ul=document.createElement('ul'); ul.className='rank';
-  const all=everyone().sort((a,b)=>rankTab==='now'?b.live-a.live:(b.total+b.live)-(a.total+a.live));
+  if(rankTab==='total'){ // everyone who has ever sat here, as far as this phone has heard
+    sub.textContent='所有來過這座山的同修';
+    const rows=Object.entries(ledger).map(([k,v])=>({k,n:v.n,c:v.c,t:v.t+liveOf(k)})).sort((a,b)=>b.t-a.t);
+    const myRank=rows.findIndex(r=>r.k===UID)+1;
+    const mine=document.createElement('div'); mine.className='quiet'; mine.style.textAlign='left'; mine.style.color='var(--gold)';
+    mine.textContent=`你目前第 ${myRank} 名・共 ${rows.length} 位同修・你累積 ${longFmt(rows[myRank-1]?.t||0)}`;
+    rows.slice(0,50).forEach((r,i)=>{ const li=document.createElement('li'); if(r.k===UID) li.style.color='var(--gold)';
+      const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
+      const w=document.createElement('span'); w.className='who'; w.textContent=r.n+(r.k===UID?'（你）':''); const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm);
+      const v=document.createElement('span'); v.className='v'; v.textContent=longFmt(r.t); li.append(n,w,v); ul.appendChild(li); });
+    el.append(h,sub,tabs,mine,ul); return;
+  }
+  const all=everyone().sort((a,b)=>b.live-a.live);
   all.forEach((p,i)=>{ const li=document.createElement('li');
     const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
     const w=document.createElement('span'); w.className='who'; w.textContent=p.name+(p.self?'（你）':''); const sm=document.createElement('small'); sm.textContent=p.country; w.appendChild(sm);
-    const v=document.createElement('span'); v.className='v'; v.textContent=rankTab==='now'?(p.phase==='sit'?fmt(p.live):'—'):hrs(p.total+p.live);
+    const v=document.createElement('span'); v.className='v'; v.textContent=p.phase==='sit'?fmt(p.live):'—';
     li.append(n,w,v); ul.appendChild(li); });
   el.append(h,sub,tabs,ul);
   if(all.length<=1){ const q=document.createElement('div'); q.className='quiet'; q.textContent='山上暫時只有你。安住，自然有人會來。'; el.appendChild(q); }
