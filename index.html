@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#1d2a3a">
-<title>全球靜默空間</title>
+<title>全球靜默空間 · Global Silence Space</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#f4efe4; --ink-dim:rgba(244,239,228,.74); --ink-faint:rgba(244,239,228,.48);
@@ -57,6 +57,9 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #hud{position:fixed;left:0;right:0;top:0;z-index:5;padding:calc(10px + var(--safe-t)) 12px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
 .hud-box{pointer-events:auto;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
 .hud-title{font-family:var(--serif);font-size:14px;letter-spacing:.14em}
+.en-script{font-family:'Great Vibes','Snell Roundhand','Apple Chancery',cursive;font-weight:400;letter-spacing:.02em;color:var(--gold)}
+.intro-en{font-size:30px;line-height:1.1;margin:-2px 0 10px 2px;text-shadow:0 2px 14px rgba(0,0,0,.4)}
+.hud-en{font-size:16px;line-height:1.05;margin-top:-1px}
 .hud-stat{font-size:12px;color:var(--ink-dim);margin-top:2px}
 .hud-btn{font-size:13px;padding:9px 12px}
 
@@ -143,6 +146,7 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 <div id="hud" class="hidden">
   <div class="hud-box">
     <div class="hud-title">全球靜默空間</div>
+    <div class="en-script hud-en">Global Silence Space</div>
     <div class="hud-stat" id="hudStat">連線中…</div>
     <div class="hud-stat" id="hudSum"></div>
   </div>
@@ -153,6 +157,7 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 <div id="intro" class="welcome">
   <div class="intro-card">
     <h1 class="intro-title">全球靜默空間</h1>
+    <div class="en-script intro-en" lang="en">Global Silence Space</div>
     <p class="intro-sub">一座山頂，俯瞰群山與遠方的城市。<br>世界各地的人，此刻在這裡一起閉上眼睛。</p>
     <div class="live-line"><span class="dot"></span><span id="introLive">正在尋找山上的同修…</span></div>
     <button class="btn-main" id="btnStart">我要上山</button>
