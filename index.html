@@ -70,6 +70,19 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #btnDown{position:fixed;right:calc(24px + env(safe-area-inset-right,0px));bottom:calc(46px + var(--safe-b));z-index:6;width:84px;height:84px;border-radius:50%;
   background:var(--gold);color:#2a2214;font-weight:600;font-size:16px;letter-spacing:.12em;box-shadow:0 6px 22px rgba(0,0,0,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2}
 #btnDown small{font-size:10px;font-weight:400;letter-spacing:.05em;opacity:.75}
+#elderTag{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--gold);
+  background:rgba(10,14,22,.55);border:1px solid rgba(232,195,122,.35);padding:3px 10px 3px 13px;border-radius:10px;transform-origin:50% 100%;text-shadow:0 0 10px rgba(232,195,122,.35)}
+#elderAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:10px;white-space:nowrap;
+  background:var(--glass-strong);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(232,195,122,.45);border-radius:16px;padding:10px 10px 10px 14px;
+  box-shadow:0 8px 26px rgba(0,0,0,.3);animation:askIn .5s ease}
+@keyframes askIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+#elderAsk span{font-size:14px;font-family:var(--serif)}
+#elderAsk button{padding:8px 14px;border-radius:10px;background:var(--gold);color:#2a2214;font-weight:600;font-size:14px}
+.ab-sec{border-top:1px solid var(--line);padding:14px 0 4px;margin-top:12px}
+.ab-sec h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 4px}
+.ab-sec p{font-size:13px;color:var(--ink-dim);line-height:1.7;margin:0 0 10px}
+.ab-link{display:block;text-align:center;padding:11px;border-radius:12px;border:1px dashed var(--line);color:var(--ink-faint);font-size:14px;text-decoration:none}
+.ab-quote{font-family:var(--serif);font-size:15px;line-height:1.9;color:var(--ink);margin:6px 0 4px}
 #walkHint{position:fixed;left:50%;bottom:calc(170px + var(--safe-b));transform:translateX(-50%);z-index:6;font-size:13px;color:var(--ink);background:var(--glass);border:1px solid var(--line);
   padding:8px 14px;border-radius:12px;white-space:nowrap;transition:opacity 1s;pointer-events:none}
 
@@ -238,6 +251,23 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 
 <div class="modal hidden" id="mPerson"><div class="modal-in" id="mPersonIn"></div></div>
 <div class="modal hidden" id="mRank"><div class="modal-in" id="mRankIn"></div></div>
+<div id="elderAsk" class="hidden"><span>想多了解這個地方嗎？</span><button id="elderYes">好</button></div>
+<div class="modal hidden" id="mAbout"><div class="modal-in">
+  <div class="hud-title" style="font-size:12px;color:var(--ink-faint)">營火旁的老人</div>
+  <h2 class="m-title" style="font-size:20px;margin-top:4px">關於靜默</h2>
+  <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。」</p>
+  <div class="ab-sec">
+    <h3>最新消息與聯絡</h3>
+    <p>活動公告、抽獎名單，或想和創辦人聯絡，都在這裡。</p>
+    <a class="ab-link" id="abNews" aria-disabled="true">即將開放</a>
+  </div>
+  <div class="ab-sec">
+    <h3>隨喜贊助</h3>
+    <p>如果這座山陪伴過你，歡迎隨喜支持，讓它繼續為更多人亮著。</p>
+    <a class="ab-link" id="abGive" aria-disabled="true">即將開放</a>
+  </div>
+  <button class="btn-main" id="abClose" style="margin-top:16px">回到山上</button>
+</div></div>
 <div class="modal hidden" id="mEnd"><div class="modal-in">
   <div class="end-sub">這一座</div>
   <div class="end-big" id="endTime">0 分</div>
@@ -407,7 +437,7 @@ scene.add(sun); scene.add(sun.target);
 const fireLight=new THREE.PointLight('#ff9a4a',0,16,1.5); scene.add(fireLight);
 
 /* ===================== island ===================== */
-const CAMP={x:3,z:7}, TENT={x:-6.5,z:10.5};
+const CAMP={x:3,z:7}, TENT={x:-6.5,z:10.5}, ELDER_SEAT={};
 {
   const geo=new THREE.PlaneGeometry(104,104,230,230); geo.rotateX(-Math.PI/2);
   const pos=geo.attributes.position, cols=[], r=rng(9);
@@ -533,6 +563,7 @@ function rock(x,z,s,sy=.7,rot=0){
   [[1.9,-.4],[-1.7,.9]].forEach(([dx,dz],i)=>{ const b=new THREE.Mesh(new THREE.CylinderGeometry(.22,.24,1.5,10),trunkMat);
     b.rotation.set(0,i?1.1:-.3,Math.PI/2); b.position.set(cx+dx,hAt(cx+dx,cz+dz)+.18,cz+dz); b.castShadow=b.receiveShadow=true; scene.add(b);
     OBST.push({x:cx+dx,z:cz+dz,r:.75,kind:'log'}); });
+  ELDER_SEAT.x=cx+1.9; ELDER_SEAT.z=cz-.4; ELDER_SEAT.y=hAt(cx+1.9,cz-.4)+.4; ELDER_SEAT.face=Math.atan2(-1.9,.4);
   const tx=TENT.x, tz=TENT.z, ty=hAt(tx,tz);
   const tent=new THREE.Mesh(new THREE.ConeGeometry(1.7,2.1,4),new THREE.MeshStandardMaterial({color:'#efe3c8',roughness:.9,flatShading:true}));
   tent.position.set(tx,ty+1.02,tz); tent.rotation.y=Math.PI/4+.4; tent.castShadow=tent.receiveShadow=true; scene.add(tent);
@@ -725,6 +756,40 @@ function animateWorld(t,dt){
 
 /* ===================== characters ===================== */
 const SKIN='#f2cba8';
+/* the old man by the fire — an NPC who tells people about this place */
+const elder=(()=>{
+  const M=(c,r=.85)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+  const robe='#7a5a42', robe2='#5e4433', grey='#e4e1da', skin='#e2b48f';
+  const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
+  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.26,4,12),M(robe)); torso.position.y=.24; body.add(torso);
+  const shawl=new THREE.Mesh(new THREE.TorusGeometry(.2,.06,8,18),M(robe2)); shawl.rotation.x=Math.PI/2; shawl.position.y=.44; body.add(shawl);
+  const head=new THREE.Group(); head.position.y=.7; body.add(head);
+  head.add(new THREE.Mesh(new THREE.SphereGeometry(.26,24,18),M(skin,.6)));
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(.27,20,12,0,Math.PI*2,Math.PI*.3,Math.PI*.42),M(grey,.9)); hair.rotation.x=.25; head.add(hair);
+  const bun=new THREE.Mesh(new THREE.SphereGeometry(.09,12,10),M(grey,.9)); bun.position.set(0,.27,-.06); head.add(bun);
+  const beard=new THREE.Mesh(new THREE.ConeGeometry(.15,.32,12),M(grey,.95)); beard.rotation.x=Math.PI; beard.position.set(0,-.24,.15); head.add(beard);
+  const brow=M(grey,.9); [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.BoxGeometry(.05,.012,.02),M('#3a2c24',.4)); e.position.set(sx*.09,.02,.25); head.add(e);
+    const b=new THREE.Mesh(new THREE.BoxGeometry(.08,.025,.02),brow); b.position.set(sx*.095,.075,.245); b.rotation.z=-sx*.25; head.add(b); });
+  const limb=(r,l,c,parent,x,y,z=0)=>{ const p=new THREE.Group(); p.position.set(x,y,z); parent.add(p); const m=new THREE.Mesh(new THREE.CapsuleGeometry(r,l,4,8),M(c)); m.position.y=-(l/2+r*.6); p.add(m); return p; };
+  const armL=limb(.07,.2,robe,body,.27,.4), armR=limb(.07,.2,robe,body,-.27,.4);
+  [armL,armR].forEach(a=>{ const h=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),M(skin,.6)); h.position.y=-.34; a.add(h); });
+  const legs=[.11,-.11].map(x=>{ const hip=limb(.085,.12,robe2,body,x,.02); const knee=new THREE.Group(); knee.position.y=-.22; hip.add(knee);
+    const sh=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.16,4,8),M(robe2)); sh.position.y=-.14; knee.add(sh);
+    const f=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),M('#3b302a',.7)); f.scale.set(1,.7,1.4); f.position.set(0,-.27,.05); knee.add(f);
+    hip.rotation.x=-1.5; knee.rotation.x=1.45; return hip; });
+  armL.rotation.set(-1.05,0,.18); armR.rotation.set(-1.05,0,-.18); // hands held out toward the warmth
+  // a walking staff leaning on the log
+  const staff=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,1.5,6),M('#6b4a2e',.9)); staff.position.set(.45,.55,.1); staff.rotation.z=-.22; g.add(staff);
+  g.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
+  return {g,body,torso,head,armL,armR};
+})();
+function placeElder(){ elder.g.position.set(ELDER_SEAT.x,ELDER_SEAT.y-.02,ELDER_SEAT.z); elder.g.rotation.y=ELDER_SEAT.face; scene.add(elder.g); }
+function animateElder(t){
+  elder.torso.scale.set(1,1+.02*Math.sin(t*1.05),1);
+  elder.head.rotation.x=.18+.05*Math.sin(t*.35);                // a slow, contemplative nod
+  elder.head.rotation.y=.12*Math.sin(t*.13);
+  const warm=Math.sin(t*.5)*.06; elder.armL.rotation.x=-1.05+warm; elder.armR.rotation.x=-1.05-warm;
+}
 function makeKid({gender='boy',robe='saffron'}){
   const M=(c,r=.8)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
   const robeC=ROBES[robe]||ROBES.saffron, pantsC=new THREE.Color(robeC).multiplyScalar(.62), hairC=gender==='girl'?'#3a271c':'#33261c';
@@ -948,7 +1013,7 @@ let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classLi
 let sheetOn=false;
 function sheet(id){ sheetOn=!!id; ['sheetPose','sheetCam','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
-['mPerson','mRank'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
+['mPerson','mRank','mAbout'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
 
 /* ===================== camera rig + input ===================== */
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
@@ -1208,6 +1273,25 @@ function renderRank(){
   if(all.length<=1){ const q=document.createElement('div'); q.className='quiet'; q.textContent='山上暫時只有你。安住，自然有人會來。'; el.appendChild(q); }
 }
 
+/* ===================== the elder: tag + approach ===================== */
+const elderTag=document.createElement('div'); elderTag.id='elderTag'; elderTag.textContent='關於靜默'; tagsEl.appendChild(elderTag);
+function drawElderTag(W,H){
+  const v=new THREE.Vector3(ELDER_SEAT.x,ELDER_SEAT.y+1.35,ELDER_SEAT.z), d=v.distanceTo(camera.position); v.project(camera);
+  if(v.z>1||d>150){ elderTag.style.display='none'; return; } elderTag.style.display='';
+  const sc=clamp(9/d,.6,1.15); elderTag.style.transform=`translate(${(v.x+1)/2*W}px,${(1-v.y)/2*H}px) translate(-50%,-100%) scale(${sc})`;
+  elderTag.style.zIndex=String(1000-Math.round(d*10));
+}
+let elderShown=false, elderDismissed=false;
+function elderNear(){
+  const near=!!self&&me.phase==='walk'&&Math.hypot(self.x-ELDER_SEAT.x,self.z-ELDER_SEAT.z)<3.2&&$('mAbout').classList.contains('hidden');
+  if(!near) elderDismissed=false;
+  const show=near&&!elderDismissed;
+  if(show!==elderShown){ elderShown=show; $('elderAsk').classList.toggle('hidden',!show); }
+}
+$('elderYes').onclick=()=>{ elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; $('mAbout').classList.remove('hidden'); bell(.25); };
+$('abClose').onclick=()=>$('mAbout').classList.add('hidden');
+
+placeElder();
 /* ===================== loop ===================== */
 function resize(){ const W=innerWidth, H=innerHeight; renderer.setSize(W,H,false); composer.setPixelRatio(PR); composer.setSize(W,H);
   camera.aspect=W/H; camera.fov=W<H?60:50; camera.updateProjectionMatrix(); }
@@ -1253,6 +1337,7 @@ renderer.setAnimationLoop(()=>{
   for(const p of peers.values()) p.update(dt,t);
   composer.render(dt);
   const W=innerWidth, H=innerHeight;
+  animateElder(t); drawElderTag(W,H); elderNear();
   if(self) self.drawTag(W,H);
   for(const p of peers.values()) p.drawTag(W,H);
 });
