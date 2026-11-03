@@ -95,6 +95,7 @@ input.t:focus{border-color:var(--gold)}
 .tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:2px;transform-origin:50% 100%;pointer-events:auto;will-change:transform}
 .tag img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);box-shadow:0 0 18px rgba(232,195,122,.5);background:#111}
 .tag .tn{font-size:12px;background:rgba(10,14,22,.58);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.tag .tm{font-size:11px;color:var(--ink);background:rgba(10,14,22,.42);padding:1px 7px;border-radius:7px;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .tag .tt{font-size:12px;color:var(--gold);font-variant-numeric:tabular-nums;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .tag .tt.warn{color:var(--warn)}
 
@@ -766,8 +767,9 @@ class Person{
     const el=document.createElement('div'); el.className='tag';
     this.imgEl=document.createElement('img'); this.imgEl.alt=''; this.imgEl.style.display='none';
     this.nameEl=document.createElement('div'); this.nameEl.className='tn';
+    this.metaEl=document.createElement('div'); this.metaEl.className='tm';
     this.timeEl=document.createElement('div'); this.timeEl.className='tt';
-    el.append(this.imgEl,this.nameEl,this.timeEl); tagsEl.appendChild(el); this.tagEl=el;
+    el.append(this.imgEl,this.nameEl,this.metaEl,this.timeEl); tagsEl.appendChild(el); this.tagEl=el;
     el.addEventListener('click',()=>personCard(this));
     this.setInfo(info);
   }
@@ -776,6 +778,7 @@ class Person{
       scene.remove(this.k.g); this.k=makeKid({...this.info,...info}); scene.add(this.k.g); }
     Object.assign(this.info,info);
     this.nameEl.textContent=this.info.name+(this.remote?'':'（你）');
+    this.metaEl.textContent=[this.info.country,this.info.method].filter(Boolean).join('・');
   }
   setSnap(url){ this.imgEl.src=url; this.hasImg=true; }
   get phase(){ return this.remote?this.info.phase:me.phase; }
