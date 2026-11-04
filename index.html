@@ -169,6 +169,12 @@ body.on-intro #lb{display:none}
 .stele-tag{position:absolute;left:0;top:0;z-index:2000;pointer-events:none;text-align:center;white-space:nowrap;font-family:var(--serif);font-size:21px;letter-spacing:.18em;line-height:1.6;
   color:#fff6e2;text-shadow:0 0 16px rgba(232,195,122,.9),0 0 4px rgba(232,195,122,.6),0 1px 3px rgba(0,0,0,.7);transform-origin:50% 50%;display:none;
   background:radial-gradient(closest-side,rgba(14,20,30,.55),rgba(14,20,30,0));padding:22px 16px}
+.heart-card{position:fixed;left:50%;bottom:calc(240px + var(--safe-b));transform:translate(-50%,8px);z-index:7;pointer-events:none;text-align:center;width:max-content;max-width:min(86vw,360px);
+  background:rgba(14,20,30,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(232,195,122,.5);border-radius:16px;padding:10px 18px 12px;
+  opacity:0;transition:opacity 1.4s ease,transform 1.4s ease}
+.heart-card.on{opacity:1;transform:translate(-50%,0)}
+.heart-card .hk{font-size:11.5px;letter-spacing:.3em;color:var(--gold);margin-bottom:4px}
+.heart-card .ht{font-family:var(--serif);font-size:17px;line-height:1.7;color:var(--ink)}
 .pond-cap{position:fixed;left:50%;bottom:calc(240px + var(--safe-b));transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;font-size:13px;line-height:1.7;color:var(--ink);background:rgba(14,20,30,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border:1px solid rgba(247,182,203,.5);border-radius:14px;padding:8px 14px;white-space:nowrap;opacity:0;transition:opacity 1.2s}
 .pond-cap b{color:#f7b6cb}
@@ -722,9 +728,12 @@ function rock(x,z,s,sy=.7,rot=0){
   m.position.set(x,hAt(x,z)+s*sy*.3,z); m.castShadow=m.receiveShadow=true; scene.add(m); OBST.push({x,z,r:s*.95,kind:'rock'});
 }
 [[-1.2,.78,1.3,.6],[2.4,.62,.9,.8],[-.3,.35,.7,.6],[1.2,.85,1.1,.55],[3.6,.7,.6,.9],[-2.7,.55,.55,.8]].forEach(([a,f,s,sy],i)=>{ const [x,z]=polar(a,f); rock(x,z,s,sy,i); });
-{ const [x,z]=polar(-1.55,.9), y=hAt(x,z); [.42,.34,.27,.2,.14].reduce((h,rr,i)=>{ const m=new THREE.Mesh(new THREE.DodecahedronGeometry(rr,1),rockMats[i%3]);
-    m.scale.set(1,.55,1); m.position.set(x,y+h+rr*.5,z); m.rotation.y=i; m.castShadow=m.receiveShadow=true; scene.add(m); return h+rr*1.0; },0);
-  OBST.push({x,z,r:.6,kind:'cairn'}); }
+const CAIRNS=[];
+function makeCairn(x,z,sizes,seed=0){ const y=hAt(x,z);
+  sizes.reduce((h,rr,i)=>{ const m=new THREE.Mesh(new THREE.DodecahedronGeometry(rr,1),rockMats[(i+seed)%3]);
+    m.scale.set(1,.55,1); m.position.set(x+Math.sin(i*2.1+seed)*.025,y+h+rr*.5,z+Math.cos(i*1.7+seed)*.025); m.rotation.y=i+seed; m.castShadow=m.receiveShadow=true; scene.add(m); return h+rr*1.0; },0);
+  OBST.push({x,z,r:.6,kind:'cairn'}); CAIRNS.push({x,z,y,top:y+sizes.reduce((a,b)=>a+b,0)}); }
+{ const [x,z]=polar(-1.55,.9); makeCairn(x,z,[.42,.34,.27,.2,.14]); }
 
 /* campsite */
 {
@@ -1729,6 +1738,23 @@ const steles=STELES.map(([text,a,f],si)=>{
   return {x,z,y,tag,op:0};
 });
 
+/* ---------- 1b. more stone cairns; standing by one brings a 心之語 (a word from the heart) ---------- */
+{ const [x1,z1]=freeSpot(.95,.8); makeCairn(x1,z1,[.38,.31,.25,.18],1);
+  const [x2,z2]=freeSpot(2.2,.45); makeCairn(x2,z2,[.45,.36,.29,.22,.16,.11],2); }
+const HEART=['慢一點，心會跟上來。','今天的你，已經夠好了。','每一次回到呼吸，都是一次回家。','累了，就先坐下來，路不會跑掉。','心靜下來的地方，風也會變輕。',
+  '一顆石頭疊上一顆石頭，一個呼吸接著一個呼吸。','你走過的路，都在帶你回到這裡。','溫柔地對待此刻的自己。','煩惱來了，就讓它坐在旁邊。','山不催促雲，你也不必催促自己。',
+  '把肩膀放下來，把心也放下來。','每一個安靜的片刻，都在默默照顧你。'];
+const heartCard=document.createElement('div'); heartCard.className='heart-card'; document.body.appendChild(heartCard);
+let heartAt=-1, lastHeart=-1;
+function heartNear(){
+  let near=-1; if(self&&me.phase==='walk') CAIRNS.forEach((c,i)=>{ if(Math.hypot(self.x-c.x,self.z-c.z)<2.6) near=i; });
+  if(near===heartAt) return; heartAt=near;
+  if(near<0){ heartCard.classList.remove('on'); return; }
+  let i; do{ i=Math.floor(Math.random()*HEART.length); }while(i===lastHeart); lastHeart=i;
+  heartCard.innerHTML=`<div class="hk">心之語</div><div class="ht">${HEART[i].replace(/，/g,'，<br>')}</div>`; // lines are our own text, safe to break at commas
+  heartCard.classList.add('on');
+}
+
 /* ---------- 2. lotus flowers (day) and golden stars (night) — one per hour the mountain has sat ---------- */
 const LOTUS_MAX=40;
 const lotusMat=new THREE.MeshStandardMaterial({color:'#f7b6cb',emissive:'#f290b2',emissiveIntensity:.32,roughness:.55,side:THREE.DoubleSide});
@@ -1876,7 +1902,7 @@ function animateSurprises(t,dt,W,H){
   for(let i=0;i<n;i++){ const L=skyList[i]; skyPos(L.id,t,_v); _s.setScalar(5); _q.setFromAxisAngle(UP_AXIS,t*.1+i);
     _m.compose(_v,_q,_s); skyBody.setMatrixAt(i,_m); _v.y-=.38; _m.compose(_v,_q,_s); skyCore.setMatrixAt(i,_m); }
   if(n){ skyBody.instanceMatrix.needsUpdate=true; skyCore.instanceMatrix.needsUpdate=true; }
-  lanNear();
+  heartNear(); lanNear();
 }
 
 /* ===================== loop ===================== */
