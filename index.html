@@ -960,6 +960,8 @@ const me={ id:null, name:store.get('name',''), country:store.get('country',''), 
   gender:store.get('gender','boy'), robe:store.get('robe','saffron'),
   phase:'intro', sitSec:0, paused:'', lean:false, total:store.get('total',0), sessions:store.get('sessions',0), darkCam:false };
 let self=null;
+// the ledger is saved every 10 s while sitting, so it may hold time from a sit that was closed without standing up — keep the larger
+me.total=Math.max(me.total, Math.floor(ledger[UID]?.t||0)); store.set('total',me.total);
 ledgerPut(UID,me.total,me.name||'同修',me.country); ledgerSave();
 function myLedgerSync(){ const t=me.total+(me.phase==='sit'?me.sitSec:0); const e=ledger[UID];
   if(!e||t>e.t||e.n!==me.name){ ledger[UID]={t:Math.max(t,e?.t||0),n:me.name||'同修',c:me.country}; } }
@@ -1434,7 +1436,9 @@ renderer.setAnimationLoop(()=>{
   for(const p of peers.values()) p.drawTag(W,H);
 });
 const ld=$('loading'); ld.style.opacity='0'; setTimeout(()=>ld.remove(),1300);
-addEventListener('pagehide',()=>{ try{ room?.leave(); }catch{} });
+addEventListener('pagehide',()=>{ // closing the page mid-sit still keeps the minutes
+  if(me.phase==='sit'&&me.sitSec>0){ myLedgerSync(); ledgerSave(); store.set('total',Math.max(me.total, Math.floor(ledger[UID]?.t||0))); }
+  try{ room?.leave(); }catch{} });
 </script>
 </body>
 </html>
