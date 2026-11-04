@@ -1184,20 +1184,22 @@ function makeKid({gender='boy',robe='saffron'}){
     const sh=new THREE.Mesh(new THREE.CapsuleGeometry(.074,.07,4,10),M(pantsC)); sh.position.y=-.085; knee.add(sh);
     const f=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),M('#3b302a',.7)); f.scale.set(1,.7,1.4); f.position.set(0,-.175,.04); knee.add(f);
     return hip; };
-  const legL=leg(.1), legR=leg(-.1);
+  const legL=leg(.12), legR=leg(-.12);
   g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; } });
   return {g,body,torso,head,eyes,armL,armR,legL,legR};
 }
 function pose(k,t,mv,s,lean,ph){
-  const sw=Math.sin(ph)*.75*mv*(1-s);
+  const w=mv*(1-s), sn=Math.sin(ph), cs=Math.cos(ph);
+  // a real walk: opposite arm and leg, the swinging leg lifts its foot (knee bends), hips sway, shoulders counter-twist
+  const sw=sn*.72*w;
+  const bL=Math.max(0,cs)*1.05*w+.08*w, bR=Math.max(0,-cs)*1.05*w+.08*w;
   // walking → cross-legged: thighs swing forward and out, shins fold in and cross
-  const bL=Math.max(0,Math.sin(ph+1.2))*.9*mv*(1-s), bR=Math.max(0,Math.sin(ph+1.2+Math.PI))*.9*mv*(1-s);
-  k.legL.rotation.set(sw*(1-s)-1.5*s,0,.9*s); k.legL.knee.rotation.set(bL+.05*s,0,-2.1*s);
-  k.legR.rotation.set(-sw*(1-s)-1.5*s,0,-.9*s); k.legR.knee.rotation.set(bR-.12*s,0,2.1*s);
+  k.legL.rotation.set(sw-1.5*s,0,.04*w+.9*s); k.legL.knee.rotation.set(bL+.05*s,0,-2.1*s);
+  k.legR.rotation.set(-sw-1.5*s,0,-.04*w-.9*s); k.legR.knee.rotation.set(bR-.12*s,0,2.1*s);
   const reach=Math.sin(Math.min(1,s)*Math.PI); // hands come forward while lowering, then rest on the knees
-  k.armL.rotation.set(-sw*.8*(1-s)-.5*s-.35*reach,0,.06-.02*s); k.armR.rotation.set(sw*.8*(1-s)-.5*s-.35*reach,0,-.06+.02*s);
-  k.body.position.y=.42-.29*s+Math.abs(Math.sin(ph))*.035*mv*(1-s);
-  k.body.rotation.x=-.2*lean*s+.22*reach;
+  k.armL.rotation.set(-sn*.85*w-.5*s-.35*reach,0,.06+.16*w-.02*s); k.armR.rotation.set(sn*.85*w-.5*s-.35*reach,0,-.06-.16*w+.02*s);
+  k.body.position.y=.42-.29*s+Math.abs(sn)*.05*w;
+  k.body.rotation.set(-.2*lean*s+.22*reach+.07*w, sn*.14*w, -sn*.05*w);
   k.torso.scale.set(1,1+.022*Math.sin(t*1.15)*s,1);
   k.head.rotation.x=.14*s - .1*lean*s;
   k.eyes.forEach(e=>e.scale.y=1-.82*s);
