@@ -1,0 +1,16 @@
+{
+  "name": "全球靜默空間 Global Silence Space",
+  "short_name": "靜默空間",
+  "description": "一座線上的山頂。世界各地的人在這裡一起安靜地坐下。",
+  "lang": "zh-Hant",
+  "start_url": "./?openExternalBrowser=1&src=app",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070c22",
+  "theme_color": "#070c22",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

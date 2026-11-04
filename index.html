@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#1d2a3a">
+<link rel="manifest" href="manifest.webmanifest" id="manifestLink">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="靜默空間">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+/* iPhone: "加入主畫面" should remember the page as it is right now (it may carry this phone's account, see addHome), so leave the manifest to Android */
+(function(){ try{ if(/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)){ var l=document.getElementById('manifestLink'); if(l) l.remove(); } }catch(e){} })();
+</script>
 <script>
 /* Opened inside LINE's in-app browser? The camera often won't work there — ask LINE to reopen us in Chrome/Safari (once). */
 (function(){ try{
@@ -216,6 +227,15 @@ body.on-intro #lb{display:none}
 .line-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;background:#06c755;color:#fff;font-weight:600;font-size:15px;text-decoration:none}
 .line-btn svg{width:20px;height:20px}
 .line-mini{display:inline-block;margin-top:12px;font-size:13px;color:var(--ink-dim);text-decoration:none;border-bottom:1px solid rgba(6,199,85,.6)}
+.home-link{display:block;width:100%;margin-top:10px;padding:6px 4px;background:none;font-size:13px;color:var(--gold);opacity:.88;letter-spacing:.04em}
+.home-link u{text-decoration:none;border-bottom:1px dotted rgba(232,195,122,.6);padding-bottom:1px}
+.home-ic{display:block;width:68px;height:68px;border-radius:16px;margin:2px auto 10px;box-shadow:0 8px 22px rgba(0,0,0,.4)}
+.home-steps{list-style:none;margin:14px 0 0;padding:0;text-align:left;counter-reset:hs}
+.home-steps li{counter-increment:hs;position:relative;padding:9px 0 9px 38px;font-size:14.5px;line-height:1.5;border-top:1px solid var(--line)}
+.home-steps li:first-child{border-top:0}
+.home-steps li::before{content:counter(hs);position:absolute;left:2px;top:9px;width:24px;height:24px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.home-steps svg{width:17px;height:17px;vertical-align:-3px;margin:0 2px;color:var(--gold)}
+.home-note{font-size:12px;color:var(--ink-faint);margin-top:10px;line-height:1.6}
 .ab-link{display:block;text-align:center;padding:11px;border-radius:12px;border:1px dashed var(--line);color:var(--ink-faint);font-size:14px;text-decoration:none}
 .ab-wisdom{margin:12px 0 4px;padding:12px 14px;border-radius:14px;background:rgba(232,195,122,.1);border-left:3px solid var(--gold)}
 .ab-wk{font-size:11px;letter-spacing:.14em;color:var(--gold);margin-bottom:4px}
@@ -479,6 +499,7 @@ body.on-intro #lb{display:none}
     <h3>最新消息與聯絡</h3>
     <p>活動公告、抽獎名單、共修時段提醒，或想和創辦人聯絡，都在 LINE 社群。</p>
     <a class="line-btn" id="abNews" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群</a>
+    <button class="home-link hidden" data-home>📲 <u>把靜默空間放到手機桌面</u></button>
   </div>
   <div class="ab-sec">
     <h3>隨喜贊助 <span class="en-script" style="font-size:20px;margin-left:4px">Buy me a coffee</span></h3>
@@ -492,6 +513,7 @@ body.on-intro #lb{display:none}
   <div class="end-big" id="endTime">0 分</div>
   <div class="end-sub" id="endSub"></div>
   <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入社群，下次共修提醒你</a>
+  <button class="home-link hidden" data-home>📲 <u>放到手機桌面，下次一點就上山</u></button>
   <button class="btn-main" id="btnEndOk" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">回到山上</button>
 </div></div>
 <div class="modal ev-modal hidden" id="mEvent"><div class="ev-sheet">
@@ -509,8 +531,16 @@ body.on-intro #lb{display:none}
   </ol>
   <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">加入 LINE 社群</a>
   <button class="ev-share" id="evShare">分享給好朋友，一起上山</button>
+  <button class="home-link hidden" data-home>週日想準時上山？📲 <u>先把靜默空間放到桌面</u></button>
   <button class="btn-main" id="evClose" style="margin-top:10px">上山去</button>
   <p class="ev-fine">禮券為 7-ELEVEN 數位商品禮券，可分次使用，限台灣使用。手機請插著充電、架穩，讓鏡頭看得到你的臉。詳細辦法以 LINE 社群公告為準。</p>
+</div></div>
+<div class="modal hidden" id="mHome"><div class="modal-in" style="text-align:center">
+  <img class="home-ic" src="apple-touch-icon.png" alt="">
+  <h2 class="m-title" style="font-size:20px">放到手機桌面</h2>
+  <div class="home-note" style="margin-top:2px;font-size:13px">像 App 一樣，下次一點就上山</div>
+  <div id="homeBody"></div>
+  <button class="btn-main" id="homeClose" style="margin-top:16px">好</button>
 </div></div>
 <div id="dim"><div class="dd"></div><div class="dt" id="dimTime">0:00</div><div class="dh" id="dimHint">省電模式・輕觸畫面恢復亮度</div></div>
 <div id="toast"></div>
@@ -535,6 +565,15 @@ const netReady = import('https://cdn.jsdelivr.net/npm/trystero@0.26.0/+esm')
 const $=id=>document.getElementById(id);
 const store={ get(k,d){ try{ const v=localStorage.getItem('gss.'+k); return v==null?d:JSON.parse(v);}catch{return d;} },
               set(k,v){ try{ localStorage.setItem('gss.'+k,JSON.stringify(v)); }catch{} } };
+const UA=navigator.userAgent, IS_IOS=/iP(hone|ad|od)/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const IN_APP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(UA);
+{ // iPhone keeps the home-screen icon's storage apart from Safari's: the icon's address carries this phone's account over, once
+  try{ const u=new URL(location.href), k=u.searchParams.get('k');
+    if(k){ if(STANDALONE&&!store.get('sid',null)){ const d=JSON.parse(decodeURIComponent(escape(atob(k.replace(/-/g,'+').replace(/_/g,'/')))));
+        if(d&&d.sid&&d.sk){ store.set('sid',d.sid); store.set('sk',d.sk); ['name','country','method','gender','robe'].forEach((f,i)=>{ const v=d[['n','c','m','g','r'][i]]; if(v) store.set(f,v); }); if(d.t>0) store.set('total',d.t); } }
+      u.searchParams.delete('k'); history.replaceState(null,'',u.toString()); } }catch{}
+}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerpAngle=(a,b,t)=>{ let d=((b-a+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; return a+d*t; };
 function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
@@ -1637,6 +1676,45 @@ function rise(msg){
   if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…</div>'); srvEnd(false).then(()=>paint()); }
 }
 $('btnEndOk').onclick=()=>$('mEnd').classList.add('hidden');
+
+/* ===================== 放到手機桌面 (add to home screen) ===================== */
+let installEvt=null, homeUrlBack=null;
+const SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+function homeLinks(){ const show=isMobile&&!STANDALONE&&!store.get('installed',false); document.querySelectorAll('[data-home]').forEach(b=>b.classList.toggle('hidden',!show)); }
+addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; });
+addEventListener('appinstalled',()=>{ store.set('installed',true); installEvt=null; homeLinks(); $('mHome').classList.add('hidden'); toast('已放到手機桌面，下次一點就上山 🙏'); });
+function openHome(){
+  const body=$('homeBody'), url='https://global-silence.vercel.app/?openExternalBrowser=1';
+  if(IN_APP){
+    const line=/\bLine\//i.test(UA);
+    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">目前是在 ${line?'LINE':'App'} 裡面開啟的，<br>請先用 ${IS_IOS?'Safari':'Chrome'} 打開，才能放到桌面。</p>`
+      +(line?`<button class="ev-share" id="homeOut">用 ${IS_IOS?'Safari':'瀏覽器'} 打開</button>`:`<button class="ev-share" id="homeOut">複製網址</button>`);
+    $('homeOut').onclick=()=>{ if(line) location.href=url; else navigator.clipboard?.writeText(url).then(()=>toast('已複製，貼到瀏覽器打開'),()=>toast(url)); };
+  } else if(IS_IOS){
+    const chrome=/CriOS/.test(UA);
+    body.innerHTML=`<ol class="home-steps">
+      <li>點${chrome?'網址列右邊':'畫面下方'}的「分享」${SHARE_SVG}</li>
+      <li>往下滑，選「<b>加入主畫面</b>」</li>
+      <li>按右上角「<b>加入</b>」，就完成了</li></ol>
+      <p class="home-note">從桌面打開時，你的名字和累積時數會跟著過去。</p>`;
+    // carry this phone's account in the address the icon will remember (removed again when this closes)
+    try{ if(srv.id&&srv.secret){ const d={sid:srv.id,sk:srv.secret,n:me.name,c:me.country,m:me.method,g:me.gender,r:me.robe,t:me.total};
+      const k=btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      const u=new URL(location.href); homeUrlBack=u.toString(); u.searchParams.set('k',k); history.replaceState(null,'',u.toString()); } }catch{}
+  } else if(installEvt){
+    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">按下面的按鈕，桌面就會出現「靜默空間」。</p><button class="ev-share" id="homeInstall">安裝到桌面</button>`;
+    $('homeInstall').onclick=async()=>{ const e=installEvt; installEvt=null; e.prompt(); try{ const r=await e.userChoice; if(r.outcome==='accepted'){ store.set('installed',true); homeLinks(); $('mHome').classList.add('hidden'); } }catch{} };
+  } else {
+    body.innerHTML=`<ol class="home-steps">
+      <li>點瀏覽器右上角的「<b>⋮</b>」</li>
+      <li>選「<b>加到主畫面</b>」或「<b>安裝應用程式</b>」</li>
+      <li>按「<b>新增</b>」，就完成了</li></ol>`;
+  }
+  $('mHome').classList.remove('hidden');
+}
+$('homeClose').onclick=()=>{ $('mHome').classList.add('hidden'); if(homeUrlBack){ history.replaceState(null,'',homeUrlBack); homeUrlBack=null; } };
+document.querySelectorAll('[data-home]').forEach(b=>b.onclick=openHome);
+homeLinks();
 /* the event certificate: shown on the end screen, meant to be screenshotted into the LINE group */
 const twTime=t=>new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(t);
 function certHTML(startedAt){
