@@ -1674,6 +1674,31 @@ function sitCinematic(){
 const FD_VER='1.2.0', FD_BASE=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${FD_VER}`;
 const FD_MODEL='https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
 const FACE_GRACE=8, FACE_LIMIT=60; // seconds: pause counting after 8s unseen, stand up after 60s
+/* eyes are closed while sitting, so the camera warnings are also heard: soft rounded tones + a calm voice, never sharp or loud */
+let faceAlert=0; // 0 fine · 1 paused (told) · 2 reminded at 30 s · 3 final five seconds
+function softTones(notes,vol=.12,gap=.42,len=1.6){
+  try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==='suspended') actx.resume();
+    const t0=actx.currentTime+.05, out=actx.createGain(), lp=actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1800; out.gain.value=vol; lp.connect(out); out.connect(actx.destination);
+    notes.forEach((f,i)=>{ const t=t0+i*gap; [[f,'sine',1],[f*2,'triangle',.18]].forEach(([fr,ty,a])=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type=ty; o.frequency.value=fr;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(a,t+.06); g.gain.exponentialRampToValueAtTime(.0001,t+len); o.connect(g); g.connect(lp); o.start(t); o.stop(t+len+.1); }); });
+  }catch{}
+}
+function softTick(){ softTones([392],.07,0,.35); }
+let zhVoice=null;
+function pickVoice(){ try{ const v=speechSynthesis.getVoices(); zhVoice=v.find(x=>/zh[-_]TW/i.test(x.lang))||v.find(x=>/zh[-_](HK|Hant)/i.test(x.lang))||v.find(x=>/^zh/i.test(x.lang))||null; }catch{} }
+try{ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }catch{}
+function sayGently(text,delay=900){ setTimeout(()=>{ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang=zhVoice?.lang||'zh-TW'; if(zhVoice) u.voice=zhVoice; u.rate=.88; u.pitch=1; u.volume=.75; speechSynthesis.speak(u); }catch{} },delay); }
+function primeVoice(){ try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch{} } // phones only allow speech after a tap
+function faceAlerts(gone,found){
+  if(found&&faceAlert){ faceAlert=0; softTones([523.3,784],.09,.32,1.4); sayGently('已恢復計時',700); return; }
+  if(found||faceState!=='ready'||document.hidden) return;
+  const left=FACE_LIMIT-gone;
+  if(faceAlert<1&&gone>FACE_GRACE){ faceAlert=1; softTones([659.3,523.3]); sayGently('鏡頭暫時看不到你，計時已暫停。請稍微調整位置或燈光。'); }
+  else if(faceAlert<2&&gone>=30){ faceAlert=2; softTones([659.3,523.3]); sayGently('提醒你，鏡頭還是看不到你。'); }
+  else if(faceAlert<3&&left<=5.5){ faceAlert=3; softTones([784,659.3,523.3],.15,.38); sayGently('還有五秒，就會自動起座。請調整鏡頭角度或燈光。',1300); }
+  else if(faceAlert===3&&left>0&&left<=4.5) softTick();
+}
 let faceDet=null, faceState='idle', faceLoadT=0, lastFaceAt=0, lastFdTs=0;  // idle | loading | ready | failed
 async function loadFace(){
   if(faceState!=='idle') return; faceState='loading'; faceLoadT=performance.now();
@@ -1730,7 +1755,7 @@ function grabFrame(){
 $('camStart').onclick=async()=>{
   clearInterval(checkTimer);
   try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
-  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); sheet('sheetSit'); bell(); srvStart(); setSaver(true);
+  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); faceAlert=0; primeVoice(); sheet('sheetSit'); bell(); srvStart(); setSaver(true);
   // drift up to a 45° view from above and slowly circle the sitter, with the mountains behind
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw);
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
@@ -1745,7 +1770,8 @@ function tick(){
   if(me.sitSec%10===0){ myLedgerSync(); ledgerSave(); }
   const f=document.hidden?null:faceSeen(sitPrev); if(f) lastFaceAt=performance.now();
   const gone=faceState==='ready'&&!document.hidden?(performance.now()-lastFaceAt)/1000:0;
-  if(gone>=FACE_LIMIT){ rise('一分鐘沒有偵測到你，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
+  faceAlerts(gone,!!f);
+  if(gone>=FACE_LIMIT){ faceAlert=0; softTones([523.3,392],.1,.5,2); sayGently('已自動起座。這一座的時數，算到剛才為止。',1200); rise('一分鐘沒有偵測到你，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
   let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住'; else if(gone>FACE_GRACE) reason='沒有偵測到人';
   if(reason!==me.paused){ me.paused=reason; sendState(); }
   if(!reason) me.sitSec++;
