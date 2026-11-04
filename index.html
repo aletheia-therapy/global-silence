@@ -179,6 +179,8 @@ body.on-intro #lb{display:none}
 #btnDown small{font-size:10px;font-weight:400;letter-spacing:.05em;opacity:.75}
 #elderTag{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--gold);
   background:rgba(10,14,22,.55);border:1px solid rgba(232,195,122,.35);padding:3px 10px 3px 13px;border-radius:10px;transform-origin:50% 100%;text-shadow:0 0 10px rgba(232,195,122,.35)}
+#tentAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
+  background:linear-gradient(180deg,#d9efb0,#a9d46c);color:#24361a;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(120,170,70,.4);animation:askIn .5s ease}
 #lanAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
   background:linear-gradient(180deg,#ffcf8a,#f0a14a);color:#3a2410;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(240,140,60,.4);animation:askIn .5s ease}
 .stele-tag{position:absolute;left:0;top:0;z-index:2000;pointer-events:none;text-align:center;white-space:nowrap;font-family:var(--serif);font-size:21px;letter-spacing:.18em;line-height:1.6;
@@ -494,6 +496,7 @@ body.on-intro #lb{display:none}
 <div class="modal hidden" id="mRank"><div class="modal-in" id="mRankIn"></div></div>
 <button id="likeAsk" class="hidden"></button>
 <button id="lanAsk" class="hidden">🏮 點一盞祈願燈</button>
+<button id="tentAsk" class="hidden">🦟 給怕蚊子的你・進帳篷坐嗎？</button>
 <button id="lotusAsk" class="hidden">🪷 種一朵祝福蓮花</button>
 <div class="modal hidden" id="mLotus"><div class="modal-in">
   <div class="hud-title" style="font-size:12px;color:#f290b2">山頂的蓮花池</div>
@@ -1362,7 +1365,7 @@ function sanitize(d){
     sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
-  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase,sitSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
+  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase==='enter'?'walk':me.phase,sitSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
 function sendState(){ if(aSt&&me.phase!=='intro') aSt.send(myState()); }
 setInterval(sendState,STATE_MS);
 setInterval(()=>{ myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); },30000);
@@ -1585,7 +1588,7 @@ $('rotL').onclick=()=>{ self.r+=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('
 $('rotR').onclick=()=>{ self.r-=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('presets').children].forEach(b=>b.classList.remove('on')); sendPosNow(); };
 function sendPosNow(){ lastPosSent=0; lastPos=''; }
 $('poseUp').onclick=standUp;
-function standUp(){ stopFree(); freeSec=0; cameFromFree=false; setSaver(false); clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
+function standUp(){ if(inTent) leaveTent(); stopFree(); freeSec=0; cameFromFree=false; setSaver(false); clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
   me.phase='walk'; sheet(null); showWalkUI(true); sendState(); sendPosNow(); }
 let cineT=null;
 /* two ways to sit: free (no camera, nothing recorded) or formal (camera, counted) */
@@ -1618,7 +1621,8 @@ $('btnFreeRise').onclick=async()=>{
   paint(); $('mEnd').classList.remove('hidden');
   await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
 };
-$('poseOk').onclick=()=>{
+$('poseOk').onclick=()=>sitCinematic();
+function sitCinematic(){
   me.phase='cam'; sheet(null); sendState(); bell(.35);
   if(ov.on){ cam.yaw=ov.yaw; setOverview(false); }
   // slow cinematic: glide in close from the front-side and watch the little one settle down
@@ -1626,7 +1630,7 @@ $('poseOk').onclick=()=>{
   clearTimeout(cineT); cineT=setTimeout(()=>{ if(me.phase!=='cam') return;
     cam.rate=1.2; cam.yawTarget=self.r+Math.PI; cam.distTarget=5; cam.pitchTarget=.36;
     sheet('sheetMode'); },3800);
-};
+}
 
 /* face presence, detected on this phone only (MediaPipe) — the picture never leaves the device for this */
 const FD_VER='1.2.0', FD_BASE=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${FD_VER}`;
@@ -2289,7 +2293,88 @@ function labelAt(el,x,y,z,op,W,H,maxD=40,center=false){
   el.style.display='block'; el.style.opacity=op.toFixed(2);
   el.style.transform=`translate(${(_v.x+1)/2*W}px,${(1-_v.y)/2*H}px) translate(-50%,${center?'-50%':'-100%'}) scale(${clamp(8/d,.7,1.15)})`;
 }
+
+/* ---------- 5. 打坐帳 (meditation nets): one hanging from the big tree, three small pop-up domes ---------- */
+const TENTS=[];
+function makeNetMat(c,o){ return new THREE.MeshStandardMaterial({color:c,roughness:1,transparent:true,opacity:o,side:THREE.DoubleSide,depthWrite:false}); }
+function addTent(t){ // t: {x,z,rot,g,door}
+  t.y=hAt(t.x,t.z); t.g.position.set(t.x,t.y-.02,t.z); t.g.rotation.y=t.rot; scene.add(t.g);
+  t.open=0; t.openT=0; t.front=[Math.sin(t.rot),Math.cos(t.rot)]; t.sx=t.x-t.front[0]*.22; t.sz=t.z-t.front[1]*.22;
+  t.ex=t.x+t.front[0]*1.5; t.ez=t.z+t.front[1]*1.5; // just outside the door
+  OBST.push({x:t.x,z:t.z,r:t.kind==='hang'?.95:1.0,kind:'mtent'}); TENTS.push(t);
+}
+function domeTent(x,z,col,frameCol){
+  const g=new THREE.Group(), net=makeNetMat(col,.4), frame=new THREE.MeshStandardMaterial({color:frameCol,roughness:.8});
+  const SX=.9, SY=1.62, DW=1.0; // door: an arc of the shell at the front (+z) that slides round to open
+  const shell=new THREE.Mesh(new THREE.SphereGeometry(1,28,12,Math.PI/2+DW/2,Math.PI*2-DW,0,Math.PI/2),net); shell.scale.set(SX,SY,SX); g.add(shell);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(1,8,4,Math.PI/2-DW/2,DW,0,.42),net); cap.scale.set(SX,SY,SX); g.add(cap);
+  const door=new THREE.Group(); const dm=new THREE.Mesh(new THREE.SphereGeometry(1,8,8,Math.PI/2-DW/2,DW,.42,Math.PI/2-.42),makeNetMat(col,.5)); dm.scale.set(SX,SY,SX); door.add(dm); g.add(door);
+  [0,Math.PI/2].forEach(a=>{ const arc=new THREE.Mesh(new THREE.TorusGeometry(1,.016,6,40,Math.PI),frame); arc.scale.set(SX,SY,1); arc.rotation.y=a+Math.PI/4; arc.castShadow=true; g.add(arc); });
+  const hem=new THREE.Mesh(new THREE.TorusGeometry(SX,.02,6,40),frame); hem.rotation.x=Math.PI/2; hem.position.y=.02; g.add(hem);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(SX*.98,32),new THREE.MeshStandardMaterial({color:'#3a2c22',roughness:1,transparent:true,opacity:.55})); floor.rotation.x=-Math.PI/2; floor.position.y=.015; g.add(floor);
+  const mat=new THREE.Mesh(new THREE.BoxGeometry(.72,.025,.72),new THREE.MeshStandardMaterial({color:'#9b6a4a',roughness:.95})); mat.position.y=.03; mat.receiveShadow=true; g.add(mat);
+  return {x,z,rot:Math.atan2(x,z),g,door,kind:'dome'};
+}
+function hangingNet(x,z,tree){
+  const g=new THREE.Group(), col='#a9d46c', net=makeNetMat(col,.5), H=2.2, rT=.3, rB=.82, DW=1.0;
+  const ring=new THREE.MeshStandardMaterial({color:'#7fa84a',roughness:.7});
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(rT,rB,H,32,1,true,DW/2,Math.PI*2-DW),net); body.position.y=H/2; g.add(body);
+  const door=new THREE.Group(); const dm=new THREE.Mesh(new THREE.CylinderGeometry(rT,rB,H,8,1,true,-DW/2,DW),makeNetMat(col,.56)); dm.position.y=H/2; door.add(dm); g.add(door);
+  const hoop=new THREE.Mesh(new THREE.TorusGeometry(rT,.022,6,28),ring); hoop.rotation.x=Math.PI/2; hoop.position.y=H; g.add(hoop);
+  const top=new THREE.Mesh(new THREE.ConeGeometry(rT,.32,24,1,true),net); top.position.y=H+.16; g.add(top);
+  const hem=new THREE.Mesh(new THREE.TorusGeometry(rB,.02,6,40),ring); hem.rotation.x=Math.PI/2; hem.position.y=.03; g.add(hem);
+  const mat=new THREE.Mesh(new THREE.BoxGeometry(.7,.025,.7),new THREE.MeshStandardMaterial({color:'#c9b4e0',roughness:.95})); mat.position.y=.03; mat.receiveShadow=true; g.add(mat);
+  const rot=Math.atan2(x,z), t={x,z,rot,g,door,kind:'hang'};
+  // rope up to a branch that reaches out from the trunk
+  const y0=hAt(x,z), by=y0+2.95, rope=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,by-(y0+H+.32),4),new THREE.MeshStandardMaterial({color:'#d8cdb4'}));
+  rope.position.y=H+.32+(by-(y0+H+.32))/2; g.add(rope);
+  const tx=tree.x, tz=tree.z, ty=hAt(tx,tz)+2.5, bx=x-tx, bz=z-tz, len=Math.hypot(bx,bz,by-ty);
+  const br=new THREE.Mesh(new THREE.CylinderGeometry(.045,.085,len+.15,7),trunkMat); br.position.set((tx+x)/2,(ty+by)/2,(tz+z)/2);
+  br.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(bx,by-ty,bz).normalize()); br.castShadow=true; scene.add(br);
+  return t;
+}
+{ // the hanging net sits beside the big round tree on the summit
+  const tree=OBST.filter(o=>o.kind==='tree').map(o=>({o,d:Math.hypot(o.x,o.z)})).sort((a,b)=>a.d-b.d)[0].o;
+  let spot=null;
+  for(let k=0;k<16&&!spot;k++){ const a=Math.atan2(tree.x,tree.z)+(k%2?1:-1)*Math.floor((k+1)/2)*.4, x=tree.x+Math.sin(a)*3.4, z=tree.z+Math.cos(a)*3.4;
+    if(walkable(x,z)&&!OBST.some(o=>o!==tree&&Math.hypot(o.x-x,o.z-z)<o.r+1.3)&&Math.hypot(x-POND.x,z-POND.z)>POND.r+1.4) spot=[x,z]; }
+  if(spot) addTent(hangingNet(spot[0],spot[1],tree));
+  // three pop-up domes, spread evenly round the summit
+  [[-1.25,.66,'#5b4130','#2c1e15'],[.85,.7,'#4f6b33','#26331a'],[2.55,.62,'#5b4130','#2c1e15']].forEach(([a,f,c,fc])=>{ const [x,z]=freeSpot(a,f); addTent(domeTent(x,z,c,fc)); });
+  TENTS.forEach(t=>t.g.traverse(o=>{ if(o.isMesh&&!o.material.transparent) o.castShadow=true; }));
+}
+let tentShown=null, inTent=null, tentAnim=null;
+const tentBusy=t=>[...peers.values()].some(p=>['pose','cam','sit','free'].includes(p.info.phase)&&Math.hypot(p.x-t.x,p.z-t.z)<.7);
+function tentNear(){
+  let best=null; if(self&&me.phase==='walk') TENTS.forEach(t=>{ const d=Math.min(Math.hypot(self.x-t.ex,self.z-t.ez),Math.hypot(self.x-t.x,self.z-t.z)-.9); if(d<1.7&&!tentBusy(t)) best=t; });
+  if(best!==tentShown){ tentShown=best; $('tentAsk').classList.toggle('hidden',!best); }
+  if(best){ $('elderAsk').classList.add('hidden'); $('likeAsk').classList.add('hidden'); $('lanAsk').classList.add('hidden'); }
+}
+$('tentAsk').onclick=()=>{ if(!tentShown||me.phase!=='walk') return; enterTent(tentShown); };
+function enterTent(t){ // open the door, step in sideways, turn round, then sit as usual
+  inTent=t; tentShown=null; $('tentAsk').classList.add('hidden');
+  me.phase='enter'; me.lean=false; showWalkUI(false); sheet(null); sendState(); bell(.25);
+  if(ov.on){ cam.yaw=ov.yaw; cam.pitch=.42; cam.dist=7; setOverview(false); }
+  cam.rate=.9; cam.yawTarget=t.rot+.9; cam.distTarget=4.2; cam.pitchTarget=.3;
+  tentAnim={t,t0:performance.now(),sx:self.x,sz:self.z}; t.openT=1;
+}
+const ease=k=>k<0?0:k>1?1:k*k*(3-2*k);
+function stepTentAnim(){
+  if(!tentAnim) return; const {t,t0,sx,sz}=tentAnim, e=(performance.now()-t0)/1000, inward=t.rot+Math.PI;
+  if(e<1.1){ const k=ease(e/1.1); self.x=sx+(t.ex-sx)*k; self.z=sz+(t.ez-sz)*k; self.r=lerpAngle(self.r,Math.atan2(t.x-self.x,t.z-self.z)||inward,.25); }
+  else if(e<2.3){ const k=ease((e-1.1)/1.2); self.x=t.ex+(t.sx-t.ex)*k; self.z=t.ez+(t.sz-t.ez)*k; self.r=inward+Math.sin(k*Math.PI)*1.25; } // sideways through the door
+  else if(e<3.1){ self.x=t.sx; self.z=t.sz; self.r=lerpAngle(self.r,t.rot,.12); }
+  else { self.r=t.rot; tentAnim=null; t.openT=0; sendPosNow(); sitCinematic(); return; }
+  sendPosNow();
+}
+function leaveTent(){ const t=inTent; if(!t) return; inTent=null; t.open=1; t.openT=1; setTimeout(()=>{ if(inTent!==t) t.openT=0; },1400);
+  self.x=t.ex; self.z=t.ez; self.r=t.rot; }
+if(QS.get('debug')) window.__gs={tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r})};
+function animateTents(dt){ stepTentAnim();
+  TENTS.forEach(t=>{ t.open+=(t.openT-t.open)*Math.min(1,dt*3.2); t.door.rotation.y=t.open*1.2; }); }
+
 function animateSurprises(t,dt,W,H){
+  animateTents(dt);
   const sx=self?self.x:1e9, sz=self?self.z:1e9;
   // steles: words surface as you come close
   let steleOp=0;
@@ -2325,7 +2410,7 @@ function animateSurprises(t,dt,W,H){
   for(let i=0;i<n;i++){ const L=skyList[i]; skyPos(L.id,t,_v); _s.setScalar(5); _q.setFromAxisAngle(UP_AXIS,t*.1+i);
     _m.compose(_v,_q,_s); skyBody.setMatrixAt(i,_m); _v.y-=.38; _m.compose(_v,_q,_s); skyCore.setMatrixAt(i,_m); }
   if(n){ skyBody.instanceMatrix.needsUpdate=true; skyCore.instanceMatrix.needsUpdate=true; }
-  heartNear(); lanNear(); lotusNear();
+  heartNear(); lanNear(); lotusNear(); tentNear();
 }
 
 /* ===================== loop ===================== */
