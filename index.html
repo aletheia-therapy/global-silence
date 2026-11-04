@@ -84,6 +84,26 @@ body.on-intro #evPill{display:none}
 .ev-card .ev-t{font-family:var(--serif);font-size:16px;margin-top:2px}
 .ev-card .ev-c{font-size:13px;color:var(--ink-dim);margin-top:3px;font-variant-numeric:tabular-nums}
 .ev-card.live{background:rgba(232,195,122,.85);color:#2a2214} .ev-card.live .ev-k,.ev-card.live .ev-c{color:#3b2f1a}
+.ev-modal{align-items:center;padding:calc(10px + var(--safe-t)) 10px calc(10px + var(--safe-b));background:rgba(5,8,14,.62)}
+.ev-sheet{position:relative;width:100%;max-width:420px;max-height:100%;overflow-y:auto;border-radius:24px;padding:22px 20px 18px;text-align:center;
+  background:radial-gradient(120% 60% at 50% 0%,rgba(232,195,122,.28),rgba(232,195,122,0) 60%),var(--glass-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(232,195,122,.45);box-shadow:0 20px 60px rgba(0,0,0,.45);animation:evIn .5s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes evIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+.ev-x{position:absolute;right:10px;top:8px;width:40px;height:40px;font-size:26px;line-height:1;color:var(--ink-dim)}
+.ev-eyebrow{font-size:12px;letter-spacing:.12em;color:var(--gold)}
+.ev-big{font-family:var(--serif);font-weight:600;font-size:46px;letter-spacing:.14em;margin:6px 0 0;text-indent:.14em;
+  background:linear-gradient(180deg,#fff3d6,#e8c37a 70%,#c99a45);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 14px rgba(232,195,122,.35))}
+.ev-prize{font-family:var(--serif);font-size:26px;font-weight:600;margin-top:2px;letter-spacing:.06em} .ev-prize span{color:var(--gold);font-size:20px;margin:0 2px}
+.ev-card-img{position:relative;width:78%;margin:16px auto 6px;transform:rotate(-3deg)}
+.ev-card-img img{display:block;width:100%;border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.15)}
+.ev-badge{position:absolute;right:-12px;top:-12px;width:50px;height:50px;border-radius:50%;background:var(--gold);color:#2a2214;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.35);transform:rotate(8deg)}
+.ev-when{font-size:13px;color:var(--ink-dim);margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.ev-steps{list-style:none;counter-reset:st;text-align:left;margin:12px 0 14px;padding:0}
+.ev-steps li{counter-increment:st;position:relative;padding:9px 0 9px 42px;border-top:1px solid var(--line)}
+.ev-steps li::before{content:counter(st);position:absolute;left:2px;top:10px;width:28px;height:28px;border-radius:50%;background:var(--gold-soft);border:1px solid var(--gold);color:var(--gold);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.ev-steps b{display:block;font-size:15px;font-weight:600} .ev-steps span{display:block;font-size:12.5px;color:var(--ink-dim);margin-top:2px} .ev-steps em{font-style:normal;color:var(--gold);font-weight:700}
+.ev-share{display:block;width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--gold);color:var(--gold);font-size:15px;font-weight:600}
+.ev-fine{font-size:11.5px;color:var(--ink-faint);line-height:1.7;margin:12px 0 0;text-align:left}
 .ev-rules{list-style:none;padding:0;margin:12px 0 0;font-size:14px;line-height:1.75;color:var(--ink-dim)}
 .ev-rules li{padding:7px 0;border-top:1px solid var(--line)} .ev-rules b{color:var(--ink);font-weight:600}
 #inLine{position:fixed;left:10px;right:10px;top:calc(10px + var(--safe-t));z-index:60;background:#06c755;color:#fff;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.3)}
@@ -312,20 +332,23 @@ body.on-intro #evPill{display:none}
   <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入社群，下次共修提醒你</a>
   <button class="btn-main" id="btnEndOk" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">回到山上</button>
 </div></div>
-<div class="modal hidden" id="mEvent"><div class="modal-in">
-  <div class="ev-k" style="font-size:11px;letter-spacing:.14em;color:var(--gold)">第一場線上共修</div>
-  <h2 class="m-title" style="font-size:20px;margin-top:4px">靜坐 45 分鐘，抽 500 元禮券</h2>
-  <div class="ev-c" id="evWhen" style="font-size:14px;color:var(--ink);margin-top:6px"></div>
-  <ul class="ev-rules">
-    <li><b>時間</b>　11 月 8 日（日）晚上 9 點開始（台灣時間），泰國時間晚上 8 點</li>
-    <li><b>參加方式</b>　上山、找個位置坐下、打開鏡頭，<b>單次連續坐滿 45 分鐘</b>即獲得抽獎資格</li>
-    <li><b>獎項</b>　抽出 3 位，每位 500 元禮券</li>
-    <li><b>公布</b>　中獎名單公布於「全球靜默空間」LINE 社群</li>
-    <li><b>小提醒</b>　手機插著充電、架穩，讓鏡頭看得到你的臉。超過一分鐘偵測不到人，會自動起座喔</li>
-  </ul>
-  <p class="s-sub" style="margin:10px 0 0;font-size:12px;color:var(--ink-faint)">詳細辦法以 LINE 社群公告為準。</p>
-  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:14px">加入 LINE 社群，活動前提醒你</a>
-  <button class="btn-main" id="evClose" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">知道了</button>
+<div class="modal ev-modal hidden" id="mEvent"><div class="ev-sheet">
+  <button class="ev-x" id="evX" aria-label="關閉">×</button>
+  <div class="ev-eyebrow">第一場線上共修・11/8（日）晚上 9 點</div>
+  <h2 class="ev-big">靜坐抽禮券</h2>
+  <div class="ev-prize">500 元 <span>×</span> 3 名</div>
+  <div class="ev-card-img"><img src="voucher.jpg" alt="7-ELEVEN 數位商品禮券 500 元"><div class="ev-badge">×3</div></div>
+  <div class="ev-when" id="evWhen"></div>
+  <ol class="ev-steps">
+    <li><b>11/8（日）晚上 9 點上山</b><span>台灣時間 21:00・泰國時間 20:00</span></li>
+    <li><b>找個位置坐下，打開鏡頭</b><span>單次連續坐滿 <em>45 分鐘</em></span></li>
+    <li><b>起座時，把結算畫面截圖</b><span>上面會顯示你這一座的時間</span></li>
+    <li><b>加入 LINE 社群，把截圖貼上</b><span>主辦方從中隨機抽出 3 名，各送 7-11 禮券 500 元</span></li>
+  </ol>
+  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">加入 LINE 社群</a>
+  <button class="ev-share" id="evShare">分享給好朋友，一起上山</button>
+  <button class="btn-main" id="evClose" style="margin-top:10px">上山去</button>
+  <p class="ev-fine">禮券為 7-ELEVEN 數位商品禮券，可分次使用，限台灣使用。手機請插著充電、架穩，讓鏡頭看得到你的臉。詳細辦法以 LINE 社群公告為準。</p>
 </div></div>
 <div id="toast"></div>
 <canvas id="snapC" width="128" height="128" class="hidden"></canvas>
@@ -984,7 +1007,7 @@ let preview=null;
 function previewKid(){}
 
 $('btnStart').onclick=()=>{ loadFace(); $('btnStart').classList.add('hidden'); $('introForm').classList.remove('hidden'); $('intro').classList.remove('welcome'); };
-$('btnEnter').onclick=()=>{
+$('btnEnter').onclick=()=>{ setTimeout(()=>{ if(evText()&&me.phase!=='intro') openEvent(); },900);
   if(!filled($('inName').value)||!filled($('inCountry').value)){ checkEnter(); return; }
   me.name=$('inName').value.trim().slice(0,16); me.country=$('inCountry').value.trim().slice(0,16);
   ['name','country','method','gender','robe'].forEach(k=>store.set(k,me[k]));
@@ -1075,7 +1098,7 @@ let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classLi
 let sheetOn=false;
 function sheet(id){ sheetOn=!!id; ['sheetPose','sheetCam','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
-['mPerson','mRank','mAbout','mEvent'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
+['mPerson','mRank','mAbout'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
 
 /* ===================== camera rig + input ===================== */
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
@@ -1373,11 +1396,19 @@ function updateEvent(){
   ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e)); if(!e) return;
   $('evPill').innerHTML=e.live?'<b>●</b> 共修進行中・活動辦法':e.pill; $('evPill').classList.toggle('live',e.live);
   $('evCard').classList.toggle('live',e.live); $('evK').textContent=e.live?'第一場線上共修・進行中':'第一場線上共修';
-  $('evT').textContent='靜坐 45 分鐘，抽 500 元禮券'; $('evC').textContent=e.live?e.card:`${e.when}・${e.card}`; $('evWhen').textContent=e.when;
+  $('evT').textContent='靜坐 45 分鐘，抽 500 元禮券'; $('evC').textContent=e.live?e.card:`${e.when}・${e.card}`;
+  $('evWhen').textContent=e.live?'● 共修進行中，現在就找個位置坐下吧':`${e.when}・${e.card}`;
 }
 updateEvent(); setInterval(updateEvent,1000);
 const openEvent=()=>$('mEvent').classList.remove('hidden');
-$('evCard').onclick=openEvent; $('evPill').onclick=openEvent; $('evClose').onclick=()=>$('mEvent').classList.add('hidden');
+const closeEvent=()=>$('mEvent').classList.add('hidden');
+$('evCard').onclick=openEvent; $('evPill').onclick=openEvent; $('evClose').onclick=closeEvent; $('evX').onclick=closeEvent;
+$('evShare').onclick=async()=>{
+  const url='https://global-silence.vercel.app/?openExternalBrowser=1';
+  const text='週日晚上 9 點（台灣時間），一起上「全球靜默空間」的山頂靜坐 45 分鐘，抽 7-11 禮券 500 元 × 3 名！';
+  try{ if(navigator.share){ await navigator.share({title:'全球靜默空間｜靜坐抽禮券',text,url}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(text+'\n'+url); toast('已複製連結，貼到 LINE 分享給朋友吧'); }catch{ toast(url); }
+};
 
 /* still inside LINE's in-app browser (the hop didn't happen)? say how to get out */
 if(/\bLine\//i.test(navigator.userAgent)){
