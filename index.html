@@ -248,6 +248,14 @@ body.on-intro #lb{display:none}
 #shh.on{opacity:1;transform:translate(-50%,0) scale(1)}
 #shh .shh-i{font-size:30px;line-height:1.1;margin-bottom:4px;animation:shhWig 1.2s ease-in-out infinite}
 @keyframes shhWig{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.next-sit{margin:12px auto 0;padding:13px 14px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);text-align:center}
+.next-sit .ns-thx{font-size:13px;line-height:1.75;color:var(--ink);padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.next-sit .ns-lead{font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:.06em}
+.next-sit .ns-k{font-size:13px;color:var(--gold);letter-spacing:.08em;margin-top:6px}
+.next-sit .ns-p{font-size:12.5px;color:var(--ink-dim);line-height:1.7;margin-top:4px}
+.next-sit .ns-next{margin-top:8px} .next-sit .ns-next span{display:block;font-size:11.5px;letter-spacing:.14em;color:var(--ink-faint)}
+.next-sit .ns-next b{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--gold)} .next-sit .ns-next small{font-size:11.5px;color:var(--ink-faint)}
+.ev-weekly{margin:12px 0 2px;padding:10px 12px;border-radius:12px;background:rgba(232,195,122,.1);font-size:13px;line-height:1.7;color:var(--ink-dim);text-align:left} .ev-weekly b{color:var(--gold)}
 .home-link{display:block;width:100%;margin-top:10px;padding:6px 4px;background:none;font-size:13px;color:var(--gold);opacity:.88;letter-spacing:.04em}
 .home-link u{text-decoration:none;border-bottom:1px dotted rgba(232,195,122,.6);padding-bottom:1px}
 .home-ic{display:block;width:68px;height:68px;border-radius:16px;margin:2px auto 10px;box-shadow:0 8px 22px rgba(0,0,0,.4)}
@@ -512,6 +520,10 @@ body.on-intro #lb{display:none}
   <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。去找個喜歡的地方坐下吧。」</p>
   <div class="ab-wisdom"><div class="ab-wk">老人輕聲對你說</div><p id="abWisdom"></p></div>
   <div class="ab-sec">
+    <h3>每週固定共修</h3>
+    <p>每週日晚上 9:00（台灣時間），全球一起上山靜坐。不需要抽獎，不需要特別理由。<br>下一次：<b style="color:var(--gold)" id="abNext"></b></p>
+  </div>
+  <div class="ab-sec">
     <h3>最新消息與聯絡</h3>
     <p>活動公告、抽獎名單、共修時段提醒，或想和創辦人聯絡，都在 LINE 社群。</p>
     <a class="line-btn" id="abNews" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群</a>
@@ -528,7 +540,7 @@ body.on-intro #lb{display:none}
   <div class="end-sub">這一座</div>
   <div class="end-big" id="endTime">0 分</div>
   <div class="end-sub" id="endSub"></div>
-  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入社群，下次共修提醒你</a>
+  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群，接收活動提醒與最新消息</a>
   <button class="home-link hidden" data-home>📲 <u>放到手機桌面，下次一點就上山</u></button>
   <button class="btn-main" id="btnEndOk" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">回到山上</button>
 </div></div>
@@ -545,6 +557,7 @@ body.on-intro #lb{display:none}
     <li><b>起座時，把「完成證明」截圖</b><span>坐滿 45 分鐘，起座畫面會出現你專屬的完成碼</span></li>
     <li><b>加入 LINE 社群，把截圖貼上</b><span>主辦方從中隨機抽出 3 名，各送 7-11 禮券 500 元</span></li>
   </ol>
+  <div class="ev-weekly">📅 從 11/15 起，<b>每週日晚上 9:00</b>（台灣時間）固定線上共修。<br>之後不一定每週都有抽獎，特別活動會在 LINE 社群公告。</div>
   <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">加入 LINE 社群</a>
   <button class="ev-share" id="evShare">分享給好朋友，一起上山</button>
   <button class="home-link hidden" data-home>週日想準時上山？📲 <u>先把靜默空間放到桌面</u></button>
@@ -1601,7 +1614,7 @@ $('btnFreeRise').onclick=async()=>{
   const paint=()=>{ const g=fs.secs>0?fs.secs:sec;
     $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><br><span style="font-size:12.5px;color:var(--ink-faint)">自由靜坐計入全球累積，不計入個人時數</span><br>`
       +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')
-      +`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修」🌏</small></div>`; };
+      +nextSitHTML()+`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修」🌏</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
 };
@@ -1724,7 +1737,7 @@ function rise(msg){
   const startedAt=srv.startedAt||Date.now()-sec*1000;
   const nLikes=likesGot.length; clearLikes();
   const bStart=srv.badgeStart??badgeIdx(me.total-sec);
-  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}<br>`+(nLikes?`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`:'隨喜 🙏')+badgeEndHTML(bStart,tot)+certHTML(startedAt)
+  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}<br>`+(nLikes?`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`:'隨喜 🙏')+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
     +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotalAll())}</b><small>這座山上所有人一起坐下的時間</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…</div>'); srvEnd(false).then(()=>paint()); }
@@ -1979,11 +1992,26 @@ const WISDOM=["閉上眼睛，放下一切，不追求平靜，不追求開悟�
 let lastW=-1;
 function pickWisdom(){ let i; do{ i=Math.floor(Math.random()*WISDOM.length); }while(i===lastW&&WISDOM.length>1); lastW=i;
   const p=$('abWisdom'); p.textContent=WISDOM[i]; p.style.animation='none'; void p.offsetWidth; p.style.animation=''; }
-$('elderYes').onclick=()=>{ pickWisdom(); elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; $('mAbout').classList.remove('hidden'); bell(.25); };
+function openAbout(){ pickWisdom(); $('abNext').textContent=`${twDay(nextWeekly())} 晚上 9:00`; $('mAbout').classList.remove('hidden'); }
+$('elderYes').onclick=()=>{ elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; openAbout(); bell(.25); };
 $('abClose').onclick=()=>$('mAbout').classList.add('hidden');
 
 placeElder();
 /* ===================== event: first live sit ===================== */
+/* 每週日晚上 9:00（台灣時間）全球固定線上共修 — Sunday 21:00 Taiwan = Sunday 13:00 UTC */
+const WEEKLY_LIVE=90*60*1000;
+function nextWeekly(after=Date.now()){ const d=new Date(after); let t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),13,0);
+  for(let i=0;i<8;i++,t+=864e5){ if(new Date(t).getUTCDay()===0&&t>after) return t; } return t; }
+const twDay=t=>{ const p=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).formatToParts(t); const g=k=>p.find(x=>x.type===k)?.value; return `${g('month')} 月 ${g('day')} 日（日）`; };
+const weeklyLiveNow=()=>{ const last=nextWeekly(Date.now()-WEEKLY_LIVE); return Date.now()>=last&&Date.now()<last+WEEKLY_LIVE; };
+const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-6*36e5&&n<EVENT.start+9*36e5; }; // 11/8 afternoon → early 11/9 (Taiwan)
+function nextSitHTML(){
+  const nx=nextWeekly(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修！<br>今天是特別活動，所以有抽獎。<br>從下週起，每週日晚上 9:00 固定共修，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
+  return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。</div>
+    <div class="ns-k">每週日晚上 9:00・全球固定線上共修</div>
+    <div class="ns-p">不需要抽獎，不需要特別理由。<br>只要想安靜一下，隨時歡迎回來。</div>
+    <div class="ns-next"><span>下一次共修</span><b>${twDay(nx)} 晚上 9:00</b><small>（台灣時間）</small></div></div>`;
+}
 const EVENT={start:Date.UTC(2026,10,8,13,0), live:150*60*1000}; // Sun 8 Nov 2026, 21:00 Taiwan (UTC+8); shown as live for 2.5 h
 function evText(){
   const now=Date.now(), d=EVENT.start-now;
@@ -1999,7 +2027,15 @@ function evText(){
 }
 function updateEvent(){
   const e=evText();
-  ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e)); if(!e) return;
+  if(!e){ // after the first event: every Sunday 21:00
+    const live=weeklyLiveNow(), d=nextWeekly()-Date.now(), days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4);
+    const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分`;
+    ['evCard','evPill'].forEach(id=>$(id).classList.remove('hidden'));
+    $('evPill').innerHTML=live?'<b>●</b> 每週共修進行中':`週日共修倒數 <b>${cd}</b>`; $('evPill').classList.toggle('live',live);
+    $('evCard').classList.toggle('live',live); $('evK').textContent=live?'每週日固定共修・進行中':'每週日固定共修';
+    $('evT').textContent='每週日晚上 9:00，全球一起上山靜坐'; $('evC').textContent=live?'共修進行中・現在上山一起坐':`下一次 ${twDay(nextWeekly())} 晚上 9:00（台灣時間）`;
+    return; }
+  ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e));
   $('evPill').innerHTML=e.live?'<b>●</b> 共修進行中・活動辦法':e.pill; $('evPill').classList.toggle('live',e.live);
   $('evCard').classList.toggle('live',e.live); $('evK').textContent=e.live?'第一場線上共修・進行中':'第一場線上共修';
   $('evT').textContent='靜坐 45 分鐘，抽 500 元禮券'; $('evC').textContent=e.live?e.card:`${e.when}・${e.card}`;
@@ -2008,7 +2044,8 @@ function updateEvent(){
 updateEvent(); setInterval(updateEvent,1000);
 const openEvent=()=>$('mEvent').classList.remove('hidden');
 const closeEvent=()=>$('mEvent').classList.add('hidden');
-$('evCard').onclick=openEvent; $('evPill').onclick=openEvent; $('evClose').onclick=closeEvent; $('evX').onclick=closeEvent;
+const openEvOrWeekly=()=>{ if(evText()) openEvent(); else openAbout(); };
+$('evCard').onclick=openEvOrWeekly; $('evPill').onclick=openEvOrWeekly; $('evClose').onclick=closeEvent; $('evX').onclick=closeEvent;
 $('evShare').onclick=async()=>{
   const url='https://global-silence.vercel.app/?openExternalBrowser=1';
   const text='週日晚上 9 點（台灣時間），一起上「全球靜默空間」的山頂靜坐 45 分鐘，抽 7-11 禮券 500 元 × 3 名！';
