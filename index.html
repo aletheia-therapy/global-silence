@@ -627,12 +627,29 @@ float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
 float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return v; }`;
 
 /* time-of-day palettes */
+/* 清晨・白天・黃昏・夜晚 follow the visitor's own clock, and melt into each other over ~50 min (no sudden switch).
+   fN/fF = fog near/far (thick morning mist at dawn), nw = how "night" it is, mo = mote glow, bl = bloom, ex = exposure */
+const PALS={
+  dawn: {n:'dawn', top:'#2c3f78', hor:'#f6b38e', bot:'#fadccb', sun:'#ffc995', el:.09, si:2.6, hs:'#ffd8c0', hg:'#5a5a48', hi:1.05, cLit:'#fff1e4', cShade:'#c69fa6', mote:'#ffd9a8', stars:.15, fire:.2, birds:1, deep:'#4a5d84', city:.35, fN:45, fF:1150, nw:0, mo:.6, bl:.5, ex:1.08, lit:.85},
+  day:  {n:'day',  top:'#2a6ccb', hor:'#bfe1f6', bot:'#eef6fc', sun:'#fff3dc', el:.78, si:3.0, hs:'#d4ebff', hg:'#5b6a45', hi:1.2, cLit:'#ffffff', cShade:'#b3c5d8', mote:'#ffffff', stars:0, fire:0, birds:1, deep:'#2e5f88', city:0, fN:170, fF:2700, nw:0, mo:.35, bl:.42, ex:1.08, lit:1},
+  dusk: {n:'dusk', top:'#272d5e', hor:'#f39668', bot:'#f6c9ae', sun:'#ffa261', el:.075,si:2.4, hs:'#ffc6a4', hg:'#4c463a', hi:.95, cLit:'#ffdcbf', cShade:'#a4829a', mote:'#ffc77a', stars:.35, fire:.5, birds:1, deep:'#46507a', city:.85, fN:150, fF:2500, nw:0, mo:.6, bl:.46, ex:1.1, lit:.8},
+  night:{n:'night',top:'#02050f', hor:'#152547', bot:'#1f3058', sun:'#c3d3ff', el:.5,  si:1.3, hs:'#4d64a6', hg:'#1c2434', hi:.85,  cLit:'#7f8fb6', cShade:'#323f5e', mote:'#d6ff8a', stars:1, fire:1, birds:0, deep:'#0a1630', city:1, fN:170, fF:1700, nw:1, mo:.9, bl:.7, ex:1.22, lit:.42}
+};
+const QS=new URLSearchParams(location.search);
+function nowHour(){ const q=parseFloat(QS.get('hour')); if(!isNaN(q)) return ((q%24)+24)%24; const d=new Date(); return d.getHours()+d.getMinutes()/60; }
+/* 四季 follow the calendar month (northern hemisphere): spring petals, summer pollen, autumn leaves, winter snow */
+const SEASON=(()=>{ const q=QS.get('season'); if(['spring','summer','autumn','winter'].includes(q)) return q;
+  const m=new Date().getMonth(); return m>=2&&m<=4?'spring':m>=5&&m<=7?'summer':m>=8&&m<=10?'autumn':'winter'; })();
+function mixPal(a,b,k){ if(k>=1) return {...b}; const o={n:b.n};
+  for(const key in b){ if(key==='n') continue; const va=a[key], vb=b[key];
+    o[key]= typeof vb==='string' ? '#'+new THREE.Color(va).lerp(new THREE.Color(vb),k).getHexString() : va+(vb-va)*k; }
+  return o; }
 function palette(){
-  const h=new Date().getHours()+new Date().getMinutes()/60;
-  if(h>=5&&h<7.5)   return {n:'dawn', top:'#2c3f78', hor:'#f6b38e', bot:'#fadccb', sun:'#ffc995', el:.09, si:2.6, hs:'#ffd8c0', hg:'#5a5a48', hi:1.05, cLit:'#fff1e4', cShade:'#c69fa6', mote:'#ffd9a8', stars:.15, fire:.2, birds:1, deep:'#4a5d84', city:.35};
-  if(h>=7.5&&h<16.5)return {n:'day',  top:'#2a6ccb', hor:'#bfe1f6', bot:'#eef6fc', sun:'#fff3dc', el:.78, si:3.0, hs:'#d4ebff', hg:'#5b6a45', hi:1.2, cLit:'#ffffff', cShade:'#b3c5d8', mote:'#ffffff', stars:0, fire:0, birds:1, deep:'#2e5f88', city:0};
-  if(h>=16.5&&h<19) return {n:'dusk', top:'#272d5e', hor:'#f39668', bot:'#f6c9ae', sun:'#ffa261', el:.075,si:2.4, hs:'#ffc6a4', hg:'#4c463a', hi:.95, cLit:'#ffdcbf', cShade:'#a4829a', mote:'#ffc77a', stars:.35, fire:.5, birds:1, deep:'#46507a', city:.85};
-  return              {n:'night',top:'#02050f', hor:'#152547', bot:'#1f3058', sun:'#c3d3ff', el:.5,  si:1.3, hs:'#4d64a6', hg:'#1c2434', hi:.85,  cLit:'#7f8fb6', cShade:'#323f5e', mote:'#d6ff8a', stars:1, fire:1, birds:0, deep:'#0a1630', city:1};
+  const h=nowHour(), BL=.85; // blend hours after each change
+  const seq=[[5,'night','dawn'],[7.5,'dawn','day'],[16.5,'day','dusk'],[19,'dusk','night']];
+  let cur=seq[3]; for(const s of seq) if(h>=s[0]) cur=s;
+  const since=((h-cur[0])+24)%24, k=Math.min(1,since/BL), e=k*k*(3-2*k);
+  return mixPal(PALS[cur[1]],PALS[cur[2]],e);
 }
 let PAL=palette();
 const C=h=>new THREE.Color(h);
@@ -748,7 +765,7 @@ function roundTree(x,z,s){
   const g=new THREE.Group(), y=hAt(x,z);
   const t=new THREE.Mesh(new THREE.CylinderGeometry(.14*s,.27*s,2.1*s,8),trunkMat); t.position.y=1.05*s; t.rotation.z=.07; g.add(t);
   const crown=new THREE.Group(); g.add(crown);
-  const mats=['#5d8c45','#79a653','#93bb62'].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.85,flatShading:true}));
+  const mats=({spring:['#5d8c45','#f3bccb','#93bb62'],summer:['#4f8a3c','#6fa24c','#8bb85a'],autumn:['#c4602e','#e09a3c','#8a9a48'],winter:['#dfe7ea','#9fab92','#f1f5f7']})[SEASON].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.85,flatShading:true}));
   [[0,2.6,0,1.3],[.85,2.3,.3,.95],[-.75,2.35,-.2,1],[.1,3.25,-.1,.9],[-.25,2.4,.8,.85],[.5,2.9,-.6,.8]].forEach(([a,b,c,rr],i)=>{
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(rr*s,1),mats[i%3]); m.position.set(a*s,b*s,c*s); crown.add(m); });
   g.position.set(x,y-.05,z); g.traverse(o=>{o.castShadow=true;o.receiveShadow=true;}); scene.add(g);
@@ -908,7 +925,12 @@ const waterMat=new THREE.ShaderMaterial({fog:false,uniforms:{time:U.time,uDeep:{
     if(a1<N1&&r()<.7){ const h=(5+r()*5)*k, rr=(1.5+r()*1.1)*k; s.set(rr,h,rr); pp.set(x,y-.6,z); q.setFromEuler(new THREE.Euler(0,r()*6,0)); m.compose(pp,q,s); pines.setMatrixAt(a1,m);
       c.setHSL(.33+r()*.05,.35+r()*.15,.17+r()*.09); pines.setColorAt(a1++,c); }
     else if(a2<N2){ const rr=(2+r()*1.6)*k; s.set(rr,rr*(.8+r()*.4),rr); pp.set(x,y-.4,z); q.setFromEuler(new THREE.Euler(r(),r()*6,r())); m.compose(pp,q,s); rounds.setMatrixAt(a2,m);
-      c.setHSL(.24+r()*.06,.38+r()*.15,.25+r()*.1); rounds.setColorAt(a2++,c); }
+      const rv=r();
+      if(SEASON==='autumn'&&rv<.55) c.setHSL(.02+r()*.09,.5+r()*.2,.3+r()*.1);
+      else if(SEASON==='spring'&&rv<.13) c.setHSL(.94+r()*.03,.45,.66+r()*.08);
+      else if(SEASON==='winter') c.setHSL(.15+r()*.08,.1+r()*.08,.27+r()*.08);
+      else c.setHSL(.24+r()*.06,.38+r()*.15,.25+r()*.1);
+      rounds.setColorAt(a2++,c); }
   }
   pines.count=a1; rounds.count=a2; scene.add(pines,rounds);
 }
@@ -957,6 +979,30 @@ const moteMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blendi
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); g.setAttribute('seed',new THREE.Float32BufferAttribute(s,1));
   const pts=new THREE.Points(g,moteMat); pts.frustumCulled=false; scene.add(pts); }
 
+/* season particles drifting down over the summit */
+const SEA=({spring:{cols:['#f7c6d2','#f2a9bd','#fde3ea','#f9d4de'],fall:.45,sway:1.3,size:.2,shape:1,n:1},
+            summer:{cols:['#fffbe8','#f4f7d8','#ffffff'],fall:.12,sway:1.6,size:.1,shape:0,n:.6},
+            autumn:{cols:['#c8552b','#e08a2e','#e9b949','#a8402a','#d46a2c'],fall:.6,sway:1.1,size:.28,shape:1,n:.8},
+            winter:{cols:['#ffffff','#f2f6ff','#e8f0ff'],fall:.8,sway:.7,size:.16,shape:0,n:1.6}})[SEASON];
+const seasonMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,vertexColors:true,
+  uniforms:{time:U.time,fall:{value:SEA.fall},sway:{value:SEA.sway},size:{value:SEA.size},shape:{value:SEA.shape},lit:{value:1}},
+  vertexShader:`attribute vec3 seed; attribute float gy; uniform float time,fall,sway,size; varying vec3 vC; varying float vA,vR;
+    void main(){ vC=color; float H=16.; float y=mod(position.y-time*fall*(.7+seed.x*.6),H);
+      vec3 p=vec3(position.x+sin(time*.6+seed.y*20.)*sway, gy+y, position.z+cos(time*.45+seed.z*17.)*sway*.7);
+      vA=smoothstep(0.,1.2,y)*smoothstep(H,H-3.,y); vR=time*(.6+seed.x*1.8)+seed.y*6.;
+      vec4 mv=modelViewMatrix*vec4(p,1.); gl_PointSize=min(44.,size*(.7+seed.z*.6)*${PR.toFixed(2)}*520./max(2.,-mv.z)); gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`uniform float shape,lit; varying vec3 vC; varying float vA,vR;
+    void main(){ vec2 c=gl_PointCoord-.5; float cs=cos(vR), sn=sin(vR); c=mat2(cs,-sn,sn,cs)*c;
+      float a = shape>.5 ? smoothstep(.5,.38,length(c*vec2(1.,2.3))) : smoothstep(.5,.12,length(c));
+      a*=vA; if(a<.02) discard; gl_FragColor=vec4(vC*(shape>.5?lit:max(lit,.7)),a*.92); }`});
+{ const r=rng(77), N=Math.round((isMobile?150:280)*SEA.n), p=[], sd=[], gy=[], col=[], cc=new THREE.Color();
+  for(let i=0;i<N;i++){ const a=r()*Math.PI*2, d=Math.sqrt(r())*R0*1.15, x=Math.cos(a)*d, z=Math.sin(a)*d;
+    p.push(x,r()*16,z); gy.push(hAt(x,z)); sd.push(r(),r(),r()); cc.set(SEA.cols[Math.floor(r()*SEA.cols.length)]); col.push(cc.r,cc.g,cc.b); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); g.setAttribute('seed',new THREE.Float32BufferAttribute(sd,3));
+  g.setAttribute('gy',new THREE.Float32BufferAttribute(gy,1)); g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  const pts=new THREE.Points(g,seasonMat); pts.frustumCulled=false; pts.renderOrder=2; scene.add(pts); }
+function applySeasonLight(){ seasonMat.uniforms.lit.value=PAL.lit; }
+
 /* a few birds gliding far out over the clouds */
 const birds=[];
 { const mat=new THREE.MeshBasicMaterial({color:'#2b2a33',side:THREE.DoubleSide,fog:true});
@@ -965,27 +1011,27 @@ const birds=[];
     scene.add(b); birds.push({b,L,R,ph:i*1.7,rad:46+i*7,h:9+i*2.2,sp:.05+i*.008,off:i*1.3}); } }
 
 function applyPalette(){
-  const su=skyMat.uniforms; su.top.value.set(PAL.top); su.hor.value.set(PAL.hor); su.bot.value.set(PAL.bot); su.sunCol.value.set(PAL.sun); su.cLit.value.set(PAL.cLit); su.night.value=PAL.n==='night'?1:0;
+  const su=skyMat.uniforms; su.top.value.set(PAL.top); su.hor.value.set(PAL.hor); su.bot.value.set(PAL.bot); su.sunCol.value.set(PAL.sun); su.cLit.value.set(PAL.cLit); su.night.value=PAL.nw;
   sunDir.set(Math.cos(PAL.el)*Math.sin(SUN_AZ),Math.sin(PAL.el),Math.cos(PAL.el)*Math.cos(SUN_AZ)).normalize(); su.sunDir.value.copy(sunDir);
   const lightEl=Math.max(PAL.el,.32); // keep shadows readable even at sunrise
   sun.color.set(PAL.sun); sun.intensity=PAL.si; sun.position.set(Math.cos(lightEl)*Math.sin(SUN_AZ)*90,Math.sin(lightEl)*90,Math.cos(lightEl)*Math.cos(SUN_AZ)*90);
   hemi.color.set(PAL.hs); hemi.groundColor.set(PAL.hg); hemi.intensity=PAL.hi;
-  const FN=170, FF=PAL.n==='night'?1700:2700;
+  const FN=PAL.fN, FF=PAL.fF;
   scene.fog=new THREE.Fog(PAL.hor,FN,FF);
   [cloudMistMat,cloudHugMat,cloudSkyMat].forEach(m=>{ const u=m.uniforms; u.uLit.value.set(PAL.cLit); u.uShade.value.set(PAL.cShade); u.uSun.value.set(PAL.sun); u.uFog.value.set(PAL.hor);
     u.uFogNear.value=FN; u.uFogFar.value=FF; u.uSunDir.value.copy(sunDir); });
   const wu=waterMat.uniforms; wu.uDeep.value.set(PAL.deep); wu.uSky.value.set(PAL.hor); wu.uSun.value.set(PAL.sun); wu.uSunDir.value.copy(sunDir); wu.uFog.value.set(PAL.hor); wu.uFogNear.value=FN; wu.uFogFar.value=FF;
   cityLightMat.uniforms.amt.value=PAL.city;
   starMat.uniforms.amt.value=PAL.stars; stars.visible=PAL.stars>0;
-  moteMat.uniforms.col.value.set(PAL.mote); moteMat.uniforms.amt.value=PAL.n==='night'?.9:PAL.n==='day'?.35:.6;
+  moteMat.uniforms.col.value.set(PAL.mote); moteMat.uniforms.amt.value=PAL.mo;
   fireLight.intensity=PAL.fire*6; const em=scene.getObjectByName('ember'); if(em) em.visible=PAL.fire>0;
-  birds.forEach(o=>o.b.visible=!!PAL.birds);
-  bloom.strength=PAL.n==='night'?.7:.42;
-  renderer.toneMappingExposure=PAL.n==='night'?1.22:1.08; // a little more moonlight at night
+  birds.forEach(o=>o.b.visible=PAL.birds>.5);
+  bloom.strength=PAL.bl; renderer.shadowMap.needsUpdate=true; if(typeof applySeasonLight==='function') applySeasonLight();
+  renderer.toneMappingExposure=PAL.ex; // a little more moonlight at night
   document.querySelector('meta[name=theme-color]').content=PAL.top;
 }
 applyPalette();
-setInterval(()=>{ const p=palette(); if(p.n!==PAL.n){ PAL=p; applyPalette(); } },60000);
+setInterval(()=>{ const p=palette(); if(JSON.stringify(p)!==JSON.stringify(PAL)){ PAL=p; applyPalette(); } },60000);
 
 function animateWorld(t,dt){
   U.time.value=t;
