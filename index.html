@@ -164,6 +164,18 @@ body.on-intro #lb{display:none}
 #btnDown small{font-size:10px;font-weight:400;letter-spacing:.05em;opacity:.75}
 #elderTag{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--gold);
   background:rgba(10,14,22,.55);border:1px solid rgba(232,195,122,.35);padding:3px 10px 3px 13px;border-radius:10px;transform-origin:50% 100%;text-shadow:0 0 10px rgba(232,195,122,.35)}
+#likeAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
+  background:var(--gold);color:#2a2214;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:askIn .5s ease}
+#likes{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));top:42%;z-index:46;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:62vw}
+#likes .lk-h{font-size:11.5px;color:rgba(232,195,122,.85);letter-spacing:.08em;margin-bottom:2px}
+#likes .lk{background:rgba(14,20,30,.55);border:1px solid rgba(232,195,122,.35);color:rgba(244,239,228,.85);border-radius:999px;padding:5px 11px;font-size:12.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;animation:lkIn 3s ease both}
+@keyframes lkIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.float-like{position:fixed;z-index:40;pointer-events:none;font-family:var(--serif);font-size:18px;color:var(--gold);text-shadow:0 2px 10px rgba(0,0,0,.5);white-space:nowrap;
+  animation:floatUp 2.6s ease-out forwards}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,0) scale(.9)}15%{opacity:1;transform:translate(-50%,-14px) scale(1.05)}100%{opacity:0;transform:translate(-50%,-90px) scale(1)}}
+.p-like{display:block;width:100%;margin-top:14px;padding:12px;border-radius:12px;background:var(--gold);color:#2a2214;font-weight:600;font-size:15px}
+.p-like:disabled{opacity:.5}
 #elderAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:10px;white-space:nowrap;
   background:var(--glass-strong);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(232,195,122,.45);border-radius:16px;padding:10px 10px 10px 14px;
   box-shadow:0 8px 26px rgba(0,0,0,.3);animation:askIn .5s ease}
@@ -365,6 +377,8 @@ body.on-intro #lb{display:none}
 
 <div class="modal hidden" id="mPerson"><div class="modal-in" id="mPersonIn"></div></div>
 <div class="modal hidden" id="mRank"><div class="modal-in" id="mRankIn"></div></div>
+<button id="likeAsk" class="hidden"></button>
+<div id="likes" class="hidden"></div>
 <div id="elderAsk" class="hidden"><span>想多了解這個地方嗎？</span><button id="elderYes">好</button></div>
 <div class="modal hidden" id="mAbout"><div class="modal-in">
   <div class="hud-title" style="font-size:12px;color:var(--ink-faint)">營火旁的老人</div>
@@ -1048,7 +1062,7 @@ ledgerPut(UID,me.total,me.name||'同修',me.country); ledgerSave();
 function myLedgerSync(){ const t=me.total+(me.phase==='sit'?me.sitSec:0); const e=ledger[UID];
   if(!e||t>e.t||e.n!==me.name){ ledger[UID]={t:Math.max(t,e?.t||0),n:me.name||'同修',c:me.country}; } }
 const peers=new Map(); // id -> Person
-let room=null, aSt=null, aPos=null, aSnap=null, aLed=null;
+let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null;
 
 /* ===================== intro form ===================== */
 $('inName').value=''; $('inCountry').value=''; // always start blank: everyone types their own name and where they're from
@@ -1083,7 +1097,8 @@ netReady.then(()=>{
   if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('hudStat').textContent='離線'; return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
-  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger');
+  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like');
+  aLike.onMessage=(d,{peerId})=>gotLike(d,peerId);
   aLed.onMessage=(d)=>{ if(!d||typeof d!=='object') return; let ch=false; const ks=Object.keys(d).slice(0,4000);
     for(const k of ks){ if(k===UID) continue; const v=d[k]; if(v&&typeof v==='object') ch=ledgerPut(k,v.t,v.n,v.c)||ch; }
     if(ch){ ledgerSave(); updateTotal(); } };
@@ -1093,8 +1108,8 @@ netReady.then(()=>{
   aSt.onMessage=(d,{peerId})=>{
     if(!d||typeof d!=='object') return; const s=sanitize(d); if(!s) return;
     let p=peers.get(peerId);
-    if(!p){ p=new Person(s,true); p.x=p.tx=s.x; p.z=p.tz=s.z; peers.set(peerId,p); }
-    else { p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
+    if(!p){ p=new Person(s,true); p.peerId=peerId; p.x=p.tx=s.x; p.z=p.tz=s.z; peers.set(peerId,p); }
+    else { if(s.phase==='sit'&&p.info.phase!=='sit') s.sitStartedAt=Date.now(); p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
     p.info.recvAt=performance.now(); p.lastSeen=Date.now(); if(s.uid&&s.uid!==UID&&ledgerPut(s.uid,s.total,s.name,s.country)) ledgerSave(); updateHud();
   };
   aPos.onMessage=(d,{peerId})=>{ const p=peers.get(peerId); if(!p||!d) return;
@@ -1446,7 +1461,8 @@ function rise(msg){
   standUp(); bell(.6); updateHud();
   $('endTime').textContent=sec<60?`${Math.floor(sec)} 秒`:`${Math.floor(sec/60)} 分 ${Math.floor(sec%60)} 秒`;
   const startedAt=srv.startedAt||Date.now()-sec*1000;
-  const paint=()=>{ $('endSub').innerHTML=(msg?msg+'<br>':'')+`你在這座山上累積了 ${hrs(srv.total??me.total)}<br>隨喜 🙏`+certHTML(startedAt)
+  const nLikes=likesGot.length; clearLikes();
+  const paint=()=>{ $('endSub').innerHTML=(msg?msg+'<br>':'')+`你在這座山上累積了 ${hrs(srv.total??me.total)}<br>`+(nLikes?`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`:'隨喜 🙏')+certHTML(startedAt)
     +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotalAll())}</b><small>這座山上所有人一起坐下的時間</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…</div>'); srvEnd(false).then(()=>paint()); }
@@ -1504,7 +1520,11 @@ function personCard(p){
   const c2=document.createElement('div'); c2.className='p-cell'; const b2=document.createElement('b'); b2.textContent=hrs(info.total); const s2=document.createElement('span'); s2.textContent='山上累積'; c2.append(b2,s2);
   grid.append(c1,c2);
   const q=document.createElement('div'); q.className='quiet'; q.textContent=isSelf?'這是你。':'靜默空間不交談。以心隨喜就好 🙏';
-  el.append(top,grid,q);
+  el.append(top,grid);
+  if(!isSelf&&p.info.phase==='sit'){ const lb=document.createElement('button'); lb.className='p-like';
+    const done=!canLike(p); lb.textContent=done?'已為他隨喜 🙏':'🙏 為他隨喜'; lb.disabled=done;
+    lb.onclick=()=>{ sendLike(p); lb.textContent='已為他隨喜 🙏'; lb.disabled=true; }; el.appendChild(lb); }
+  el.append(q);
   const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):(ph==='walk'?'走動中':'準備入座'); };
   upd(); clearInterval(personCard.t); personCard.t=setInterval(upd,1000);
   $('mPerson').classList.remove('hidden');
@@ -1550,11 +1570,48 @@ function drawElderTag(W,H){
   const sc=clamp(9/d,.6,1.15); elderTag.style.transform=`translate(${(v.x+1)/2*W}px,${(1-v.y)/2*H}px) translate(-50%,-100%) scale(${sc})`;
   elderTag.style.zIndex=String(1000-Math.round(d*10));
 }
+/* ===================== 隨喜: a silent thumbs-up for someone sitting ===================== */
+const likedAt=new Map(); // peerId -> time I last 隨喜'd them (once per sit is enough)
+const canLike=p=>p&&p.peerId&&p.info.phase==='sit'&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
+function floatOver(p,text){
+  const v=new THREE.Vector3(p.x,hAt(p.x,p.z)+1.9,p.z); v.project(camera); if(v.z>1||Math.abs(v.x)>.95||Math.abs(v.y)>.95) return false;
+  const d=document.createElement('div'); d.className='float-like'; d.textContent=text;
+  d.style.left=((v.x+1)/2*innerWidth)+'px'; d.style.top=((1-v.y)/2*innerHeight)+'px'; document.body.appendChild(d); setTimeout(()=>d.remove(),2700); return true;
+}
+function sendLike(p){
+  if(!canLike(p)) return; likedAt.set(p.peerId,Date.now());
+  try{ aLike?.send({n:me.name,c:me.country},{target:p.peerId}); }catch{}
+  if(!floatOver(p,'好厲害！！隨喜 🙏')) toast(`已為 ${p.info.name} 隨喜：好厲害！！🙏`); likeShown=null; $('likeAsk').classList.add('hidden');
+}
+// walking past someone who is sitting: offer a 隨喜
+let likeShown=null;
+function likeNear(){
+  let best=null, bd=2.8;
+  if(self&&me.phase==='walk') for(const p of peers.values()){ if(!canLike(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bd){ bd=d; best=p; } }
+  if(best!==likeShown){ likeShown=best; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.textContent=`🙏 為 ${best.info.name} 隨喜`; }
+  if(best) $('elderAsk').classList.add('hidden');
+}
+$('likeAsk').onclick=()=>{ if(likeShown) sendLike(likeShown); };
+// receiving one: shown quietly on the right, no sound, waiting for when you open your eyes
+const likesGot=[]; const likeFrom=new Map();
+function gotLike(d,peerId){
+  if(me.phase!=='sit'||!d||typeof d!=='object') return;
+  if(Date.now()-(likeFrom.get(peerId)||0)<60000) return; likeFrom.set(peerId,Date.now());
+  const n=String(d.n||'同修').slice(0,16), c=String(d.c||'').slice(0,16);
+  likesGot.push({n,c}); renderLikes();
+}
+function renderLikes(){
+  const el=$('likes'); el.innerHTML=''; el.classList.toggle('hidden',!likesGot.length); if(!likesGot.length) return;
+  const h=document.createElement('div'); h.className='lk-h'; h.textContent=`${likesGot.length} 位同修為你隨喜 🙏`; el.appendChild(h);
+  likesGot.slice(-4).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`${l.n}${l.c?'・'+l.c:''}：好厲害！！隨喜`; el.appendChild(x); });
+}
+function clearLikes(){ likesGot.length=0; likeFrom.clear(); renderLikes(); }
+
 let elderShown=false, elderDismissed=false;
 function elderNear(){
   const near=!!self&&me.phase==='walk'&&Math.hypot(self.x-ELDER_SEAT.x,self.z-ELDER_SEAT.z)<3.2&&$('mAbout').classList.contains('hidden');
   if(!near) elderDismissed=false;
-  const show=near&&!elderDismissed;
+  const show=near&&!elderDismissed&&!likeShown;
   if(show!==elderShown){ elderShown=show; $('elderAsk').classList.toggle('hidden',!show); }
 }
 const WISDOM=["閉上眼睛，放下一切，不追求平靜，不追求開悟。即是，即在，即成。", "當你不再急著抵達某個地方，才真正開始與自己相遇。", "靜下來，不是為了讓世界消失，而是終於聽見自己。", "不必改變每一個念頭，只需要看見它，然後讓它經過。", "你不需要成為更好的人，才能允許自己好好存在。", "當心不再追逐答案，答案便不再那麼重要。", "沉默不是沒有聲音，而是不再需要每個聲音都有回應。", "不與過去爭辯，不替未來焦慮，只讓此刻完整地發生。", "允許混亂存在，才是真正的平靜。", "坐著，不為了得到什麼；只是讓自己，不再失去當下。", "有些事情，不需要理解，只需要經歷。", "當你停止評價自己的每一個念頭，內心便多了一點自由。", "不必趕走黑暗，安靜地坐著，也是一種陪伴。", "生命不需要時時刻刻都有意義，有時候，存在本身就足夠了。", "讓呼吸自然來去，就像讓生命自然來去。", "你可以什麼都不做，而不代表你什麼都不是。", "放下控制，不代表放棄生活，而是學會與生活同行。", "不追逐寧靜，不排斥紛擾；無論晴雨，都能安住其中。", "當你不再努力扮演任何角色，才有機會看見最真實的自己。", "靜默不是逃離世界，而是重新學會如何與世界相處。"];
@@ -1665,7 +1722,7 @@ renderer.setAnimationLoop(()=>{
   for(const p of peers.values()) p.update(dt,t);
   composer.render(dt);
   const W=innerWidth, H=innerHeight;
-  animateElder(t); drawElderTag(W,H); elderNear();
+  animateElder(t); drawElderTag(W,H); elderNear(); likeNear();
   if(self) self.drawTag(W,H);
   for(const p of peers.values()) p.drawTag(W,H);
 });
