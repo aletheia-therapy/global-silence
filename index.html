@@ -166,7 +166,7 @@ body.on-intro #lb{display:none}
   background:rgba(10,14,22,.55);border:1px solid rgba(232,195,122,.35);padding:3px 10px 3px 13px;border-radius:10px;transform-origin:50% 100%;text-shadow:0 0 10px rgba(232,195,122,.35)}
 #lanAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
   background:linear-gradient(180deg,#ffcf8a,#f0a14a);color:#3a2410;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(240,140,60,.4);animation:askIn .5s ease}
-.stele-tag{position:absolute;left:0;top:0;z-index:2000;pointer-events:none;writing-mode:vertical-rl;font-family:var(--serif);font-size:21px;letter-spacing:.24em;line-height:1.55;
+.stele-tag{position:absolute;left:0;top:0;z-index:2000;pointer-events:none;text-align:center;white-space:nowrap;font-family:var(--serif);font-size:21px;letter-spacing:.18em;line-height:1.6;
   color:#fff6e2;text-shadow:0 0 16px rgba(232,195,122,.9),0 0 4px rgba(232,195,122,.6),0 1px 3px rgba(0,0,0,.7);transform-origin:50% 50%;display:none;
   background:radial-gradient(closest-side,rgba(14,20,30,.55),rgba(14,20,30,0));padding:22px 16px}
 .pond-cap{position:fixed;left:50%;bottom:calc(240px + var(--safe-b));transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;font-size:13px;line-height:1.7;color:var(--ink);background:rgba(14,20,30,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
@@ -1695,30 +1695,37 @@ function freeSpot(a,f){
 }
 const hash01=(str,k)=>{ let h=2166136261^k; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return ((h>>>0)%100000)/100000; };
 
-/* ---------- 1. wisdom steles ---------- */
+/* ---------- 1. heart-word stones (心語石): low, mossy boulders with words carved across the face ---------- */
 const STELES=[['此刻即是',.15,.9],['雲來雲去，山還是山',-.7,.88],['聽，安靜也有聲音',1.6,.62],['坐下的地方，就是道場',2.65,.88],['放下的手，才接得住光',-2.55,.6]];
-function carvedTexture(text){
-  const cv=document.createElement('canvas'); cv.width=160; cv.height=320; const g=cv.getContext('2d');
-  g.fillStyle='#8f8a82'; g.fillRect(0,0,160,320);
-  for(let i=0;i<900;i++){ g.fillStyle=`rgba(${Math.random()<.5?40:220},${Math.random()<.5?40:215},${Math.random()<.5?36:205},${Math.random()*.08})`; g.fillRect(Math.random()*160,Math.random()*320,2+Math.random()*4,2+Math.random()*4); }
-  const cols=text.split('，'), n=cols.length, fs=n>1?30:38;
+function carvedTexture(text){ // transparent decal: carved letters only, laid over the rock's face
+  const cv=document.createElement('canvas'); cv.width=512; cv.height=192; const g=cv.getContext('2d');
+  const lines=text.split('，'), fs=lines.length>1?54:72;
   g.font=`600 ${fs}px "Noto Serif TC","Songti TC",serif`; g.textAlign='center'; g.textBaseline='middle';
-  cols.forEach((col,ci)=>{ const cx=n>1?(ci===0?108:52):80, chars=[...col], step=fs*1.12, y0=160-(chars.length-1)*step/2;
-    chars.forEach((ch,i)=>{ const y=y0+i*step; g.fillStyle='rgba(255,255,255,.28)'; g.fillText(ch,cx+1.2,y+1.2); g.fillStyle='rgba(48,44,40,.85)'; g.fillText(ch,cx,y); }); });
-  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t;
+  lines.forEach((ln,i)=>{ const y=96+(i-(lines.length-1)/2)*fs*1.25;
+    g.fillStyle='rgba(255,255,255,.22)'; g.fillText(ln,258,y+2.5); g.fillStyle='rgba(52,46,40,.82)'; g.fillText(ln,256,y); });
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t;
 }
-const steles=STELES.map(([text,a,f])=>{
-  const [x,z]=freeSpot(a,f), y=hAt(x,z), g=new THREE.Group();
-  const side=new THREE.MeshStandardMaterial({color:'#8f8a82',roughness:.95});
-  const front=new THREE.MeshStandardMaterial({map:carvedTexture(text),roughness:.9});
-  const geo=new THREE.BoxGeometry(.62,1.24,.2); const p=geo.attributes.position;
-  for(let i=0;i<p.count;i++){ if(p.getY(i)>0) p.setX(i,p.getX(i)*.9); } geo.computeVertexNormals();
-  const slab=new THREE.Mesh(geo,[side,side,side,side,front,side]); slab.position.y=.72; slab.rotation.z=(hash01(text,1)-.5)*.06;
-  const base=new THREE.Mesh(new THREE.BoxGeometry(.9,.18,.42),side); base.position.y=.09;
-  g.add(slab,base); g.position.set(x,y-.04,z); g.rotation.y=Math.atan2(-x,-z); // face the middle of the mountain
-  g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); scene.add(g);
-  OBST.push({x,z,r:.55,kind:'stele'});
-  const tag=document.createElement('div'); tag.className='stele-tag'; tag.textContent=text; tagsEl.appendChild(tag);
+const stoneMat=new THREE.MeshStandardMaterial({color:'#9d978c',roughness:.95,flatShading:true});
+const mossMat=new THREE.MeshStandardMaterial({color:'#6f8f45',roughness:1,flatShading:true});
+const steles=STELES.map(([text,a,f],si)=>{
+  const [x,z]=freeSpot(a,f), y=hAt(x,z), g=new THREE.Group(), r=rng(500+si);
+  // a rounded, irregular boulder — wide and low
+  const geo=new THREE.IcosahedronGeometry(1,2), p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){ const vx=p.getX(i),vy=p.getY(i),vz=p.getZ(i), k=1+(Math.sin(vx*3.1+si)*Math.cos(vz*2.7)+Math.sin(vy*4.3+si*2))*.06;
+    p.setXYZ(i,vx*k*.95,vy*k*.5,vz*k*.62); }
+  geo.computeVertexNormals();
+  const rock=new THREE.Mesh(geo,stoneMat); rock.position.y=.3; g.add(rock);
+  // the carved words sit on the gently sloping front face
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(1.25,.47),new THREE.MeshStandardMaterial({map:carvedTexture(text),transparent:true,roughness:.9,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}));
+  face.position.set(0,.42,.6); face.rotation.x=-.42; g.add(face);
+  // a few cushions of moss and a pebble or two
+  for(let i=0;i<4;i++){ const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.13+r()*.1,1),mossMat); const ang=r()*Math.PI*2;
+    m.scale.y=.35; m.position.set(Math.cos(ang)*.55,.62+r()*.08,Math.sin(ang)*.35-.12); g.add(m); }
+  for(let i=0;i<3;i++){ const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.08+r()*.07,0),stoneMat); m.position.set((r()-.5)*1.8,.04,.55+r()*.3); m.scale.y=.6; g.add(m); }
+  g.position.set(x,y-.06,z); g.rotation.y=Math.atan2(-x,-z)+(r()-.5)*.25; // face the middle of the mountain
+  g.traverse(o=>{ if(o.isMesh&&o!==face){ o.castShadow=true; o.receiveShadow=true; } }); scene.add(g);
+  OBST.push({x,z,r:.9,kind:'stele'});
+  const tag=document.createElement('div'); tag.className='stele-tag'; tag.innerHTML=text.split('，').map(t=>t.replace(/[<>&]/g,'')).join('<br>'); tagsEl.appendChild(tag);
   return {x,z,y,tag,op:0};
 });
 
@@ -1845,7 +1852,7 @@ function animateSurprises(t,dt,W,H){
   const sx=self?self.x:1e9, sz=self?self.z:1e9;
   // steles: words surface as you come close
   let steleOp=0;
-  for(const s of steles){ const d=Math.hypot(sx-s.x,sz-s.z), want=d<1.6?1:d<3.8?(3.8-d)/2.2:0; s.op+=(want-s.op)*Math.min(1,dt*2); steleOp=Math.max(steleOp,s.op); labelAt(s.tag,s.x,s.y+1.8,s.z,s.op,W,H,40,true); }
+  for(const s of steles){ const d=Math.hypot(sx-s.x,sz-s.z), want=d<1.6?1:d<3.8?(3.8-d)/2.2:0; s.op+=(want-s.op)*Math.min(1,dt*2); steleOp=Math.max(steleOp,s.op); labelAt(s.tag,s.x,s.y+1.55,s.z,s.op,W,H,40,true); }
   if(self) self.tagEl.style.opacity=(1-steleOp*.9).toFixed(2); // let the stone's words speak
   // pond caption
   { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk')?1:0; if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
