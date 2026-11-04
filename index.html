@@ -2116,7 +2116,9 @@ const clock=new THREE.Clock();
 const camPos=new THREE.Vector3(70,40,70), camLook=new THREE.Vector3(0,-8,0), wantPos=new THREE.Vector3(), wantLook=new THREE.Vector3();
 let camK=2, viewOff=0;
 function overviewWant(t,dt){
-  if(!self&&performance.now()-lastDrag>2500) ov.yaw+=dt*.035; // slow orbit only on the welcome screen
+  const idle=performance.now()-lastDrag>(self?4000:2500);
+  if(!self&&idle) ov.yaw+=dt*.035; // slow orbit on the welcome screen
+  else if(self&&seatedNow()&&idle){ ov.yaw+=dt*.04; ov.pitch+=(.78-ov.pitch)*Math.min(1,dt*.4); } // sitting + panorama: drift up to ~45° and circle slowly; pauses while you drag
   const asp=innerWidth/innerHeight, d=(asp>1?40:48)/Math.min(1,asp*1.2), intro=me.phase==='intro';
   wantLook.set(0, intro?(asp>1?-4:-15*(1/Math.min(1,asp*1.6))):-2, 0);
   wantPos.set(Math.sin(ov.yaw)*Math.cos(ov.pitch)*d, Math.sin(ov.pitch)*d+(intro?4:0), Math.cos(ov.yaw)*Math.cos(ov.pitch)*d);
