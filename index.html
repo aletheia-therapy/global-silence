@@ -1181,7 +1181,7 @@ $('rotL').onclick=()=>{ self.r+=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('
 $('rotR').onclick=()=>{ self.r-=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('presets').children].forEach(b=>b.classList.remove('on')); sendPosNow(); };
 function sendPosNow(){ lastPosSent=0; lastPos=''; }
 $('poseUp').onclick=standUp;
-function standUp(){ clearTimeout(cineT); cam.rate=2.5; cam.pitchTarget=.42; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
+function standUp(){ clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
   me.phase='walk'; sheet(null); showWalkUI(true); sendState(); sendPosNow(); }
 let cineT=null;
 $('poseOk').onclick=()=>{
@@ -1255,6 +1255,8 @@ $('camStart').onclick=async()=>{
   clearInterval(checkTimer);
   try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
   me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); sheet('sheetSit'); bell();
+  // drift up to a 45° view from above and slowly circle the sitter, with the mountains behind
+  cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12;
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
   $('sitTime').textContent='0:00'; sendState(); updateHud();
 };
@@ -1436,6 +1438,7 @@ renderer.setAnimationLoop(()=>{
   if(self){
     if(me.phase==='walk') moveSelf(dt);
     self.update(dt,t);
+    if(me.phase==='sit'&&!ov.on&&cam.yawTarget==null&&performance.now()-lastDrag>4000) cam.yaw+=dt*.055; // ~2 min per slow circle; pauses while you drag
     const cr=cam.rate||2.5;
     if(cam.pitchTarget!=null){ cam.pitch+=(cam.pitchTarget-cam.pitch)*Math.min(1,dt*cr); if(Math.abs(cam.pitch-cam.pitchTarget)<.003) cam.pitchTarget=null; }
     if(cam.yawTarget!=null){ cam.yaw=lerpAngle(cam.yaw,cam.yawTarget,Math.min(1,dt*cr)); if(Math.abs(((cam.yaw-cam.yawTarget+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)<.01) cam.yawTarget=null; }
@@ -1451,13 +1454,14 @@ renderer.setAnimationLoop(()=>{
       if(!OBST.some(o=>o.kind==='tree'&&Math.hypot(px-o.x,pz-o.z)<2.3)||dd<2) break; dd*=.85; }
     let cx=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dd, cy=cam.ty+Math.sin(cam.pitch)*dd, cz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dd;
     const g=hAt(cx,cz)+.35; if(cy<g) cy=g;
-    wantPos.set(cx,cy,cz); wantLook.set(cam.tx,cam.ty,cam.tz);
+    cam.lift=(cam.lift||0)+(((me.phase==='sit')?3.4*clamp(Math.min((cam.pitch-.36)/.24,(dd-5)/7),0,1):0)-(cam.lift||0))*Math.min(1,dt*.5); // while sitting, look up toward the horizon
+    wantPos.set(cx,cy,cz); wantLook.set(cam.tx,cam.ty+cam.lift,cam.tz);
     camK+=(14-camK)*Math.min(1,dt*1.6);
   }
   const k=1-Math.exp(-dt*camK); camPos.lerp(wantPos,k); camLook.lerp(wantLook,k);
   camera.position.copy(camPos); camera.lookAt(camLook);
   { // when a panel covers the bottom, lift the picture so the character stays visible
-    const H=innerHeight, want=sheetOn?H*.2:0; viewOff+=(want-viewOff)*Math.min(1,dt*4);
+    const H=innerHeight, want=sheetOn?(me.phase==='sit'?H*.1:H*.2):0; viewOff+=(want-viewOff)*Math.min(1,dt*4);
     if(viewOff>.5) camera.setViewOffset(innerWidth,H,0,viewOff,innerWidth,H); else if(camera.view&&camera.view.enabled) camera.clearViewOffset(); }
   for(const p of peers.values()) p.update(dt,t);
   composer.render(dt);
