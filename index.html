@@ -1205,7 +1205,8 @@ const peers=new Map(); // id -> Person
 let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null, aLan=null, aLotus=null;
 
 /* ===================== intro form ===================== */
-$('inName').value=''; $('inCountry').value=''; // always start blank: everyone types their own name and where they're from
+// first visit: blank, everyone types their own; next visits on the same phone: what they typed last time (old built-in placeholders never come back)
+$('inName').value=['無名同修','同修'].includes(me.name)?'':me.name; $('inCountry').value=me.country==='地球'?'':me.country;
 const filled=v=>/[\p{L}\p{N}]/u.test(v.trim());
 function checkEnter(){ const ok=filled($('inName').value)&&filled($('inCountry').value); $('btnEnter').disabled=!ok; $('enterHint').classList.toggle('hidden',ok); }
 ['inName','inCountry'].forEach(id=>$(id).addEventListener('input',checkEnter)); checkEnter();
