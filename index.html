@@ -180,6 +180,12 @@ body.on-intro #lb{display:none}
 .pond-cap b{color:#f7b6cb}
 .wish-tag{position:absolute;left:0;top:0;pointer-events:none;max-width:70vw;white-space:normal;text-align:center;font-family:var(--serif);font-size:15px;line-height:1.6;
   color:#ffe6c2;text-shadow:0 0 12px rgba(255,160,70,.8),0 1px 3px rgba(0,0,0,.6);transform-origin:50% 100%;display:none}
+#lotusAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
+  background:linear-gradient(180deg,#ffd6e4,#f290b2);color:#4a1f2e;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(242,144,178,.4);animation:askIn .5s ease}
+.lotus-wish{color:#ffe3ee;text-shadow:0 0 12px rgba(242,144,178,.9),0 1px 3px rgba(0,0,0,.6)}
+#mLotus .lan-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 10px}
+#mLotus textarea{width:100%;min-height:84px;resize:none;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-user-select:text;user-select:text}
+#mLotus textarea:focus{border-color:#f290b2}
 #mLan .lan-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 10px}
 #mLan textarea{width:100%;min-height:84px;resize:none;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-user-select:text;user-select:text}
 #mLan textarea:focus{border-color:#f0a14a}
@@ -398,6 +404,15 @@ body.on-intro #lb{display:none}
 <div class="modal hidden" id="mRank"><div class="modal-in" id="mRankIn"></div></div>
 <button id="likeAsk" class="hidden"></button>
 <button id="lanAsk" class="hidden">🏮 點一盞祈願燈</button>
+<button id="lotusAsk" class="hidden">🪷 種一朵祝福蓮花</button>
+<div class="modal hidden" id="mLotus"><div class="modal-in">
+  <div class="hud-title" style="font-size:12px;color:#f290b2">山頂的蓮花池</div>
+  <h2 class="m-title" style="font-size:20px;margin-top:4px">種一朵祝福蓮花 🪷</h2>
+  <p class="s-sub" style="margin:6px 0 0">寫下你的祝福。這些字<b>只有你看得到</b>，會隨著花開慢慢淡去，留下一朵蓮花，大家都看得見。</p>
+  <div class="lan-chips chips" id="lotusChips"><button class="chip">願世界和平</button><button class="chip">願家人平安</button><button class="chip">願病者康復</button><button class="chip">願眾生離苦</button><button class="chip">願自己安好</button></div>
+  <textarea id="lotusWish" maxlength="60" placeholder="把祝福送給誰，或想對自己說的話……"></textarea>
+  <div class="acts"><button class="btn-sec" id="lotusCancel">取消</button><button class="btn-pri" id="lotusGo" disabled style="background:linear-gradient(180deg,#ffd6e4,#f290b2);color:#4a1f2e">種下・祝福</button></div>
+</div></div>
 <div class="modal hidden" id="mLan"><div class="modal-in">
   <div class="hud-title" style="font-size:12px;color:#f0a14a">懸崖邊的孔明燈</div>
   <h2 class="m-title" style="font-size:20px;margin-top:4px">點一盞祈願燈 🏮</h2>
@@ -1094,7 +1109,7 @@ ledgerPut(UID,me.total,me.name||'同修',me.country); ledgerSave();
 function myLedgerSync(){ const t=me.total+(me.phase==='sit'?me.sitSec:0); const e=ledger[UID];
   if(!e||t>e.t||e.n!==me.name){ ledger[UID]={t:Math.max(t,e?.t||0),n:me.name||'同修',c:me.country}; } }
 const peers=new Map(); // id -> Person
-let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null, aLan=null;
+let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null, aLan=null, aLotus=null;
 
 /* ===================== intro form ===================== */
 $('inName').value=''; $('inCountry').value=''; // always start blank: everyone types their own name and where they're from
@@ -1129,7 +1144,8 @@ netReady.then(()=>{
   if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('hudStat').textContent='離線'; return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
-  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aLan=room.makeAction('lan');
+  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aLan=room.makeAction('lan'); aLotus=room.makeAction('lotus');
+  const lotusFrom=new Map(); aLotus.onMessage=(d,{peerId})=>{ const x=+d?.x, z=+d?.z; if(!Number.isFinite(x)||!Number.isFinite(z)||Math.hypot(x-POND.x,z-POND.z)>POND.r||Date.now()-(lotusFrom.get(peerId)||0)<20000) return; lotusFrom.set(peerId,Date.now()); plantLotus(x,z,null,false); };
   const lanFrom=new Map(); aLan.onMessage=(d,{peerId})=>{ const i=d&&d.s; if((i!==0&&i!==1)||Date.now()-(lanFrom.get(peerId)||0)<20000) return; lanFrom.set(peerId,Date.now()); launchLantern(i,null,false); };
   aLike.onMessage=(d,{peerId})=>gotLike(d,peerId);
   aLed.onMessage=(d)=>{ if(!d||typeof d!=='object') return; let ch=false; const ks=Object.keys(d).slice(0,4000);
@@ -1291,7 +1307,7 @@ let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classLi
 let sheetOn=false;
 function sheet(id){ sheetOn=!!id; ['sheetPose','sheetCam','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
-['mPerson','mRank','mAbout','mLan'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
+['mPerson','mRank','mAbout','mLan','mLotus'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
 
 /* ===================== camera rig + input ===================== */
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
@@ -1755,27 +1771,41 @@ function heartNear(){
   heartCard.classList.add('on');
 }
 
-/* ---------- 2. lotus flowers (day) and golden stars (night) — one per hour the mountain has sat ---------- */
-const LOTUS_MAX=40;
+/* ---------- 2. blessing lotuses: planted by visitors, seen by everyone (14 days) ---------- */
 const lotusMat=new THREE.MeshStandardMaterial({color:'#f7b6cb',emissive:'#f290b2',emissiveIntensity:.32,roughness:.55,side:THREE.DoubleSide});
 const lotusInMat=new THREE.MeshStandardMaterial({color:'#fde3ec',emissive:'#f9c3d6',emissiveIntensity:.2,roughness:.5,side:THREE.DoubleSide});
 const lotusPadMat=new THREE.MeshStandardMaterial({color:'#5f8f4a',roughness:.6,side:THREE.DoubleSide});
 const lotusMidMat=new THREE.MeshStandardMaterial({color:'#f4d35e',emissive:'#e8b923',emissiveIntensity:.35});
 const petalGeo=new THREE.SphereGeometry(.1,10,6); petalGeo.scale(.55,.22,1.35); petalGeo.translate(0,0,.11);
-const lotuses=[];
-{ const r=rng(808);
-  for(let i=0;i<LOTUS_MAX;i++){
-    let x,z,tries=0; do{ const a=r()*Math.PI*2, d=Math.sqrt(r())*(POND.r-.7); x=POND.x+Math.cos(a)*d; z=POND.z+Math.sin(a)*d; tries++; }
-    while(tries<30&&lotuses.some(l=>Math.hypot(l.x-x,l.z-z)<.85));
-    const g=new THREE.Group(), flower=new THREE.Group(); g.add(flower);
-    const pad=new THREE.Mesh(new THREE.CircleGeometry(.42,16,.25,5.9),lotusPadMat); pad.rotation.x=-Math.PI/2; pad.position.y=.005; g.add(pad);
-    for(let k=0;k<8;k++){ const pt=new THREE.Mesh(petalGeo,lotusMat); pt.rotation.set(-.5,k/8*Math.PI*2,0,'YXZ'); flower.add(pt); }
-    for(let k=0;k<5;k++){ const pt=new THREE.Mesh(petalGeo,lotusInMat); pt.scale.setScalar(.7); pt.rotation.set(-1.05,k/5*Math.PI*2+.3,0,'YXZ'); pt.position.y=.03; flower.add(pt); }
-    const mid=new THREE.Mesh(new THREE.SphereGeometry(.045,10,8),lotusMidMat); mid.position.y=.05; flower.add(mid);
-    flower.position.y=.03; flower.scale.setScalar(2); g.position.set(x,POND.y+.01,z); g.rotation.y=r()*6; g.scale.setScalar(0); g.visible=false; scene.add(g);
-    lotuses.push({x,z,g,s:0,want:0});
-  }
+const padGeo=new THREE.CircleGeometry(.42,16,.25,5.9), midGeo=new THREE.SphereGeometry(.045,10,8);
+const LOTUS_SHOW=60;
+const lotuses=[]; // {x,z,g,flower,outer[],inner[],open,grow,born,id}
+function makeLotus(x,z,id,opened){
+  const g=new THREE.Group(), flower=new THREE.Group(), outer=[], inner=[]; g.add(flower);
+  const pad=new THREE.Mesh(padGeo,lotusPadMat); pad.rotation.x=-Math.PI/2; pad.position.y=.005; g.add(pad);
+  for(let k=0;k<8;k++){ const pt=new THREE.Mesh(petalGeo,lotusMat); pt.rotation.set(-1.35,k/8*Math.PI*2,0,'YXZ'); flower.add(pt); outer.push(pt); }
+  for(let k=0;k<5;k++){ const pt=new THREE.Mesh(petalGeo,lotusInMat); pt.scale.setScalar(.7); pt.rotation.set(-1.45,k/5*Math.PI*2+.3,0,'YXZ'); pt.position.y=.03; flower.add(pt); inner.push(pt); }
+  const mid=new THREE.Mesh(midGeo,lotusMidMat); mid.position.y=.05; flower.add(mid);
+  flower.position.y=.03; flower.scale.setScalar(2); g.position.set(x,POND.y+.01,z); g.rotation.y=hash01(String(id||x+','+z),7)*6; scene.add(g);
+  const L={x,z,g,flower,outer,inner,id,open:opened?1:0,grow:opened?1:0,born:opened?-1:clock.elapsedTime}; setLotusOpen(L); lotuses.push(L); return L;
 }
+function setLotusOpen(L){ const o=L.open;
+  L.outer.forEach(p=>{ p.rotation.x=-1.35+o*.85; }); L.inner.forEach(p=>{ p.rotation.x=-1.45+o*.4; });
+  L.g.scale.setScalar(Math.max(.001,L.grow)); }
+function lotusSpotNear(px,pz){ // the free spot in the pond closest to where you stand
+  let best=null, bd=1e9; const r=rng(Math.floor(performance.now()));
+  for(let i=0;i<160;i++){ const a=r()*Math.PI*2, d=Math.sqrt(r())*(POND.r-.65), x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d;
+    if(lotuses.some(l=>Math.hypot(l.x-x,l.z-z)<.8)) continue; const dd=Math.hypot(px-x,pz-z); if(dd<bd){ bd=dd; best=[x,z]; } }
+  if(best) return best; const a=Math.random()*Math.PI*2, d=Math.random()*(POND.r-.7); return [POND.x+Math.cos(a)*d,POND.z+Math.sin(a)*d];
+}
+let lotusAll=0;
+async function refreshLotus(){
+  try{ const r=await rpc('gs_lotuses',{}); if(!r||!Array.isArray(r.list)) return; lotusAll=+r.all||r.list.length;
+    for(const it of r.list.slice(0,LOTUS_SHOW)){ const x=+it.x, z=+it.z; if(!lotuses.some(l=>l.id===it.id||Math.hypot(l.x-x,l.z-z)<.05)) makeLotus(x,z,it.id,true); else { const m=lotuses.find(l=>Math.hypot(l.x-x,l.z-z)<.05); if(m&&!m.id) m.id=it.id; } }
+    while(lotuses.length>LOTUS_SHOW){ const old=lotuses.shift(); scene.remove(old.g); }
+    updatePondCap(); }catch(e){}
+}
+refreshLotus(); setInterval(refreshLotus,180000);
 const STAR_MAX=900;
 const goldStarGeo=new THREE.BufferGeometry();
 { const r=rng(909), p=[], sz=[]; for(let i=0;i<STAR_MAX;i++){ const az=r()*Math.PI*2, el=(.1+Math.pow(r(),1.3)*.85)*Math.PI/2.4, R=4100;
@@ -1785,15 +1815,51 @@ const goldStarMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fo
   vertexShader:`attribute float size; uniform float time; varying float vT; void main(){ vT=fract(position.x*.011+position.y*.017); gl_PointSize=size*${PR.toFixed(2)}; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); gl_Position.z=gl_Position.w*.9999; }`,
   fragmentShader:`uniform float amt,time; varying float vT; void main(){ float d=length(gl_PointCoord-.5); float a=smoothstep(.5,0.,d)*amt*(.7+.3*sin(time*1.1+vT*50.)); gl_FragColor=vec4(vec3(1.,.82,.45)*a*2.,a); }`});
 const goldStars=new THREE.Points(goldStarGeo,goldStarMat); goldStars.frustumCulled=false; scene.add(goldStars);
-const pondCap=document.createElement('div'); pondCap.className='pond-cap'; document.body.appendChild(pondCap); let pondOp=0, lotusInit=false;
-function updateGrowth(){
-  const hours=Math.floor(mountainTotalAll()/3600), n=Math.min(LOTUS_MAX,hours+1);
-  lotuses.forEach((l,i)=>{ l.want=i<n?1:0; if(!lotusInit){ l.s=l.want; } });
-  lotusInit=true;
-  goldStarGeo.setDrawRange(0,Math.min(STAR_MAX,hours));
-  pondCap.innerHTML=`池中的每一朵蓮花，都是大家一起靜坐的一小時<br><b>目前 ${n} 朵 🪷</b>・夜空中的金色星星也是`;
-}
+const pondCap=document.createElement('div'); pondCap.className='pond-cap'; document.body.appendChild(pondCap); let pondOp=0;
+function updatePondCap(){ const n=Math.max(lotusAll,lotuses.length);
+  pondCap.innerHTML=n?`池中的每一朵蓮花，都是一份祝福<br><b>已有 ${n} 朵 🪷</b>`:'這座池塘，等著第一朵祝福蓮花 🪷'; }
+function updateGrowth(){ goldStarGeo.setDrawRange(0,Math.min(STAR_MAX,Math.floor(mountainTotalAll()/3600))); updatePondCap(); } // golden stars: one per hour the mountain has sat
 updateGrowth(); setInterval(updateGrowth,5000);
+
+/* planting one */
+let lotusShown=false, lastLotus=+store.get('lastLotus',0)||0;
+const motes=[];
+function plantLotus(x,z,wish,mine){
+  const L=makeLotus(x,z,null,false);
+  // a ring of ripples on the water
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.3,.36,40),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.set(x,POND.y+.02,z); scene.add(ring); L.ring=ring;
+  if(wish){ const d=document.createElement('div'); d.className='wish-tag lotus-wish'; d.textContent=wish; tagsEl.appendChild(d); L.tag=d; }
+  if(mine&&self){ // a small light drifts from your hands to the water first
+    const m=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),new THREE.MeshBasicMaterial({color:new THREE.Color('#ffd1e0').multiplyScalar(2.2)}));
+    m.position.set(self.x,hAt(self.x,self.z)+.9,self.z); scene.add(m); motes.push({m,from:m.position.clone(),to:new THREE.Vector3(x,POND.y+.12,z),t0:clock.elapsedTime});
+    L.born=clock.elapsedTime+1.6; lanFocus={obj:L.g,until:performance.now()+9000};
+  }
+  updatePondCap(); return L;
+}
+function lotusNear(){
+  const d=self?Math.hypot(self.x-POND.x,self.z-POND.z):1e9;
+  const show=!!self&&me.phase==='walk'&&d<POND.r+2.6&&!(lanFocus&&performance.now()<lanFocus.until);
+  if(show!==lotusShown){ lotusShown=show; $('lotusAsk').classList.toggle('hidden',!show); }
+  if(show){ $('elderAsk').classList.add('hidden'); $('likeAsk').classList.add('hidden'); }
+}
+$('lotusAsk').onclick=()=>{
+  if(Date.now()-lastLotus<120000){ toast(`下一朵蓮花，${Math.ceil((120000-(Date.now()-lastLotus))/1000)} 秒後可以種 🪷`); return; }
+  $('lotusWish').value=''; $('lotusGo').disabled=true; $('mLotus').classList.remove('hidden');
+};
+document.querySelectorAll('#lotusChips button').forEach(b=>b.onclick=()=>{ const w=$('lotusWish'); w.value=(w.value?w.value+' ':'')+b.textContent; w.dispatchEvent(new Event('input')); });
+$('lotusWish').addEventListener('input',()=>{ $('lotusGo').disabled=!$('lotusWish').value.trim(); });
+$('lotusCancel').onclick=()=>$('mLotus').classList.add('hidden');
+$('lotusGo').onclick=()=>{
+  const wish=$('lotusWish').value.trim().slice(0,60); if(!wish||!self) return;
+  $('mLotus').classList.add('hidden'); lastLotus=Date.now(); store.set('lastLotus',lastLotus);
+  const [x,z]=lotusSpotNear(self.x,self.z);
+  self.r=Math.atan2(x-self.x,z-self.z); cam.rate=.9; cam.yawTarget=self.r+Math.PI; cam.pitchTarget=.5; cam.distTarget=5.5;
+  plantLotus(x,z,wish,true); bell(.22);
+  try{ aLotus?.send({x:+x.toFixed(3),z:+z.toFixed(3)}); }catch{}
+  if(srv.id) rpc('gs_plant',{...auth(),p_x:x,p_z:z}).then(r=>{ if(r&&r.id){ const L=lotuses.find(l=>Math.hypot(l.x-x,l.z-z)<.05); if(L) L.id=r.id; lotusAll++; updatePondCap(); } }).catch(()=>{});
+  setTimeout(()=>toast('🪷 你的蓮花已經種下，靜靜開在池中'),11000);
+};
 
 /* ---------- 3. wish lanterns ---------- */
 const lanPaper=new THREE.MeshStandardMaterial({color:'#f5d6a4',emissive:'#ff9f45',emissiveIntensity:.95,roughness:.8,side:THREE.DoubleSide});
@@ -1881,10 +1947,18 @@ function animateSurprises(t,dt,W,H){
   for(const s of steles){ const d=Math.hypot(sx-s.x,sz-s.z), want=d<1.6?1:d<3.8?(3.8-d)/2.2:0; s.op+=(want-s.op)*Math.min(1,dt*2); steleOp=Math.max(steleOp,s.op); labelAt(s.tag,s.x,s.y+1.55,s.z,s.op,W,H,40,true); }
   if(self) self.tagEl.style.opacity=(1-steleOp*.9).toFixed(2); // let the stone's words speak
   // pond caption
-  { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk')?1:0; if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
-  // lotus bloom
-  for(const l of lotuses){ if(Math.abs(l.want-l.s)>.001){ l.s+=(l.want-l.s)*Math.min(1,dt*.6); if(Math.abs(l.want-l.s)<.002) l.s=l.want; }
-    l.g.visible=l.s>.01; if(l.g.visible){ l.g.scale.setScalar(l.s); l.g.position.y=POND.y+.01+Math.sin(t*.6+l.x)*.006; } }
+  { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk'&&!(lanFocus&&performance.now()<lanFocus.until))?1:0; if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
+  // light motes drifting to the water
+  for(let i=motes.length-1;i>=0;i--){ const o=motes[i], k=Math.min(1,(t-o.t0)/1.6), e=k*k*(3-2*k);
+    o.m.position.lerpVectors(o.from,o.to,e); o.m.position.y+=Math.sin(k*Math.PI)*.6; if(k>=1){ scene.remove(o.m); motes.splice(i,1); } }
+  // lotuses: rise from the water, petals open, the blessing lingers then fades
+  for(const l of lotuses){
+    if(l.born>=0){ const a=t-l.born;
+      if(a>=0){ l.grow=Math.min(1,a/1.4); l.open=clamp((a-1.0)/3.2,0,1); l.open=l.open*l.open*(3-2*l.open); setLotusOpen(l); }
+      if(l.ring){ const ra=t-l.born+1.6, k=Math.min(1,ra/3); l.ring.scale.setScalar(1+k*5); l.ring.material.opacity=.6*(1-k); if(k>=1){ scene.remove(l.ring); l.ring=null; } }
+      if(l.tag){ const op=a<0?0:a<1.2?a/1.2:a<8?1:Math.max(0,1-(a-8)/2.5); labelAt(l.tag,l.x,POND.y+1.25,l.z,op,W,H,50); if(a>11){ l.tag.remove(); l.tag=null; } }
+      if(a>12&&!l.tag&&!l.ring) l.born=-1; }
+    l.g.position.y=POND.y+.01+Math.sin(t*.6+l.x)*.006; }
   // golden stars glow at dusk and night
   goldStarMat.uniforms.amt.value=PAL.n==='night'?1:PAL.n==='dusk'?.65:PAL.n==='dawn'?.3:0;
   // ground lanterns breathe softly; hidden for a moment after one is released
@@ -1902,7 +1976,7 @@ function animateSurprises(t,dt,W,H){
   for(let i=0;i<n;i++){ const L=skyList[i]; skyPos(L.id,t,_v); _s.setScalar(5); _q.setFromAxisAngle(UP_AXIS,t*.1+i);
     _m.compose(_v,_q,_s); skyBody.setMatrixAt(i,_m); _v.y-=.38; _m.compose(_v,_q,_s); skyCore.setMatrixAt(i,_m); }
   if(n){ skyBody.instanceMatrix.needsUpdate=true; skyCore.instanceMatrix.needsUpdate=true; }
-  heartNear(); lanNear();
+  heartNear(); lanNear(); lotusNear();
 }
 
 /* ===================== loop ===================== */
