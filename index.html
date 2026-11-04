@@ -1272,7 +1272,7 @@ ledgerPut(UID,me.total,me.name||'同修',me.country); ledgerSave();
 function myLedgerSync(){ const t=me.total+(me.phase==='sit'?me.sitSec:0); const e=ledger[UID];
   if(!e||t>e.t||e.n!==me.name){ ledger[UID]={t:Math.max(t,e?.t||0),n:me.name||'同修',c:me.country}; } }
 const peers=new Map(); // id -> Person
-let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null, aLan=null, aLotus=null;
+let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null, aHi=null, aLan=null, aLotus=null;
 
 /* ===================== intro form ===================== */
 // first visit: blank, everyone types their own; next visits on the same phone: what they typed last time (old built-in placeholders never come back)
@@ -1305,10 +1305,11 @@ netReady.then(()=>{
   if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('hudStat').textContent='離線'; return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
-  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aLan=room.makeAction('lan'); aLotus=room.makeAction('lotus');
+  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aHi=room.makeAction('hi'); aLan=room.makeAction('lan'); aLotus=room.makeAction('lotus');
   const lotusFrom=new Map(); aLotus.onMessage=(d,{peerId})=>{ const x=+d?.x, z=+d?.z; if(!Number.isFinite(x)||!Number.isFinite(z)||Math.hypot(x-POND.x,z-POND.z)>POND.r||Date.now()-(lotusFrom.get(peerId)||0)<20000) return; lotusFrom.set(peerId,Date.now()); plantLotus(x,z,null,false); };
   const lanFrom=new Map(); aLan.onMessage=(d,{peerId})=>{ const i=d&&d.s; if((i!==0&&i!==1)||Date.now()-(lanFrom.get(peerId)||0)<20000) return; lanFrom.set(peerId,Date.now()); launchLantern(i,null,false); };
   aLike.onMessage=(d,{peerId})=>gotLike(d,peerId);
+  aHi.onMessage=(d,{peerId})=>gotHi(peerId);
   aLed.onMessage=(d)=>{ if(!d||typeof d!=='object') return; let ch=false; const ks=Object.keys(d).slice(0,4000);
     for(const k of ks){ if(k===UID) continue; const v=d[k]; if(v&&typeof v==='object') ch=ledgerPut(k,v.t,v.n,v.c)||ch; }
     if(ch){ ledgerSave(); updateTotal(); } };
@@ -1839,11 +1840,14 @@ function personCard(p){
   const c1=document.createElement('div'); c1.className='p-cell'; const b1=document.createElement('b'); const s1=document.createElement('span'); s1.textContent='這一座'; c1.append(b1,s1);
   const c2=document.createElement('div'); c2.className='p-cell'; const b2=document.createElement('b'); b2.textContent=hrs(info.total); const s2=document.createElement('span'); s2.textContent='山上累積'; c2.append(b2,s2);
   grid.append(c1,c2);
-  const q=document.createElement('div'); q.className='quiet'; q.textContent=isSelf?'這是你。':'靜默空間不交談。以心隨喜就好 🙏';
+  const q=document.createElement('div'); q.className='quiet'; q.textContent=isSelf?'這是你。':(p.info.phase==='walk'?'靜默空間不交談，打個招呼就好 👋':'靜默空間不交談。以心隨喜就好 🙏');
   el.append(top,grid);
   if(!isSelf&&p.info.phase==='sit'){ const lb=document.createElement('button'); lb.className='p-like';
     const done=!canLike(p); lb.textContent=done?'已為他隨喜 🙏':'🙏 為他隨喜'; lb.disabled=done;
     lb.onclick=()=>{ sendLike(p); lb.textContent='已為他隨喜 🙏'; lb.disabled=true; }; el.appendChild(lb); }
+  if(!isSelf&&p.info.phase==='walk'&&me.phase==='walk'){ const hb=document.createElement('button'); hb.className='p-like';
+    const done=()=>{ hb.textContent='👋 已打過招呼'; hb.disabled=true; }; hb.textContent='👋 打招呼'; if(!canHi(p)) done();
+    hb.onclick=()=>{ sendHi(p); done(); }; el.appendChild(hb); }
   el.append(q);
   const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):ph==='free'?'自由靜坐':(ph==='walk'?'走動中':'準備入座'); };
   upd(); clearInterval(personCard.t); personCard.t=setInterval(upd,1000);
@@ -1908,10 +1912,25 @@ let likeShown=null;
 function likeNear(){
   let best=null, bd=2.8;
   if(self&&me.phase==='walk') for(const p of peers.values()){ if(!canLike(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bd){ bd=d; best=p; } }
-  if(best!==likeShown){ likeShown=best; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.textContent=`🙏 為 ${best.info.name} 隨喜`; }
+  let hi=false; if(!best&&self&&me.phase==='walk'){ bd=2.8; for(const p of peers.values()){ if(!canHi(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bd){ bd=d; best=p; hi=true; } } }
+  if(best!==likeShown||hi!==likeHi){ likeShown=best; likeHi=hi; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.textContent=hi?`👋 和 ${best.info.name} 打招呼`:`🙏 為 ${best.info.name} 隨喜`; }
   if(best) $('elderAsk').classList.add('hidden');
 }
-$('likeAsk').onclick=()=>{ if(likeShown) sendLike(likeShown); };
+$('likeAsk').onclick=()=>{ if(!likeShown) return; if(likeHi) sendHi(likeShown); else sendLike(likeShown); };
+/* 打招呼: two people walking near each other can just say 嗨 — nothing more */
+let likeHi=false; const hiAt=new Map(), hiFrom=new Map();
+const canHi=p=>p&&p.peerId&&p.info.phase==='walk'&&Date.now()-(hiAt.get(p.peerId)||0)>30000;
+function sendHi(p){
+  if(!canHi(p)) return; hiAt.set(p.peerId,Date.now());
+  try{ aHi?.send({n:me.name},{target:p.peerId}); }catch{}
+  if(self) floatOver(self,'👋 嗨'); likeShown=null; $('likeAsk').classList.add('hidden');
+}
+function gotHi(peerId){
+  if(seatedNow()||me.phase==='intro') return; // never disturb someone sitting
+  if(Date.now()-(hiFrom.get(peerId)||0)<20000) return; hiFrom.set(peerId,Date.now());
+  const p=peers.get(peerId); if(!p) return;
+  if(!floatOver(p,'👋 嗨')) toast(`👋 ${p.info.name}：嗨`);
+}
 // receiving one: shown quietly on the right, no sound, waiting for when you open your eyes
 const likesGot=[]; const likeFrom=new Map();
 function gotLike(d,peerId){
