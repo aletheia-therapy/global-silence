@@ -79,7 +79,7 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #evPill b{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
 #evPill.live{background:rgba(232,195,122,.9);color:#2a2214} #evPill.live b{color:#2a2214}
 body.on-intro #evPill{display:none}
-#lb{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(122px + var(--safe-t));z-index:4;width:158px;
+#lb{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(122px + var(--safe-t));z-index:4;width:172px;
   background:rgba(14,20,30,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:7px 8px 6px;
   font-size:11.5px;color:var(--ink)}
 body.on-intro #lb{display:none}
@@ -1093,7 +1093,7 @@ function maybeSendPos(now){
 function peerSec(info){ if(info.phase!=='sit') return 0; return info.sitSec+(info.paused?0:(performance.now()-(info.recvAt||performance.now()))/1000); }
 function fmt(sec){ sec=Math.floor(sec); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
   return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`; }
-function hrs(sec){ const h=sec/3600; return h<1?`${Math.round(sec/60)} 分`:`${h.toFixed(1)} 小時`; }
+function hrs(sec){ const h=sec/3600; return h<1?(sec<60?`${Math.floor(sec)} 秒`:`${Math.round(sec/60)} 分鐘`):`${h.toFixed(1)} 小時`; }
 function everyone(){
   const arr=[...peers.values()].map(p=>({person:p,name:p.info.name,country:p.info.country,phase:p.info.phase,total:p.info.total,live:peerSec(p.info),self:false}));
   if(self) arr.push({person:self,name:me.name,country:me.country,phase:me.phase,total:me.total,live:me.phase==='sit'?me.sitSec:0,self:true});
@@ -1110,7 +1110,8 @@ function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotal()); }
 setInterval(updateTotal,1000);
 
 /* left-side leaderboard: top 10 by lifetime silence, plus your own place if you're further down */
-function shortFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec}秒`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h?`${h}時${m}分`:`${m}分`; }
+function shortFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec}秒`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
+  return h?`${h}小時${m}分`:(s?`${m}分${s}秒`:`${m}分鐘`); }
 function lbRow(el,rank,r){ el.className=r.k===UID?'me':''; el.innerHTML='';
   const a=document.createElement('span'); a.className='r'; a.textContent=rank;
   const w=document.createElement('span'); w.className='w'; w.textContent=r.n; const sm=document.createElement('small'); sm.textContent=r.c||''; w.appendChild(sm);
