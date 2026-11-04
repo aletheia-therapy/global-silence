@@ -241,6 +241,17 @@ body.on-intro #lb{display:none}
 .prev{width:104px;height:104px;border-radius:50%;object-fit:cover;transform:scaleX(-1);border:2px solid var(--gold);background:#0c1018;flex:none}
 .checks{list-style:none;margin:0;padding:0;font-size:13px;line-height:1.9;color:var(--ink-dim)}
 .checks li.ok{color:var(--ok)} .checks li.bad{color:var(--warn)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 10px 12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);transition:transform .2s,border-color .2s}
+.mode-card:active{transform:scale(.97)}
+.mode-card .mc-ico{font-size:26px;line-height:1}
+.mode-card .mc-name{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.12em;margin:6px 0 4px}
+.mode-card .mc-lead{font-size:12.5px;color:var(--ink-dim);line-height:1.6}
+.mode-card ul{list-style:none;margin:8px 0 0;padding:8px 0 0;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-faint);line-height:1.8;width:100%}
+.mode-card.formal{border-color:rgba(232,195,122,.6);background:linear-gradient(170deg,rgba(232,195,122,.2),rgba(232,195,122,.05))}
+.mode-card.formal .mc-name{color:var(--gold)} .mode-card.formal ul{color:var(--ink-dim)}
+.free-ico{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(247,182,203,.12);border:1px solid rgba(247,182,203,.4);flex:none}
+.free-up{display:block;width:100%;margin-top:12px;padding:11px;border-radius:12px;border:1px solid rgba(232,195,122,.6);color:var(--gold);font-size:14px;font-weight:600;background:rgba(232,195,122,.08)}
 .sit-row{display:flex;align-items:center;gap:12px}
 #sitPrev{width:56px;height:56px}
 .sit-time{font-family:var(--serif);font-size:30px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
@@ -388,6 +399,38 @@ body.on-intro #lb{display:none}
   </div>
 </div></div>
 
+<!-- step 2a: choose how to sit -->
+<div class="sheet hidden" id="sheetMode"><div class="sheet-in">
+  <div class="s-title" style="text-align:center">這一座，想怎麼坐？</div>
+  <p class="s-sub" style="text-align:center;margin-bottom:12px">兩種都可以安靜地坐在山上，隨時都能改變心意。</p>
+  <div class="modes">
+    <button class="mode-card" id="modeFree">
+      <div class="mc-ico">🪷</div><div class="mc-name">自由靜坐</div>
+      <div class="mc-lead">不開鏡頭，<br>安安靜靜地坐著</div>
+      <ul><li>不計入正式時數</li><li>不列入排行榜與抽獎</li></ul>
+    </button>
+    <button class="mode-card formal" id="modeFormal">
+      <div class="mc-ico">🌏</div><div class="mc-name">正式共修</div>
+      <div class="mc-lead">打開鏡頭，<br>與大家真實同在</div>
+      <ul><li>累積個人與全球時數</li><li>列入排行榜・活動抽獎</li></ul>
+    </button>
+  </div>
+  <div class="acts" style="margin-top:12px"><button class="btn-sec" id="modeBack" style="flex:1">再走走</button></div>
+</div></div>
+
+<!-- step 3b: free sitting (no camera, not counted) -->
+<div class="sheet hidden" id="sheetFree"><div class="sheet-in">
+  <div class="sit-row">
+    <div class="free-ico">🪷</div>
+    <div style="flex:1;min-width:0">
+      <div class="sit-time" id="freeTime">0:00</div>
+      <div class="sit-status">自由靜坐・不計入正式時數</div>
+    </div>
+    <button class="btn-sec" id="btnFreeRise">起座</button>
+  </div>
+  <button class="free-up" id="btnFreeToFormal">🌏 切換正式共修，開始累積時數</button>
+</div></div>
+
 <!-- step 3: sitting -->
 <div class="sheet hidden" id="sheetSit"><div class="sheet-in">
   <div class="sit-row">
@@ -457,7 +500,7 @@ body.on-intro #lb{display:none}
   <div class="ev-when" id="evWhen"></div>
   <ol class="ev-steps">
     <li><b>11/8（日）晚上 9 點上山</b><span>台灣時間 21:00</span></li>
-    <li><b>找個位置坐下，打開鏡頭</b><span>單次連續坐滿 <em>45 分鐘</em></span></li>
+    <li><b>找個位置坐下，選「正式共修」🌏</b><span>打開鏡頭，單次連續坐滿 <em>45 分鐘</em>（自由靜坐不列入抽獎）</span></li>
     <li><b>起座時，把「完成證明」截圖</b><span>坐滿 45 分鐘，起座畫面會出現你專屬的完成碼</span></li>
     <li><b>加入 LINE 社群，把截圖貼上</b><span>主辦方從中隨機抽出 3 名，各送 7-11 禮券 500 元</span></li>
   </ol>
@@ -1066,7 +1109,7 @@ class Person{
     const px=this.x, pz=this.z;
     if(this.remote){ const f=1-Math.exp(-dt*8); this.x+=(this.tx-this.x)*f; this.z+=(this.tz-this.z)*f; this.r=lerpAngle(this.r,this.tr,f); }
     const sp=Math.hypot(this.x-px,this.z-pz)/Math.max(dt,1e-3); this.speed+=(sp-this.speed)*Math.min(1,dt*10);
-    const seated=['cam','sit'].includes(this.phase);
+    const seated=['cam','sit','free'].includes(this.phase);
     this.sitP=clamp((this.sitP||0)+(seated?1:-1)*dt/(seated?2.8:1.1),0,1);
     { const p=this.sitP; this.sitAmt=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2; }
     this.leanAmt+=(((seated&&(this.remote?this.info.lean:me.lean))?1:0)-this.leanAmt)*Math.min(1,dt*5);
@@ -1086,6 +1129,7 @@ class Person{
     this.imgEl.style.display=showImg?'':'none';
     if(ph==='sit'){ const p=this.remote?this.info.paused:me.paused; this.timeEl.textContent=p?'暫離':fmt(this.remote?peerSec(this.info):me.sitSec); this.timeEl.classList.toggle('warn',!!p); }
     else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?'選位置中':'準備入座'; this.timeEl.classList.remove('warn'); }
+    else if(ph==='free'){ this.timeEl.textContent='自由靜坐'; this.timeEl.classList.remove('warn'); }
     else this.timeEl.textContent='';
   }
   dispose(){ scene.remove(this.k.g); this.tagEl.remove(); }
@@ -1158,7 +1202,7 @@ netReady.then(()=>{
     if(!d||typeof d!=='object') return; const s=sanitize(d); if(!s) return;
     let p=peers.get(peerId);
     if(!p){ p=new Person(s,true); p.peerId=peerId; p.x=p.tx=s.x; p.z=p.tz=s.z; peers.set(peerId,p); }
-    else { if(s.phase==='sit'&&p.info.phase!=='sit') s.sitStartedAt=Date.now(); p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
+    else { const sitNow=s.phase==='sit'||s.phase==='free', sitBefore=p.info.phase==='sit'||p.info.phase==='free'; if(sitNow&&(!sitBefore||s.phase!==p.info.phase)) s.sitStartedAt=Date.now(); p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
     p.info.recvAt=performance.now(); p.lastSeen=Date.now(); if(s.uid&&s.uid!==UID&&ledgerPut(s.uid,s.total,s.name,s.country)) ledgerSave(); updateHud();
   };
   aPos.onMessage=(d,{peerId})=>{ const p=peers.get(peerId); if(!p||!d) return;
@@ -1173,7 +1217,7 @@ function sanitize(d){
   return { name:s(d.name,16)||'同修', country:s(d.country,16), method:s(d.method,20),
     gender:d.gender==='girl'?'girl':'boy', robe:ROBES[d.robe]?d.robe:'saffron',
     x:num(d.x,-40,40), z:num(d.z,-40,40,14), r:num(d.r,-20,20), lean:!!d.lean,
-    phase:['walk','pose','cam','sit'].includes(d.phase)?d.phase:'walk',
+    phase:['walk','pose','cam','sit','free'].includes(d.phase)?d.phase:'walk',
     sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
@@ -1296,8 +1340,8 @@ try{ if(store.get('lbClosed',false)) $('lb').classList.add('closed'); }catch{}
 $('lbHead').onclick=()=>{ const c=$('lb').classList.toggle('closed'); store.set('lbClosed',c); };
 function updateHud(){
   updateTotal();
-  const all=everyone(), sitting=all.filter(p=>p.phase==='sit'), sum=sitting.reduce((a,p)=>a+p.live,0);
-  const ps=[...peers.values()], ns=ps.filter(p=>p.info.phase==='sit').length;
+  const all=everyone(), sitting=all.filter(p=>p.phase==='sit'||p.phase==='free'), sum=0;
+  const ps=[...peers.values()], ns=ps.filter(p=>p.info.phase==='sit'||p.info.phase==='free').length;
   $('introLive').textContent=!room?'正在尋找山上的同修…':ps.length?`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`:'此刻山上還沒有人。你可以是第一位。';
   if(me.phase==='intro') return;
   $('hudStat').textContent=!room?'連線中…':all.length<=1?'此刻山上只有你':`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`;
@@ -1305,7 +1349,7 @@ function updateHud(){
 }
 let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
 let sheetOn=false;
-function sheet(id){ sheetOn=!!id; ['sheetPose','sheetCam','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
+function sheet(id){ sheetOn=!!id; ['sheetPose','sheetMode','sheetCam','sheetFree','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
 ['mPerson','mRank','mAbout','mLan','mLotus'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
 
@@ -1390,9 +1434,35 @@ $('rotL').onclick=()=>{ self.r+=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('
 $('rotR').onclick=()=>{ self.r-=Math.PI/4; cam.yawTarget=self.r+Math.PI; [...$('presets').children].forEach(b=>b.classList.remove('on')); sendPosNow(); };
 function sendPosNow(){ lastPosSent=0; lastPos=''; }
 $('poseUp').onclick=standUp;
-function standUp(){ setSaver(false); clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
+function standUp(){ stopFree(); freeSec=0; cameFromFree=false; setSaver(false); clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
   me.phase='walk'; sheet(null); showWalkUI(true); sendState(); sendPosNow(); }
 let cineT=null;
+/* two ways to sit: free (no camera, nothing recorded) or formal (camera, counted) */
+let freeSec=0, freeTimer=null, cameFromFree=false;
+const seatedNow=()=>me.phase==='sit'||me.phase==='free';
+$('modeBack').onclick=standUp;
+$('modeFormal').onclick=()=>{ cameFromFree=false; me.phase='cam'; sheet('sheetCam'); resetCamCheck(); sendState(); };
+$('modeFree').onclick=startFree;
+async function startFree(){
+  me.phase='free'; sheet('sheetFree'); sendState(); bell(.5);
+  cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; setSaver(true); // same slow orbit as formal sitting
+  try{ wakeLock=wakeLock||await navigator.wakeLock?.request('screen'); }catch{}
+  $('freeTime').textContent=fmt(freeSec); clearInterval(freeTimer);
+  freeTimer=setInterval(()=>{ if(me.phase!=='free') return; if(!document.hidden) freeSec++; $('freeTime').textContent=fmt(freeSec); $('dimTime').textContent=fmt(freeSec); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
+}
+function stopFree(){ clearInterval(freeTimer); freeTimer=null; }
+$('btnFreeToFormal').onclick=()=>{ // switch to formal: camera check first; counting starts only after it passes
+  stopFree(); setSaver(false); cameFromFree=true; me.phase='cam';
+  cam.rate=1.2; cam.pitchTarget=.36; cam.distTarget=5; sheet('sheetCam'); resetCamCheck(); sendState();
+};
+$('btnFreeRise').onclick=()=>{
+  if(me.phase!=='free') return; const sec=freeSec, nLikes=likesGot.length; clearLikes();
+  stopFree(); try{ wakeLock?.release(); }catch{} wakeLock=null; standUp(); bell(.6);
+  $('endTime').textContent=sec<60?`${sec} 秒`:`${Math.floor(sec/60)} 分 ${sec%60} 秒`;
+  $('endSub').innerHTML=`自由靜坐・這一座不計入正式時數<br>`+(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')
+    +`<div class="end-all"><span>想累積時數、參加抽獎？</span><b style="font-size:16px">下次選「正式共修」🌏</b><small>打開鏡頭，與大家真實同在</small></div>`;
+  $('mEnd').classList.remove('hidden');
+};
 $('poseOk').onclick=()=>{
   me.phase='cam'; sheet(null); sendState(); bell(.35);
   if(ov.on){ cam.yaw=ov.yaw; setOverview(false); }
@@ -1400,7 +1470,7 @@ $('poseOk').onclick=()=>{
   cam.rate=.9; cam.yawTarget=self.r+.8; cam.distTarget=2.7; cam.pitchTarget=.2;
   clearTimeout(cineT); cineT=setTimeout(()=>{ if(me.phase!=='cam') return;
     cam.rate=1.2; cam.yawTarget=self.r+Math.PI; cam.distTarget=5; cam.pitchTarget=.36;
-    sheet('sheetCam'); resetCamCheck(); },3800);
+    sheet('sheetMode'); },3800);
 };
 
 /* face presence, detected on this phone only (MediaPipe) — the picture never leaves the device for this */
@@ -1430,7 +1500,7 @@ function setCk(id,state,text){ const li=$(id); li.className=state; li.textConten
 function resetCamCheck(){ setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你的臉'); setCk('ck4','','架好手機、坐穩'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
   $('camHint').textContent='準備好了再按開始，不用急。'; }
-$('camBack').onclick=()=>{ stopCamera(); me.phase='pose'; sheet('sheetPose'); sendState(); };
+$('camBack').onclick=()=>{ stopCamera(); if(cameFromFree){ startFree(); } else { me.phase='cam'; sheet('sheetMode'); sendState(); } };
 $('camOpen').onclick=async()=>{
   try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:320},height:{ideal:320}},audio:false}); }
   catch(e){ setCk('ck1','bad','鏡頭沒有開啟'); $('camHint').textContent='請允許瀏覽器使用鏡頭，再試一次。這裡需要真實的同在。'; return; }
@@ -1574,7 +1644,7 @@ function personCard(p){
     const done=!canLike(p); lb.textContent=done?'已為他隨喜 🙏':'🙏 為他隨喜'; lb.disabled=done;
     lb.onclick=()=>{ sendLike(p); lb.textContent='已為他隨喜 🙏'; lb.disabled=true; }; el.appendChild(lb); }
   el.append(q);
-  const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):(ph==='walk'?'走動中':'準備入座'); };
+  const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):ph==='free'?'自由靜坐':(ph==='walk'?'走動中':'準備入座'); };
   upd(); clearInterval(personCard.t); personCard.t=setInterval(upd,1000);
   $('mPerson').classList.remove('hidden');
 }
@@ -1621,7 +1691,7 @@ function drawElderTag(W,H){
 }
 /* ===================== 隨喜: a silent thumbs-up for someone sitting ===================== */
 const likedAt=new Map(); // peerId -> time I last 隨喜'd them (once per sit is enough)
-const canLike=p=>p&&p.peerId&&p.info.phase==='sit'&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
+const canLike=p=>p&&p.peerId&&(p.info.phase==='sit'||p.info.phase==='free')&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
 function floatOver(p,text){
   const v=new THREE.Vector3(p.x,hAt(p.x,p.z)+1.9,p.z); v.project(camera); if(v.z>1||Math.abs(v.x)>.95||Math.abs(v.y)>.95) return false;
   const d=document.createElement('div'); d.className='float-like'; d.textContent=text;
@@ -1644,7 +1714,7 @@ $('likeAsk').onclick=()=>{ if(likeShown) sendLike(likeShown); };
 // receiving one: shown quietly on the right, no sound, waiting for when you open your eyes
 const likesGot=[]; const likeFrom=new Map();
 function gotLike(d,peerId){
-  if(me.phase!=='sit'||!d||typeof d!=='object') return;
+  if(!seatedNow()||!d||typeof d!=='object') return;
   if(Date.now()-(likeFrom.get(peerId)||0)<60000) return; likeFrom.set(peerId,Date.now());
   const n=String(d.n||'同修').slice(0,16), c=String(d.c||'').slice(0,16);
   likesGot.push({n,c}); renderLikes();
@@ -1988,7 +2058,7 @@ function setSaver(on){
   renderer.shadowMap.autoUpdate=!on; renderer.shadowMap.needsUpdate=true;
   if(!on){ clearTimeout(dimTimer); $('dim').classList.remove('on'); } else armDim();
 }
-function armDim(){ clearTimeout(dimTimer); dimTimer=setTimeout(()=>{ if(saver&&me.phase==='sit') $('dim').classList.add('on'); },60000); }
+function armDim(){ clearTimeout(dimTimer); dimTimer=setTimeout(()=>{ if(saver&&seatedNow()) $('dim').classList.add('on'); },60000); }
 $('dim').addEventListener('click',()=>{ $('dim').classList.remove('on'); armDim(); });
 function resize(){ const W=innerWidth, H=innerHeight; renderer.setSize(W,H,false); composer.setPixelRatio(curPR); composer.setSize(W,H);
   camera.aspect=W/H; camera.fov=W<H?60:50; camera.updateProjectionMatrix(); }
@@ -2011,7 +2081,7 @@ renderer.setAnimationLoop(()=>{
   if(self){
     if(me.phase==='walk') moveSelf(dt);
     self.update(dt,t);
-    if(me.phase==='sit'&&!ov.on&&cam.yawTarget==null&&performance.now()-lastDrag>4000) cam.yaw+=dt*.055; // ~2 min per slow circle; pauses while you drag
+    if(seatedNow()&&!ov.on&&cam.yawTarget==null&&performance.now()-lastDrag>4000) cam.yaw+=dt*.055; // ~2 min per slow circle; pauses while you drag
     const cr=cam.rate||2.5;
     if(cam.pitchTarget!=null){ cam.pitch+=(cam.pitchTarget-cam.pitch)*Math.min(1,dt*cr); if(Math.abs(cam.pitch-cam.pitchTarget)<.003) cam.pitchTarget=null; }
     if(cam.yawTarget!=null){ cam.yaw=lerpAngle(cam.yaw,cam.yawTarget,Math.min(1,dt*cr)); if(Math.abs(((cam.yaw-cam.yawTarget+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)<.01) cam.yawTarget=null; }
@@ -2027,7 +2097,7 @@ renderer.setAnimationLoop(()=>{
       if(!OBST.some(o=>o.kind==='tree'&&Math.hypot(px-o.x,pz-o.z)<2.3)||dd<2) break; dd*=.85; }
     let cx=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dd, cy=cam.ty+Math.sin(cam.pitch)*dd, cz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dd;
     const g=hAt(cx,cz)+.35; if(cy<g) cy=g;
-    cam.lift=(cam.lift||0)+(((me.phase==='sit')?3.4*clamp(Math.min((cam.pitch-.36)/.24,(dd-5)/7),0,1):0)-(cam.lift||0))*Math.min(1,dt*.5); // while sitting, look up toward the horizon
+    cam.lift=(cam.lift||0)+(((seatedNow())?3.4*clamp(Math.min((cam.pitch-.36)/.24,(dd-5)/7),0,1):0)-(cam.lift||0))*Math.min(1,dt*.5); // while sitting, look up toward the horizon
     wantPos.set(cx,cy,cz); wantLook.set(cam.tx,cam.ty+cam.lift,cam.tz);
     if(lanFocus&&performance.now()<lanFocus.until&&me.phase==='walk') wantLook.lerp(lanFocus.obj.position,.6); // watch your lantern rise
     camK+=(14-camK)*Math.min(1,dt*1.6);
@@ -2035,7 +2105,7 @@ renderer.setAnimationLoop(()=>{
   const k=1-Math.exp(-dt*camK); camPos.lerp(wantPos,k); camLook.lerp(wantLook,k);
   camera.position.copy(camPos); camera.lookAt(camLook);
   { // when a panel covers the bottom, lift the picture so the character stays visible
-    const H=innerHeight, want=sheetOn?(me.phase==='sit'?H*.1:H*.2):0; viewOff+=(want-viewOff)*Math.min(1,dt*4);
+    const H=innerHeight, want=sheetOn?(seatedNow()?H*.1:H*.2):0; viewOff+=(want-viewOff)*Math.min(1,dt*4);
     if(viewOff>.5) camera.setViewOffset(innerWidth,H,0,viewOff,innerWidth,H); else if(camera.view&&camera.view.enabled) camera.clearViewOffset(); }
   for(const p of peers.values()) p.update(dt,t);
   composer.render(dt);
