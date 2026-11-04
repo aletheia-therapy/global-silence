@@ -1438,7 +1438,7 @@ function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hid
 /* ===================== camera rig + input ===================== */
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
 const ov={on:true,yaw:.6,pitch:innerWidth>innerHeight?.2:.62}; let lastDrag=0; // wide screens get a lower, more cinematic angle
-function setOverview(on){ ov.on=on; camK=2.2; $('btnView').textContent=on?'回到我':'全景'; $('btnView').classList.toggle('gold',!on); $('btnView').classList.toggle('blink',!on);
+function setOverview(on){ ov.on=on; camK=2.2; $('btnView').textContent=on?'回到我':'全景';
   showWalkUI(me.phase==='walk'); } // the joystick stays in both views whenever you're walking
 $('btnView').onclick=()=>{ if(self) setOverview(!ov.on); };
 const joy={x:0,y:0,id:null,reset(){ this.x=this.y=0; this.id=null; $('knob').style.transform=''; }};
