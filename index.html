@@ -164,6 +164,19 @@ body.on-intro #lb{display:none}
 #btnDown small{font-size:10px;font-weight:400;letter-spacing:.05em;opacity:.75}
 #elderTag{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--gold);
   background:rgba(10,14,22,.55);border:1px solid rgba(232,195,122,.35);padding:3px 10px 3px 13px;border-radius:10px;transform-origin:50% 100%;text-shadow:0 0 10px rgba(232,195,122,.35)}
+#lanAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
+  background:linear-gradient(180deg,#ffcf8a,#f0a14a);color:#3a2410;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(240,140,60,.4);animation:askIn .5s ease}
+.stele-tag{position:absolute;left:0;top:0;z-index:2000;pointer-events:none;writing-mode:vertical-rl;font-family:var(--serif);font-size:21px;letter-spacing:.24em;line-height:1.55;
+  color:#fff6e2;text-shadow:0 0 16px rgba(232,195,122,.9),0 0 4px rgba(232,195,122,.6),0 1px 3px rgba(0,0,0,.7);transform-origin:50% 50%;display:none;
+  background:radial-gradient(closest-side,rgba(14,20,30,.55),rgba(14,20,30,0));padding:22px 16px}
+.pond-cap{position:fixed;left:50%;bottom:calc(240px + var(--safe-b));transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;font-size:13px;line-height:1.7;color:var(--ink);background:rgba(14,20,30,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(247,182,203,.5);border-radius:14px;padding:8px 14px;white-space:nowrap;opacity:0;transition:opacity 1.2s}
+.pond-cap b{color:#f7b6cb}
+.wish-tag{position:absolute;left:0;top:0;pointer-events:none;max-width:70vw;white-space:normal;text-align:center;font-family:var(--serif);font-size:15px;line-height:1.6;
+  color:#ffe6c2;text-shadow:0 0 12px rgba(255,160,70,.8),0 1px 3px rgba(0,0,0,.6);transform-origin:50% 100%;display:none}
+#mLan .lan-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 10px}
+#mLan textarea{width:100%;min-height:84px;resize:none;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-user-select:text;user-select:text}
+#mLan textarea:focus{border-color:#f0a14a}
 #likeAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
   background:var(--gold);color:#2a2214;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:askIn .5s ease}
 #likes{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));top:42%;z-index:46;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:62vw}
@@ -378,6 +391,16 @@ body.on-intro #lb{display:none}
 <div class="modal hidden" id="mPerson"><div class="modal-in" id="mPersonIn"></div></div>
 <div class="modal hidden" id="mRank"><div class="modal-in" id="mRankIn"></div></div>
 <button id="likeAsk" class="hidden"></button>
+<button id="lanAsk" class="hidden">🏮 點一盞祈願燈</button>
+<div class="modal hidden" id="mLan"><div class="modal-in">
+  <div class="hud-title" style="font-size:12px;color:#f0a14a">懸崖邊的孔明燈</div>
+  <h2 class="m-title" style="font-size:20px;margin-top:4px">點一盞祈願燈 🏮</h2>
+  <p class="s-sub" style="margin:6px 0 0">寫下你的祈願。這些字<b>只有你看得到</b>，燈會帶著它，慢慢飄向遠方。</p>
+  <div class="lan-chips chips" id="lanChips"><button class="chip">願世界和平</button><button class="chip">願家人平安</button><button class="chip">願病者康復</button><button class="chip">願眾生離苦</button><button class="chip">願自己安好</button></div>
+  <textarea id="lanWish" maxlength="60" placeholder="為誰祈願，或想對遠方說的話……"></textarea>
+  <div class="note" id="lanCount" style="margin-top:6px"></div>
+  <div class="acts"><button class="btn-sec" id="lanCancel">取消</button><button class="btn-pri" id="lanGo" disabled style="background:linear-gradient(180deg,#ffcf8a,#f0a14a)">點亮・放飛</button></div>
+</div></div>
 <div id="likes" class="hidden"></div>
 <div id="elderAsk" class="hidden"><span>想多了解這個地方嗎？</span><button id="elderYes">好</button></div>
 <div class="modal hidden" id="mAbout"><div class="modal-in">
@@ -1062,7 +1085,7 @@ ledgerPut(UID,me.total,me.name||'同修',me.country); ledgerSave();
 function myLedgerSync(){ const t=me.total+(me.phase==='sit'?me.sitSec:0); const e=ledger[UID];
   if(!e||t>e.t||e.n!==me.name){ ledger[UID]={t:Math.max(t,e?.t||0),n:me.name||'同修',c:me.country}; } }
 const peers=new Map(); // id -> Person
-let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null;
+let room=null, aSt=null, aPos=null, aSnap=null, aLed=null, aLike=null, aLan=null;
 
 /* ===================== intro form ===================== */
 $('inName').value=''; $('inCountry').value=''; // always start blank: everyone types their own name and where they're from
@@ -1097,7 +1120,8 @@ netReady.then(()=>{
   if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('hudStat').textContent='離線'; return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
-  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like');
+  aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aLan=room.makeAction('lan');
+  const lanFrom=new Map(); aLan.onMessage=(d,{peerId})=>{ const i=d&&d.s; if((i!==0&&i!==1)||Date.now()-(lanFrom.get(peerId)||0)<20000) return; lanFrom.set(peerId,Date.now()); launchLantern(i,null,false); };
   aLike.onMessage=(d,{peerId})=>gotLike(d,peerId);
   aLed.onMessage=(d)=>{ if(!d||typeof d!=='object') return; let ch=false; const ks=Object.keys(d).slice(0,4000);
     for(const k of ks){ if(k===UID) continue; const v=d[k]; if(v&&typeof v==='object') ch=ledgerPut(k,v.t,v.n,v.c)||ch; }
@@ -1258,7 +1282,7 @@ let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classLi
 let sheetOn=false;
 function sheet(id){ sheetOn=!!id; ['sheetPose','sheetCam','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
-['mPerson','mRank','mAbout'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
+['mPerson','mRank','mAbout','mLan'].forEach(id=>$(id).addEventListener('click',e=>{ if(e.target.id===id) $(id).classList.add('hidden'); }));
 
 /* ===================== camera rig + input ===================== */
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
@@ -1662,6 +1686,192 @@ if(/\bLine\//i.test(navigator.userAgent)){
   b.querySelector('button').onclick=()=>b.remove(); document.body.appendChild(b);
 }
 
+/* ===================== surprises on the mountain ===================== */
+// find an open, walkable spot near a given angle / fraction of the cliff radius
+function freeSpot(a,f){
+  for(let k=0;k<60;k++){ const aa=a+(k%2?1:-1)*Math.floor(k/2)*.045, ff=f-(k%4)*.02, [x,z]=polar(aa,ff);
+    if(walkable(x,z)&&!OBST.some(o=>Math.hypot(o.x-x,o.z-z)<o.r+1.5)&&Math.hypot(x-POND.x,z-POND.z)>POND.r+1.6&&Math.hypot(x-ELDER_SEAT.x,z-ELDER_SEAT.z)>3) return [x,z]; }
+  return polar(a,f);
+}
+const hash01=(str,k)=>{ let h=2166136261^k; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return ((h>>>0)%100000)/100000; };
+
+/* ---------- 1. wisdom steles ---------- */
+const STELES=[['此刻即是',.15,.9],['雲來雲去，山還是山',-.7,.88],['聽，安靜也有聲音',1.6,.62],['坐下的地方，就是道場',2.65,.88],['放下的手，才接得住光',-2.55,.6]];
+function carvedTexture(text){
+  const cv=document.createElement('canvas'); cv.width=160; cv.height=320; const g=cv.getContext('2d');
+  g.fillStyle='#8f8a82'; g.fillRect(0,0,160,320);
+  for(let i=0;i<900;i++){ g.fillStyle=`rgba(${Math.random()<.5?40:220},${Math.random()<.5?40:215},${Math.random()<.5?36:205},${Math.random()*.08})`; g.fillRect(Math.random()*160,Math.random()*320,2+Math.random()*4,2+Math.random()*4); }
+  const cols=text.split('，'), n=cols.length, fs=n>1?30:38;
+  g.font=`600 ${fs}px "Noto Serif TC","Songti TC",serif`; g.textAlign='center'; g.textBaseline='middle';
+  cols.forEach((col,ci)=>{ const cx=n>1?(ci===0?108:52):80, chars=[...col], step=fs*1.12, y0=160-(chars.length-1)*step/2;
+    chars.forEach((ch,i)=>{ const y=y0+i*step; g.fillStyle='rgba(255,255,255,.28)'; g.fillText(ch,cx+1.2,y+1.2); g.fillStyle='rgba(48,44,40,.85)'; g.fillText(ch,cx,y); }); });
+  const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+const steles=STELES.map(([text,a,f])=>{
+  const [x,z]=freeSpot(a,f), y=hAt(x,z), g=new THREE.Group();
+  const side=new THREE.MeshStandardMaterial({color:'#8f8a82',roughness:.95});
+  const front=new THREE.MeshStandardMaterial({map:carvedTexture(text),roughness:.9});
+  const geo=new THREE.BoxGeometry(.62,1.24,.2); const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){ if(p.getY(i)>0) p.setX(i,p.getX(i)*.9); } geo.computeVertexNormals();
+  const slab=new THREE.Mesh(geo,[side,side,side,side,front,side]); slab.position.y=.72; slab.rotation.z=(hash01(text,1)-.5)*.06;
+  const base=new THREE.Mesh(new THREE.BoxGeometry(.9,.18,.42),side); base.position.y=.09;
+  g.add(slab,base); g.position.set(x,y-.04,z); g.rotation.y=Math.atan2(-x,-z); // face the middle of the mountain
+  g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); scene.add(g);
+  OBST.push({x,z,r:.55,kind:'stele'});
+  const tag=document.createElement('div'); tag.className='stele-tag'; tag.textContent=text; tagsEl.appendChild(tag);
+  return {x,z,y,tag,op:0};
+});
+
+/* ---------- 2. lotus flowers (day) and golden stars (night) — one per hour the mountain has sat ---------- */
+const LOTUS_MAX=40;
+const lotusMat=new THREE.MeshStandardMaterial({color:'#f7b6cb',emissive:'#f290b2',emissiveIntensity:.32,roughness:.55,side:THREE.DoubleSide});
+const lotusInMat=new THREE.MeshStandardMaterial({color:'#fde3ec',emissive:'#f9c3d6',emissiveIntensity:.2,roughness:.5,side:THREE.DoubleSide});
+const lotusPadMat=new THREE.MeshStandardMaterial({color:'#5f8f4a',roughness:.6,side:THREE.DoubleSide});
+const lotusMidMat=new THREE.MeshStandardMaterial({color:'#f4d35e',emissive:'#e8b923',emissiveIntensity:.35});
+const petalGeo=new THREE.SphereGeometry(.1,10,6); petalGeo.scale(.55,.22,1.35); petalGeo.translate(0,0,.11);
+const lotuses=[];
+{ const r=rng(808);
+  for(let i=0;i<LOTUS_MAX;i++){
+    let x,z,tries=0; do{ const a=r()*Math.PI*2, d=Math.sqrt(r())*(POND.r-.7); x=POND.x+Math.cos(a)*d; z=POND.z+Math.sin(a)*d; tries++; }
+    while(tries<30&&lotuses.some(l=>Math.hypot(l.x-x,l.z-z)<.85));
+    const g=new THREE.Group(), flower=new THREE.Group(); g.add(flower);
+    const pad=new THREE.Mesh(new THREE.CircleGeometry(.42,16,.25,5.9),lotusPadMat); pad.rotation.x=-Math.PI/2; pad.position.y=.005; g.add(pad);
+    for(let k=0;k<8;k++){ const pt=new THREE.Mesh(petalGeo,lotusMat); pt.rotation.set(-.5,k/8*Math.PI*2,0,'YXZ'); flower.add(pt); }
+    for(let k=0;k<5;k++){ const pt=new THREE.Mesh(petalGeo,lotusInMat); pt.scale.setScalar(.7); pt.rotation.set(-1.05,k/5*Math.PI*2+.3,0,'YXZ'); pt.position.y=.03; flower.add(pt); }
+    const mid=new THREE.Mesh(new THREE.SphereGeometry(.045,10,8),lotusMidMat); mid.position.y=.05; flower.add(mid);
+    flower.position.y=.03; flower.scale.setScalar(2); g.position.set(x,POND.y+.01,z); g.rotation.y=r()*6; g.scale.setScalar(0); g.visible=false; scene.add(g);
+    lotuses.push({x,z,g,s:0,want:0});
+  }
+}
+const STAR_MAX=900;
+const goldStarGeo=new THREE.BufferGeometry();
+{ const r=rng(909), p=[], sz=[]; for(let i=0;i<STAR_MAX;i++){ const az=r()*Math.PI*2, el=(.1+Math.pow(r(),1.3)*.85)*Math.PI/2.4, R=4100;
+    p.push(Math.cos(az)*Math.cos(el)*R, Math.sin(el)*R, Math.sin(az)*Math.cos(el)*R); sz.push(2.2+r()*2.6); }
+  goldStarGeo.setAttribute('position',new THREE.Float32BufferAttribute(p,3)); goldStarGeo.setAttribute('size',new THREE.Float32BufferAttribute(sz,1)); goldStarGeo.setDrawRange(0,0); }
+const goldStarMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,uniforms:{time:U.time,amt:{value:0}},
+  vertexShader:`attribute float size; uniform float time; varying float vT; void main(){ vT=fract(position.x*.011+position.y*.017); gl_PointSize=size*${PR.toFixed(2)}; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); gl_Position.z=gl_Position.w*.9999; }`,
+  fragmentShader:`uniform float amt,time; varying float vT; void main(){ float d=length(gl_PointCoord-.5); float a=smoothstep(.5,0.,d)*amt*(.7+.3*sin(time*1.1+vT*50.)); gl_FragColor=vec4(vec3(1.,.82,.45)*a*2.,a); }`});
+const goldStars=new THREE.Points(goldStarGeo,goldStarMat); goldStars.frustumCulled=false; scene.add(goldStars);
+const pondCap=document.createElement('div'); pondCap.className='pond-cap'; document.body.appendChild(pondCap); let pondOp=0, lotusInit=false;
+function updateGrowth(){
+  const hours=Math.floor(mountainTotalAll()/3600), n=Math.min(LOTUS_MAX,hours+1);
+  lotuses.forEach((l,i)=>{ l.want=i<n?1:0; if(!lotusInit){ l.s=l.want; } });
+  lotusInit=true;
+  goldStarGeo.setDrawRange(0,Math.min(STAR_MAX,hours));
+  pondCap.innerHTML=`池中的每一朵蓮花，都是大家一起靜坐的一小時<br><b>目前 ${n} 朵 🪷</b>・夜空中的金色星星也是`;
+}
+updateGrowth(); setInterval(updateGrowth,5000);
+
+/* ---------- 3. wish lanterns ---------- */
+const lanPaper=new THREE.MeshStandardMaterial({color:'#f5d6a4',emissive:'#ff9f45',emissiveIntensity:.95,roughness:.8,side:THREE.DoubleSide});
+const lanWood=new THREE.MeshStandardMaterial({color:'#6b4a2e',roughness:.9});
+const lanCoreMat=new THREE.MeshBasicMaterial({color:new THREE.Color('#ffb15c').multiplyScalar(2.2)});
+const lanBodyGeo=new THREE.CylinderGeometry(.21,.15,.44,16,1,true), lanTopGeo=new THREE.CircleGeometry(.21,16), lanRimGeo=new THREE.TorusGeometry(.15,.012,6,16), lanCoreGeo=new THREE.SphereGeometry(.05,8,6);
+function makeLantern(){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(lanBodyGeo,lanPaper); body.position.y=.22; g.add(body);
+  const top=new THREE.Mesh(lanTopGeo,lanPaper); top.rotation.x=-Math.PI/2; top.position.y=.44; g.add(top);
+  const rim=new THREE.Mesh(lanRimGeo,lanWood); rim.rotation.x=Math.PI/2; rim.position.y=.005; g.add(rim);
+  const core=new THREE.Mesh(lanCoreGeo,lanCoreMat); core.position.y=.06; g.add(core);
+  return g;
+}
+const LAN_SPOTS=[freeSpot(-.25,.93),freeSpot(2.95,.93)].map(([x,z])=>{
+  const y=hAt(x,z), g=new THREE.Group(), lan=makeLantern(); lan.position.y=.16; g.add(lan);
+  const stone=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,.16,10),new THREE.MeshStandardMaterial({color:'#8d8880',roughness:.95,flatShading:true})); stone.position.y=.08; g.add(stone);
+  const glow=new THREE.PointLight('#ffad5c',0,5,1.8); glow.position.y=.6; g.add(glow);
+  g.position.set(x,y-.02,z); g.traverse(o=>{ if(o.isMesh) o.castShadow=true; }); scene.add(g);
+  OBST.push({x,z,r:.45,kind:'lantern'});
+  return {x,z,y,g,lan,glow,hideUntil:0};
+});
+// lanterns already floating over the valley (from the server), plus ones flying right now
+const SKY_MAX=150;
+const skyBody=new THREE.InstancedMesh(lanBodyGeo,lanPaper,SKY_MAX), skyCore=new THREE.InstancedMesh(new THREE.SphereGeometry(.09,8,6),lanCoreMat,SKY_MAX);
+skyBody.count=skyCore.count=0; skyBody.frustumCulled=skyCore.frustumCulled=false; scene.add(skyBody,skyCore);
+let skyList=[], lanWeek=0;
+const flying=[]; let lastLan=+store.get('lastLan',0)||0;
+async function refreshLanterns(){ try{ const r=await rpc('gs_lanterns',{}); if(r&&Array.isArray(r.list)){ skyList=r.list.map(l=>({id:String(l.id),t:+l.t})); lanWeek=+r.week||skyList.length; } }catch(e){} }
+refreshLanterns(); setInterval(refreshLanterns,180000);
+function skyPos(id,t,out){
+  const a=hash01(id,1)*Math.PI*2, R=46+hash01(id,2)*120, h=16+hash01(id,3)*42, s=hash01(id,4)*6.28;
+  const drift=t*.004*(hash01(id,5)>.5?1:-1);
+  return out.set(Math.cos(a+drift)*R, h+Math.sin(t*.35+s)*.7, Math.sin(a+drift)*R);
+}
+function launchLantern(spotIdx,wish,mine){
+  const sp=LAN_SPOTS[spotIdx]; if(!sp) return;
+  const obj=makeLantern(); obj.position.set(sp.x,sp.y+.22,sp.z); obj.scale.setScalar(1.25); scene.add(obj);
+  const out=new THREE.Vector3(sp.x,0,sp.z).normalize(), side=new THREE.Vector3(-out.z,0,out.x);
+  const light=new THREE.PointLight('#ffad5c',2.4,9,1.6); obj.add(light);
+  const f={obj,light,t0:clock.elapsedTime,start:obj.position.clone(),out,side,seed:Math.random()*6,tag:null};
+  if(wish){ const d=document.createElement('div'); d.className='wish-tag'; d.textContent=wish; tagsEl.appendChild(d); f.tag=d; }
+  flying.push(f); sp.hideUntil=performance.now()+6000;
+  if(mine) lanFocus={obj,until:performance.now()+22000};
+  return f;
+}
+let lanFocus=null; // the camera keeps an eye on your own lantern for a while
+let lanShown=null;
+function lanNear(){
+  let best=null; if(self&&me.phase==='walk'&&!(lanFocus&&performance.now()<lanFocus.until)) LAN_SPOTS.forEach((s,i)=>{ if(Math.hypot(self.x-s.x,self.z-s.z)<2.6&&performance.now()>s.hideUntil) best=i; });
+  if(best!==lanShown){ lanShown=best; $('lanAsk').classList.toggle('hidden',best==null); }
+  if(best!=null){ $('elderAsk').classList.add('hidden'); $('likeAsk').classList.add('hidden'); }
+}
+$('lanAsk').onclick=()=>{
+  if(Date.now()-lastLan<120000){ toast(`燈還在準備中，${Math.ceil((120000-(Date.now()-lastLan))/1000)} 秒後可以再點一盞 🏮`); return; }
+  $('lanWish').value=''; $('lanGo').disabled=true;
+  $('lanCount').textContent=lanWeek?`這 7 天，山上已經放飛了 ${lanWeek} 盞燈`:'你可以點亮這座山的第一盞燈';
+  $('mLan').classList.remove('hidden');
+};
+document.querySelectorAll('#lanChips button').forEach(b=>b.onclick=()=>{ const w=$('lanWish'); w.value=(w.value?w.value+' ':'')+b.textContent; w.dispatchEvent(new Event('input')); });
+$('lanWish').addEventListener('input',()=>{ $('lanGo').disabled=!$('lanWish').value.trim(); });
+$('lanCancel').onclick=()=>$('mLan').classList.add('hidden');
+$('lanGo').onclick=()=>{
+  const wish=$('lanWish').value.trim().slice(0,60); if(!wish||lanShown==null) return;
+  const spot=lanShown; $('mLan').classList.add('hidden'); lastLan=Date.now(); store.set('lastLan',lastLan);
+  const sp=LAN_SPOTS[spot]; cam.rate=.8; cam.yawTarget=Math.atan2(-sp.x,-sp.z); cam.pitchTarget=.2; cam.distTarget=7;
+  launchLantern(spot,wish,true); bell(.25);
+  try{ aLan?.send({s:spot}); }catch{}
+  if(srv.id) rpc('gs_light',auth()).then(r=>{ if(r&&r.id){ skyList.unshift({id:String(r.id),t:+r.t}); lanWeek++; } }).catch(()=>{});
+  setTimeout(()=>toast('🏮 你的祈願燈已經放飛，帶著你的心意飄向遠方'),12000); // after the wish has faded
+};
+
+/* ---------- per frame ---------- */
+const UP_AXIS=new THREE.Vector3(0,1,0), _v=new THREE.Vector3(), _m=new THREE.Matrix4(), _q=new THREE.Quaternion(), _s=new THREE.Vector3(1,1,1);
+function labelAt(el,x,y,z,op,W,H,maxD=40,center=false){
+  _v.set(x,y,z); const d=_v.distanceTo(camera.position); _v.project(camera);
+  if(op<.02||_v.z>1||d>maxD){ el.style.display='none'; return; }
+  el.style.display='block'; el.style.opacity=op.toFixed(2);
+  el.style.transform=`translate(${(_v.x+1)/2*W}px,${(1-_v.y)/2*H}px) translate(-50%,${center?'-50%':'-100%'}) scale(${clamp(8/d,.7,1.15)})`;
+}
+function animateSurprises(t,dt,W,H){
+  const sx=self?self.x:1e9, sz=self?self.z:1e9;
+  // steles: words surface as you come close
+  let steleOp=0;
+  for(const s of steles){ const d=Math.hypot(sx-s.x,sz-s.z), want=d<1.6?1:d<3.8?(3.8-d)/2.2:0; s.op+=(want-s.op)*Math.min(1,dt*2); steleOp=Math.max(steleOp,s.op); labelAt(s.tag,s.x,s.y+1.8,s.z,s.op,W,H,40,true); }
+  if(self) self.tagEl.style.opacity=(1-steleOp*.9).toFixed(2); // let the stone's words speak
+  // pond caption
+  { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk')?1:0; if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
+  // lotus bloom
+  for(const l of lotuses){ if(Math.abs(l.want-l.s)>.001){ l.s+=(l.want-l.s)*Math.min(1,dt*.6); if(Math.abs(l.want-l.s)<.002) l.s=l.want; }
+    l.g.visible=l.s>.01; if(l.g.visible){ l.g.scale.setScalar(l.s); l.g.position.y=POND.y+.01+Math.sin(t*.6+l.x)*.006; } }
+  // golden stars glow at dusk and night
+  goldStarMat.uniforms.amt.value=PAL.n==='night'?1:PAL.n==='dusk'?.65:PAL.n==='dawn'?.3:0;
+  // ground lanterns breathe softly; hidden for a moment after one is released
+  for(const sp of LAN_SPOTS){ const on=performance.now()>sp.hideUntil, k=on?1:0; sp.lan.scale.setScalar(sp.lan.scale.x+(k-sp.lan.scale.x)*Math.min(1,dt*1.5)||.001);
+    sp.glow.intensity=(PAL.n==='day'?.6:1.6)*(.85+.15*Math.sin(t*2.3+sp.x))*sp.lan.scale.x; }
+  // flying lanterns: rise slowly, drift out over the valley
+  for(let i=flying.length-1;i>=0;i--){ const f=flying[i], a=t-f.t0;
+    const up=a*.34+1.2*(1-Math.exp(-a/2.5)), outD=Math.max(0,a-1.5)*.5, sw=Math.sin(a*.55+f.seed)*.7;
+    f.obj.position.copy(f.start).addScaledVector(f.out,outD).addScaledVector(f.side,sw); f.obj.position.y+=up;
+    f.obj.scale.setScalar(1.25+a*.035); f.obj.rotation.y+=dt*.2; f.light.intensity=2.4*(.85+.15*Math.sin(t*7+f.seed));
+    if(f.tag){ const op=a<1?a:a<9?1:Math.max(0,1-(a-9)/2.5); labelAt(f.tag,f.obj.position.x,f.obj.position.y+.9,f.obj.position.z,op,W,H,80); if(a>12){ f.tag.remove(); f.tag=null; } }
+    if(a>150){ scene.remove(f.obj); flying.splice(i,1); } }
+  // the lanterns already in the sky
+  const n=Math.min(SKY_MAX,skyList.length); skyBody.count=skyCore.count=n;
+  for(let i=0;i<n;i++){ const L=skyList[i]; skyPos(L.id,t,_v); _s.setScalar(5); _q.setFromAxisAngle(UP_AXIS,t*.1+i);
+    _m.compose(_v,_q,_s); skyBody.setMatrixAt(i,_m); _v.y-=.38; _m.compose(_v,_q,_s); skyCore.setMatrixAt(i,_m); }
+  if(n){ skyBody.instanceMatrix.needsUpdate=true; skyCore.instanceMatrix.needsUpdate=true; }
+  lanNear();
+}
+
 /* ===================== loop ===================== */
 /* power saving while sitting: lower resolution, no glow, frozen shadows, ~12 fps, and the screen dims after a minute */
 let curPR=PR, saver=false, lastFrame=0, dimTimer=null;
@@ -1712,6 +1922,7 @@ renderer.setAnimationLoop(()=>{
     const g=hAt(cx,cz)+.35; if(cy<g) cy=g;
     cam.lift=(cam.lift||0)+(((me.phase==='sit')?3.4*clamp(Math.min((cam.pitch-.36)/.24,(dd-5)/7),0,1):0)-(cam.lift||0))*Math.min(1,dt*.5); // while sitting, look up toward the horizon
     wantPos.set(cx,cy,cz); wantLook.set(cam.tx,cam.ty+cam.lift,cam.tz);
+    if(lanFocus&&performance.now()<lanFocus.until&&me.phase==='walk') wantLook.lerp(lanFocus.obj.position,.6); // watch your lantern rise
     camK+=(14-camK)*Math.min(1,dt*1.6);
   }
   const k=1-Math.exp(-dt*camK); camPos.lerp(wantPos,k); camLook.lerp(wantLook,k);
@@ -1722,7 +1933,7 @@ renderer.setAnimationLoop(()=>{
   for(const p of peers.values()) p.update(dt,t);
   composer.render(dt);
   const W=innerWidth, H=innerHeight;
-  animateElder(t); drawElderTag(W,H); elderNear(); likeNear();
+  animateElder(t); drawElderTag(W,H); elderNear(); likeNear(); animateSurprises(t,dt,W,H);
   if(self) self.drawTag(W,H);
   for(const p of peers.values()) p.drawTag(W,H);
 });
