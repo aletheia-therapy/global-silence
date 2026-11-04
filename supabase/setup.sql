@@ -149,6 +149,7 @@ begin
 end $$;
 
 -- Leaderboard + whole-mountain total. Nothing private leaves the server.
+-- (free.sql replaces this with a version whose world total also counts 自由靜坐 — if you re-run this file, run free.sql again after it.)
 create or replace function public.gs_board(p_id uuid default null, p_limit integer default 10) returns json
 language plpgsql stable security definer set search_path = public as $$
 declare v_top json; v_me json; v_total bigint; v_people integer; v_mine integer;

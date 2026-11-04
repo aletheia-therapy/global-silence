@@ -425,7 +425,7 @@ body.on-intro #lb{display:none}
     <button class="mode-card" id="modeFree">
       <div class="mc-ico">🪷</div><div class="mc-name">自由靜坐</div>
       <div class="mc-lead">不開鏡頭，<br>安安靜靜地坐著</div>
-      <ul><li>不計入正式時數</li><li>不列入排行榜與抽獎</li></ul>
+      <ul><li>計入全球累積時數</li><li>不計個人時數・排行榜・抽獎</li></ul>
     </button>
     <button class="mode-card formal" id="modeFormal">
       <div class="mc-ico">🌏</div><div class="mc-name">正式共修</div>
@@ -442,11 +442,11 @@ body.on-intro #lb{display:none}
     <div class="free-ico">🪷</div>
     <div style="flex:1;min-width:0">
       <div class="sit-time" id="freeTime">0:00</div>
-      <div class="sit-status">自由靜坐・不計入正式時數</div>
+      <div class="sit-status">自由靜坐・計入全球，不計個人</div>
     </div>
     <button class="btn-sec" id="btnFreeRise">起座</button>
   </div>
-  <button class="free-up" id="btnFreeToFormal">🌏 切換正式共修，開始累積時數</button>
+  <button class="free-up" id="btnFreeToFormal">🌏 切換正式共修，累積個人時數</button>
 </div></div>
 
 <!-- step 3: sitting -->
@@ -1377,11 +1377,20 @@ async function srvEnd(keepalive){
   if(!srv.session) return null; const sid=srv.session; srv.session=null;
   try{ const r=await rpc('gs_end',{...auth(),p_session:sid},{keepalive}); srvApply(r); refreshBoard(); return r; }catch(e){ return null; }
 }
+/* free sitting: the server adds it to the world total only */
+const fs={session:null,secs:0,lastBeat:0,busy:false};
+async function freeStart(){ fs.session=null; fs.secs=0; fs.lastBeat=performance.now();
+  if(!srv.id){ await srvJoin(); } if(!srv.id) return;
+  try{ const r=await rpc('gs_free_start',auth()); if(r&&r.session){ fs.session=r.session; fs.lastBeat=performance.now(); } }catch(e){} }
+async function freeBeat(){ if(!fs.session||fs.busy) return; fs.busy=true; fs.lastBeat=performance.now();
+  try{ const r=await rpc('gs_free_beat',{...auth(),p_session:fs.session}); if(r&&typeof r.seconds==='number') fs.secs=r.seconds; else if(r&&r.error) fs.session=null; }catch(e){} finally{ fs.busy=false; } }
+async function freeEnd(keepalive){ if(!fs.session) return null; const sid=fs.session; fs.session=null;
+  try{ const r=await rpc('gs_free_end',{...auth(),p_session:sid},{keepalive}); if(r&&typeof r.seconds==='number') fs.secs=r.seconds; refreshBoard(); return r; }catch(e){ return null; } }
 function srvLive(){ return srv.board?Math.min(30,(performance.now()-srv.boardAt)/1000):0; } // seconds since the last board fetch
 
 function mountainTotalAll(){
   if(!srv.board) return mountainTotal();
-  const sitting=[...peers.values()].filter(p=>p.info.phase==='sit'&&!p.info.paused).length+(me.phase==='sit'&&!me.paused?1:0);
+  const sitting=[...peers.values()].filter(p=>(p.info.phase==='sit'&&!p.info.paused)||p.info.phase==='free').length+((me.phase==='sit'&&!me.paused)||me.phase==='free'?1:0);
   return Number(srv.board.total)+srvLive()*sitting;
 }
 function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotalAll()); }
@@ -1529,21 +1538,25 @@ async function startFree(){
   me.phase='free'; sheet('sheetFree'); sendState(); bell(.5);
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; setSaver(true); // same slow orbit as formal sitting
   try{ wakeLock=wakeLock||await navigator.wakeLock?.request('screen'); }catch{}
-  $('freeTime').textContent=fmt(freeSec); clearInterval(freeTimer);
-  freeTimer=setInterval(()=>{ if(me.phase!=='free') return; if(!document.hidden) freeSec++; $('freeTime').textContent=fmt(freeSec); $('dimTime').textContent=fmt(freeSec); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
+  $('freeTime').textContent=fmt(freeSec); clearInterval(freeTimer); freeStart();
+  freeTimer=setInterval(()=>{ if(me.phase!=='free') return; if(!document.hidden) freeSec++; if(performance.now()-fs.lastBeat>=20000) freeBeat(); $('freeTime').textContent=fmt(freeSec); $('dimTime').textContent=fmt(freeSec); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
 }
-function stopFree(){ clearInterval(freeTimer); freeTimer=null; }
+function stopFree(){ clearInterval(freeTimer); freeTimer=null; if(fs.session) freeEnd(); }
 $('btnFreeToFormal').onclick=()=>{ // switch to formal: camera check first; counting starts only after it passes
   stopFree(); setSaver(false); cameFromFree=true; me.phase='cam';
   cam.rate=1.2; cam.pitchTarget=.36; cam.distTarget=5; sheet('sheetCam'); resetCamCheck(); sendState();
 };
-$('btnFreeRise').onclick=()=>{
+$('btnFreeRise').onclick=async()=>{
   if(me.phase!=='free') return; const sec=freeSec, nLikes=likesGot.length; clearLikes();
-  stopFree(); try{ wakeLock?.release(); }catch{} wakeLock=null; standUp(); bell(.6);
+  clearInterval(freeTimer); freeTimer=null; const ending=freeEnd();
+  try{ wakeLock?.release(); }catch{} wakeLock=null; standUp(); bell(.6);
   $('endTime').textContent=sec<60?`${sec} 秒`:`${Math.floor(sec/60)} 分 ${sec%60} 秒`;
-  $('endSub').innerHTML=`自由靜坐・這一座不計入正式時數<br>`+(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')
-    +`<div class="end-all"><span>想累積時數、參加抽獎？</span><b style="font-size:16px">下次選「正式共修」🌏</b><small>打開鏡頭，與大家真實同在</small></div>`;
-  $('mEnd').classList.remove('hidden');
+  const paint=()=>{ const g=fs.secs>0?fs.secs:sec;
+    $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><br><span style="font-size:12.5px;color:var(--ink-faint)">自由靜坐計入全球累積，不計入個人時數</span><br>`
+      +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')
+      +`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修」🌏</small></div>`; };
+  paint(); $('mEnd').classList.remove('hidden');
+  await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
 };
 $('poseOk').onclick=()=>{
   me.phase='cam'; sheet(null); sendState(); bell(.35);
@@ -2240,6 +2253,7 @@ renderer.setAnimationLoop(()=>{
 const ld=$('loading'); ld.style.opacity='0'; setTimeout(()=>ld.remove(),1300);
 addEventListener('pagehide',()=>{ // closing the page mid-sit still keeps the minutes
   if(me.phase==='sit'&&me.sitSec>0){ myLedgerSync(); ledgerSave(); store.set('total',Math.max(me.total, Math.floor(ledger[UID]?.t||0))); srvEnd(true); }
+  if(fs.session) freeEnd(true);
   try{ room?.leave(); }catch{} });
 </script>
 </body>
