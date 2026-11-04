@@ -1923,13 +1923,13 @@ const canHi=p=>p&&p.peerId&&p.info.phase==='walk'&&Date.now()-(hiAt.get(p.peerId
 function sendHi(p){
   if(!canHi(p)) return; hiAt.set(p.peerId,Date.now());
   try{ aHi?.send({n:me.name},{target:p.peerId}); }catch{}
-  if(self) floatOver(self,'👋 嗨'); likeShown=null; $('likeAsk').classList.add('hidden');
+  if(self) floatOver(self,'👋 Hi!'); likeShown=null; $('likeAsk').classList.add('hidden');
 }
 function gotHi(peerId){
   if(seatedNow()||me.phase==='intro') return; // never disturb someone sitting
   if(Date.now()-(hiFrom.get(peerId)||0)<20000) return; hiFrom.set(peerId,Date.now());
   const p=peers.get(peerId); if(!p) return;
-  if(!floatOver(p,'👋 嗨')) toast(`👋 ${p.info.name}：嗨`);
+  if(!floatOver(p,'👋 Hi!')) toast(`👋 ${p.info.name}: Hi!`);
 }
 // receiving one: shown quietly on the right, no sound, waiting for when you open your eyes
 const likesGot=[]; const likeFrom=new Map();
