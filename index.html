@@ -864,7 +864,7 @@ function roundTree(x,z,s){
   [[0,2.6,0,1.3],[.85,2.3,.3,.95],[-.75,2.35,-.2,1],[.1,3.25,-.1,.9],[-.25,2.4,.8,.85],[.5,2.9,-.6,.8]].forEach(([a,b,c,rr],i)=>{
     const m=new THREE.Mesh(new THREE.IcosahedronGeometry(rr*s,1),mats[i%3]); m.position.set(a*s,b*s,c*s); crown.add(m); });
   g.position.set(x,y-.05,z); g.traverse(o=>{o.castShadow=true;o.receiveShadow=true;}); scene.add(g);
-  swayers.push({o:crown,ph:z}); OBST.push({x,z,r:.38*s+.25,kind:'tree',trunk:.27*s});
+  swayers.push({o:crown,ph:z}); OBST.push({x,z,r:.38*s+.25,kind:'tree',trunk:.27*s,round:true});
 }
 function bush(x,z,s){
   const g=new THREE.Group(), y=hAt(x,z), mat=new THREE.MeshStandardMaterial({color:'#5b8a45',roughness:.9,flatShading:true});
@@ -1591,6 +1591,13 @@ $('poseUp').onclick=standUp;
 function standUp(){ if(inTent) leaveTent(); stopFree(); freeSec=0; cameFromFree=false; setSaver(false); clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
   me.phase='walk'; sheet(null); showWalkUI(true); sendState(); sendPosNow(); }
 let cineT=null;
+/* pick an orbit angle near `base` with no tree crown between the camera and the sitter */
+function clearYaw(base,dist=12,pitch=.6){
+  const blocked=y=>{ let n=0; for(let k=.15;k<=1;k+=.12){ const px=self.x+Math.sin(y)*Math.cos(pitch)*dist*k, pz=self.z+Math.cos(y)*Math.cos(pitch)*dist*k, py=1+Math.sin(pitch)*dist*k;
+      for(const o of OBST) if(o.kind==='tree'&&Math.hypot(px-o.x,pz-o.z)<2.1&&py<4.6) n++; } return n; };
+  let best=base, bn=blocked(base); for(let i=1;i<=10&&bn>0;i++) for(const sg of [1,-1]){ const y=base+sg*i*.3, n=blocked(y); if(n<bn){ bn=n; best=y; } }
+  return best;
+}
 /* two ways to sit: free (no camera, nothing recorded) or formal (camera, counted) */
 let freeSec=0, freeTimer=null, cameFromFree=false;
 const seatedNow=()=>me.phase==='sit'||me.phase==='free';
@@ -1599,7 +1606,7 @@ $('modeFormal').onclick=()=>{ cameFromFree=false; me.phase='cam'; sheet('sheetCa
 $('modeFree').onclick=startFree;
 async function startFree(){
   me.phase='free'; sheet('sheetFree'); sendState(); bell(.5);
-  cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; setSaver(true); // same slow orbit as formal sitting
+  cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw); setSaver(true); // same slow orbit as formal sitting
   try{ wakeLock=wakeLock||await navigator.wakeLock?.request('screen'); }catch{}
   $('freeTime').textContent=fmt(freeSec); clearInterval(freeTimer); freeStart();
   freeTimer=setInterval(()=>{ if(me.phase!=='free') return; if(!document.hidden) freeSec++; if(performance.now()-fs.lastBeat>=20000) freeBeat(); $('freeTime').textContent=fmt(freeSec); $('dimTime').textContent=fmt(freeSec); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
@@ -1694,7 +1701,7 @@ $('camStart').onclick=async()=>{
   try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
   me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); sheet('sheetSit'); bell(); srvStart(); setSaver(true);
   // drift up to a 45° view from above and slowly circle the sitter, with the mountains behind
-  cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12;
+  cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw);
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
   $('sitTime').textContent='0:00'; sendState(); updateHud();
 };
@@ -2341,6 +2348,12 @@ function hangingNet(x,z,tree){
   if(spot) addTent(hangingNet(spot[0],spot[1],tree));
   // three pop-up domes, spread evenly round the summit
   [[-1.25,.66,'#5b4130','#2c1e15'],[.85,.7,'#4f6b33','#26331a'],[2.55,.62,'#5b4130','#2c1e15']].forEach(([a,f,c,fc])=>{ const [x,z]=freeSpot(a,f); addTent(domeTent(x,z,c,fc)); });
+  // two more hanging nets under two other round trees, made the same way as the first
+  let more=0;
+  for(const tr of OBST.filter(o=>o.kind==='tree'&&o.round&&o!==tree).sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z))){ if(more>=2) break; let sp=null;
+    for(let k=0;k<16&&!sp;k++){ const a=Math.atan2(tr.x,tr.z)+(k%2?1:-1)*Math.floor((k+1)/2)*.4, x=tr.x+Math.sin(a)*3.4, z=tr.z+Math.cos(a)*3.4;
+      if(walkable(x,z)&&!OBST.some(o=>o!==tr&&Math.hypot(o.x-x,o.z-z)<o.r+1.3)&&Math.hypot(x-POND.x,z-POND.z)>POND.r+1.4&&!TENTS.some(t=>Math.hypot(t.x-x,t.z-z)<6)) sp=[x,z]; }
+    if(sp){ addTent(hangingNet(sp[0],sp[1],tr)); more++; } }
   TENTS.forEach(t=>t.g.traverse(o=>{ if(o.isMesh&&!o.material.transparent) o.castShadow=true; }));
 }
 let tentShown=null, inTent=null, tentAnim=null;
@@ -2364,7 +2377,7 @@ function stepTentAnim(){
   if(e<1.1){ const k=ease(e/1.1); self.x=sx+(t.ex-sx)*k; self.z=sz+(t.ez-sz)*k; self.r=lerpAngle(self.r,Math.atan2(t.x-self.x,t.z-self.z)||inward,.25); }
   else if(e<2.3){ const k=ease((e-1.1)/1.2); self.x=t.ex+(t.sx-t.ex)*k; self.z=t.ez+(t.sz-t.ez)*k; self.r=inward+Math.sin(k*Math.PI)*1.25; } // sideways through the door
   else if(e<3.1){ self.x=t.sx; self.z=t.sz; self.r=lerpAngle(self.r,t.rot,.12); }
-  else { self.r=t.rot; tentAnim=null; t.openT=0; sendPosNow(); sitCinematic(); return; }
+  else { self.x=t.sx??t.x; self.z=t.sz??t.z; self.r=t.rot; tentAnim=null; t.openT=0; sendPosNow(); sitCinematic(); return; } // land on the seat even if frames were skipped
   sendPosNow();
 }
 function leaveTent(){ const t=inTent; if(!t) return; inTent=null; t.open=1; t.openT=1; setTimeout(()=>{ if(inTent!==t) t.openT=0; },1400);
@@ -2460,6 +2473,7 @@ renderer.setAnimationLoop(()=>{
   else {
     // pull the camera in if a tree crown would sit between it and the character
     let dd=cam.dist; for(let i=0;i<12;i++){ const px=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dd, pz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dd;
+      if(cam.ty+Math.sin(cam.pitch)*dd-hAt(px,pz)>4.4) break; // already above the crowns (the high orbit while sitting)
       if(!OBST.some(o=>o.kind==='tree'&&Math.hypot(px-o.x,pz-o.z)<2.3)||dd<2) break; dd*=.85; }
     let cx=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dd, cy=cam.ty+Math.sin(cam.pitch)*dd, cz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dd;
     const g=hAt(cx,cz)+.35; if(cy<g) cy=g;
