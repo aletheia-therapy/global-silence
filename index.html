@@ -235,6 +235,10 @@ body.on-intro #lb{display:none}
 .rank .v{font-variant-numeric:tabular-nums;color:var(--ink-dim);font-size:13px;text-align:right}
 .tabs{display:flex;gap:8px;margin-top:10px}
 .end-big{font-family:var(--serif);font-size:30px;text-align:center;margin:10px 0 2px}
+.end-all{margin:14px auto 0;padding:10px 12px;border-radius:12px;background:rgba(232,195,122,.12);border:1px solid rgba(232,195,122,.35)}
+.end-all span{display:block;font-size:12px;letter-spacing:.12em;color:var(--gold)}
+.end-all b{display:block;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-top:2px}
+.end-all small{display:block;font-size:11px;color:var(--ink-faint);margin-top:2px}
 .end-sub{text-align:center;color:var(--ink-dim);font-size:14px;line-height:1.8}
 #toast{position:fixed;left:50%;top:calc(80px + var(--safe-t));transform:translateX(-50%);z-index:40;background:var(--glass-strong);border:1px solid var(--line);
   border-radius:12px;padding:9px 14px;font-size:13px;opacity:0;transition:opacity .4s;pointer-events:none;max-width:86vw;text-align:center}
@@ -254,7 +258,7 @@ body.on-intro #lb{display:none}
     <div class="mp-row"><span>背景音樂</span><button class="sw-t" id="musToggle" aria-label="開關背景音樂"></button></div>
     <div class="mp-vol"><span>🔈</span><input type="range" id="musVol" min="0" max="100" aria-label="音量"><span>🔊</span></div>
   </div></div>
-<div id="lb"><button class="lb-h" id="lbHead">修行排行榜 <i>▾</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div></div>
+<div id="lb"><button class="lb-h" id="lbHead">靜默排行榜 <i>▾</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div></div>
 <div id="mtTotal"><span class="mt-l">累積靜默</span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
@@ -354,7 +358,7 @@ body.on-intro #lb{display:none}
 <div class="modal hidden" id="mAbout"><div class="modal-in">
   <div class="hud-title" style="font-size:12px;color:var(--ink-faint)">營火旁的老人</div>
   <h2 class="m-title" style="font-size:20px;margin-top:4px">關於靜默</h2>
-  <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。」</p>
+  <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。去找個喜歡的地方坐下吧。」</p>
   <div class="ab-wisdom"><div class="ab-wk">老人輕聲對你說</div><p id="abWisdom"></p></div>
   <div class="ab-sec">
     <h3>最新消息與聯絡</h3>
@@ -1363,7 +1367,8 @@ function rise(msg){
   self.hasImg=false; lastSnap=null; me.sitSec=0; me.paused='';
   standUp(); bell(.6); updateHud();
   $('endTime').textContent=sec<60?`${Math.floor(sec)} 秒`:`${Math.floor(sec/60)} 分 ${Math.floor(sec%60)} 秒`;
-  $('endSub').innerHTML=(msg?msg+'<br>':'')+`你在這座山上累積了 ${hrs(me.total)}<br>隨喜 🙏`;
+  $('endSub').innerHTML=(msg?msg+'<br>':'')+`你在這座山上累積了 ${hrs(me.total)}<br>隨喜 🙏`
+    +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotal())}</b><small>這座山上所有人一起坐下的時間</small></div>`;
   $('mEnd').classList.remove('hidden');
 }
 $('btnEndOk').onclick=()=>$('mEnd').classList.add('hidden');
