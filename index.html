@@ -235,6 +235,11 @@ body.on-intro #lb{display:none}
 .rank .v{font-variant-numeric:tabular-nums;color:var(--ink-dim);font-size:13px;text-align:right}
 .tabs{display:flex;gap:8px;margin-top:10px}
 .end-big{font-family:var(--serif);font-size:30px;text-align:center;margin:10px 0 2px}
+.cert{margin:14px auto 0;padding:14px 12px 12px;border-radius:14px;background:linear-gradient(160deg,rgba(232,195,122,.3),rgba(232,195,122,.08));border:1.5px solid var(--gold);text-align:center}
+.cert .ck{font-size:12px;letter-spacing:.14em;color:var(--gold)}
+.cert .cc{font-family:var(--serif);font-size:34px;font-weight:600;letter-spacing:.12em;color:var(--ink);margin:4px 0 2px}
+.cert .cn{font-size:14px;color:var(--ink)} .cert .ct{font-size:11.5px;color:var(--ink-dim);margin-top:3px;line-height:1.5} .cert .cs{font-size:12.5px;color:var(--gold);margin-top:8px;font-weight:600}
+.cert-wait{font-size:12px;color:var(--ink-faint);margin-top:10px}
 .end-all{margin:14px auto 0;padding:10px 12px;border-radius:12px;background:rgba(232,195,122,.12);border:1px solid rgba(232,195,122,.35)}
 .end-all span{display:block;font-size:12px;letter-spacing:.12em;color:var(--gold)}
 .end-all b{display:block;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-top:2px}
@@ -1061,7 +1066,7 @@ $('btnEnter').onclick=()=>{ setTimeout(()=>{ if(evText()&&me.phase!=='intro') op
   if(preview){ scene.remove(preview.k.g); preview=null; }
   self=new Person({name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,x:0,z:14,r:Math.PI},false);
   cam.yaw=ov.yaw; cam.pitch=.42; cam.dist=7; cam.tx=self.x; cam.ty=hAt(self.x,self.z)+.9; cam.tz=self.z;
-  document.body.classList.remove('on-intro'); me.phase='walk'; musPlay(); setTimeout(renderLB,50); myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
+  document.body.classList.remove('on-intro'); me.phase='walk'; musPlay(); srvJoin(); setTimeout(renderLB,50); myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
   $('walkHint').classList.remove('hidden'); setTimeout(()=>$('walkHint').style.opacity='0',6000); setTimeout(()=>$('walkHint').classList.add('hidden'),7200);
   sendState();
 };
@@ -1130,7 +1135,60 @@ function liveOf(uid){ // seconds not yet folded into the ledger: sessions in pro
 function mountainTotal(){ let t=0; for(const k in ledger) t+=ledger[k].t; t+=liveOf(UID); for(const p of peers.values()) if(p.info.uid) t+=liveOf(p.info.uid); return t; }
 function longFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec} 秒`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
   return h? `${h} 小時 ${m} 分` : `${m} 分 ${s} 秒`; }
-function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotal()); }
+/* ===================== server (Supabase) =====================
+   Records hours, sitting sessions and event completion codes. Every call goes
+   through a database function; the publishable key below is meant to be public.
+   If the server can't be reached, the mountain keeps working on this phone alone. */
+const SUPA={url:'https://vrpvfasadjnailvebhqf.supabase.co', key:'sb_publishable_fm0br6z86CHIjJfy3UZFPQ_TIAbO1fl'};
+const srv={id:store.get('sid',null), secret:store.get('sk',null), ok:false, board:null, boardAt:0, session:null, event:null, eventTitle:'', code:null, secs:0, lastBeat:0, startedAt:0, busy:false};
+async function rpc(fn,args,opt={}){
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),9000);
+  try{ const r=await fetch(`${SUPA.url}/rest/v1/rpc/${fn}`,{method:'POST',headers:{apikey:SUPA.key,'Content-Type':'application/json'},body:JSON.stringify(args),signal:ctl.signal,keepalive:!!opt.keepalive});
+    if(!r.ok) throw new Error(`${fn} ${r.status}`); return await r.json(); }
+  finally{ clearTimeout(t); }
+}
+const auth=()=>({p_id:srv.id,p_secret:srv.secret});
+async function srvJoin(){ // on 上山: register this phone once, afterwards just refresh the name
+  try{
+    if(srv.id&&srv.secret){ const r=await rpc('gs_profile',{...auth(),p_name:me.name,p_country:me.country});
+      if(r&&r.error==='auth'){ srv.id=srv.secret=null; } else if(r){ me.total=Math.max(me.total,r.total||0); store.set('total',me.total); } }
+    if(!srv.id){ const r=await rpc('gs_register',{p_name:me.name,p_country:me.country,p_import:Math.floor(me.total)});
+      srv.id=r.id; srv.secret=r.secret; store.set('sid',r.id); store.set('sk',r.secret); }
+    srv.ok=true; refreshBoard();
+  }catch(e){ console.warn('server unreachable — this phone keeps its own record for now',e); srv.ok=false; }
+}
+async function refreshBoard(){
+  try{ srv.board=await rpc('gs_board',{p_id:srv.id||null,p_limit:50}); srv.boardAt=performance.now(); srv.ok=true;
+    if(srv.board.me) { me.total=Math.max(me.total,srv.board.me.t); }
+    renderLB(); updateTotal(); }catch(e){}
+}
+refreshBoard(); setInterval(refreshBoard,30000);
+async function srvStart(){
+  srv.session=null; srv.code=null; srv.secs=0; srv.event=null; srv.total=null; srv.startedAt=Date.now(); srv.lastBeat=performance.now();
+  if(!srv.id){ await srvJoin(); } if(!srv.id) return;
+  try{ const r=await rpc('gs_start',auth()); if(r&&r.session){ srv.session=r.session; srv.event=r.event; srv.eventTitle=r.event_title||''; srv.minSecs=r.min_seconds||0; srv.lastBeat=performance.now(); } }catch(e){}
+}
+function srvApply(r){
+  if(!r) return; if(r.error==='session'||r.error==='auth'){ srv.session=null; return; }
+  srv.secs=r.seconds||0; if(typeof r.total==='number'){ srv.total=r.total; me.total=Math.max(me.total,r.total); store.set('total',me.total); }
+  if(r.code&&!srv.code){ srv.code=r.code; toast('🎉 已坐滿活動門檻！起座時會顯示你的完成碼'); bell(.35); }
+}
+async function srvBeat(){
+  if(!srv.session||srv.busy) return; srv.busy=true; srv.lastBeat=performance.now();
+  try{ srvApply(await rpc('gs_beat',{...auth(),p_session:srv.session})); }catch(e){} finally{ srv.busy=false; }
+}
+async function srvEnd(keepalive){
+  if(!srv.session) return null; const sid=srv.session; srv.session=null;
+  try{ const r=await rpc('gs_end',{...auth(),p_session:sid},{keepalive}); srvApply(r); refreshBoard(); return r; }catch(e){ return null; }
+}
+function srvLive(){ return srv.board?Math.min(30,(performance.now()-srv.boardAt)/1000):0; } // seconds since the last board fetch
+
+function mountainTotalAll(){
+  if(!srv.board) return mountainTotal();
+  const sitting=[...peers.values()].filter(p=>p.info.phase==='sit'&&!p.info.paused).length+(me.phase==='sit'&&!me.paused?1:0);
+  return Number(srv.board.total)+srvLive()*sitting;
+}
+function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotalAll()); }
 setInterval(updateTotal,1000);
 
 /* left-side leaderboard: top 10 by lifetime silence, plus your own place if you're further down */
@@ -1142,6 +1200,17 @@ function lbRow(el,rank,r){ el.className=r.k===UID?'me':''; el.innerHTML='';
   const t=document.createElement('span'); t.className='t'; t.textContent=shortFmt(r.t); el.append(a,w,t); }
 function renderLB(){
   if(me.phase==='intro') return;
+  if(srv.board){ // the shared board everyone sees
+    const live=me.phase==='sit'&&!me.paused?srvLive():0;
+    const top=srv.board.top.map(r=>({k:r.me?UID:'', n:r.me?me.name:r.n, c:r.me?me.country:r.c, t:r.t+(r.me?live:0)}));
+    const ol=$('lbList'); ol.innerHTML='';
+    if(!top.length) ol.innerHTML='<li class="lb-empty" style="display:block">還沒有人上榜，你可以是第一位</li>';
+    top.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); });
+    const m=srv.board.me, below=!!m&&m.rank>10;
+    $('lbMore').classList.toggle('hidden',!below); $('lbMe').classList.toggle('hidden',!below);
+    if(below){ lbRow($('lbMe'),m.rank,{k:UID,n:me.name,c:me.country,t:m.t+live}); $('lbMe').className='lb-me me'; }
+    return;
+  }
   const rows=Object.entries(ledger).map(([k,v])=>({k,n:k===UID?me.name:v.n,c:k===UID?me.country:v.c,t:v.t+liveOf(k)})).filter(r=>r.t>0||r.k===UID).sort((a,b)=>b.t-a.t);
   const ol=$('lbList'); ol.innerHTML='';
   if(!rows.length){ ol.innerHTML='<li class="lb-empty" style="display:block">還沒有人上榜</li>'; }
@@ -1323,7 +1392,7 @@ function grabFrame(){
 $('camStart').onclick=async()=>{
   clearInterval(checkTimer);
   try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
-  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); sheet('sheetSit'); bell();
+  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); sheet('sheetSit'); bell(); srvStart();
   // drift up to a 45° view from above and slowly circle the sitter, with the mountains behind
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12;
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
@@ -1342,6 +1411,7 @@ function tick(){
   let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住'; else if(gone>FACE_GRACE) reason='沒有偵測到人';
   if(reason!==me.paused){ me.paused=reason; sendState(); }
   if(!reason) me.sitSec++;
+  if(!reason&&srv.session&&performance.now()-srv.lastBeat>=20000) srvBeat(); // tell the server we're still here
   $('sitTime').textContent=fmt(me.sitSec);
   const st=$('sitStatus'), n=[...peers.values()].filter(p=>p.info.phase==='sit').length;
   if(reason){ st.textContent=`暫停計時：${reason}`+(reason==='沒有偵測到人'?`，${Math.max(0,Math.ceil(FACE_LIMIT-gone))} 秒後自動起座`:''); st.classList.add('warn'); }
@@ -1367,11 +1437,23 @@ function rise(msg){
   self.hasImg=false; lastSnap=null; me.sitSec=0; me.paused='';
   standUp(); bell(.6); updateHud();
   $('endTime').textContent=sec<60?`${Math.floor(sec)} 秒`:`${Math.floor(sec/60)} 分 ${Math.floor(sec%60)} 秒`;
-  $('endSub').innerHTML=(msg?msg+'<br>':'')+`你在這座山上累積了 ${hrs(me.total)}<br>隨喜 🙏`
-    +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotal())}</b><small>這座山上所有人一起坐下的時間</small></div>`;
-  $('mEnd').classList.remove('hidden');
+  const startedAt=srv.startedAt||Date.now()-sec*1000;
+  const paint=()=>{ $('endSub').innerHTML=(msg?msg+'<br>':'')+`你在這座山上累積了 ${hrs(srv.total??me.total)}<br>隨喜 🙏`+certHTML(startedAt)
+    +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotalAll())}</b><small>這座山上所有人一起坐下的時間</small></div>`; };
+  paint(); $('mEnd').classList.remove('hidden');
+  if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…</div>'); srvEnd(false).then(()=>paint()); }
 }
 $('btnEndOk').onclick=()=>$('mEnd').classList.add('hidden');
+/* the event certificate: shown on the end screen, meant to be screenshotted into the LINE group */
+const twTime=t=>new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(t);
+function certHTML(startedAt){
+  if(!srv.code) return '';
+  const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const test=srv.event==='rehearsal';
+  return `<div class="cert"><div class="ck">${test?'彩排測試・完成證明':'第一場線上共修・完成證明'}</div><div class="cc">${esc(srv.code)}</div>
+    <div class="cn">${esc(me.name)}・${esc(me.country)}</div><div class="ct">${twTime(startedAt)} – ${twTime(Date.now()).slice(-5)}（台灣時間）・伺服器確認 ${srv.secs<60?srv.secs+' 秒':Math.floor(srv.secs/60)+' 分鐘'}</div>
+    <div class="cs">${test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div></div>`;
+}
 
 let actx;
 /* background music: starts with the tap on 上山, remembers on/off and volume per phone.
@@ -1430,10 +1512,12 @@ function renderRank(){
   const ul=document.createElement('ul'); ul.className='rank';
   if(rankTab==='total'){ // everyone who has ever sat here, as far as this phone has heard
     sub.textContent='所有來過這座山的同修';
-    const rows=Object.entries(ledger).map(([k,v])=>({k,n:v.n,c:v.c,t:v.t+liveOf(k)})).sort((a,b)=>b.t-a.t);
-    const myRank=rows.findIndex(r=>r.k===UID)+1;
+    let rows=Object.entries(ledger).map(([k,v])=>({k,n:v.n,c:v.c,t:v.t+liveOf(k)})).sort((a,b)=>b.t-a.t);
+    let myRank=rows.findIndex(r=>r.k===UID)+1;
+    if(srv.board){ rows=srv.board.top.map(r=>({k:r.me?UID:'',n:r.me?me.name:r.n,c:r.me?me.country:r.c,t:r.t})); myRank=srv.board.me?.rank||0;
+      if(myRank>rows.length) rows.length=Math.min(rows.length,50); }
     const mine=document.createElement('div'); mine.className='quiet'; mine.style.textAlign='left'; mine.style.color='var(--gold)';
-    mine.textContent=`你目前第 ${myRank} 名・共 ${rows.length} 位同修・你累積 ${longFmt(rows[myRank-1]?.t||0)}`;
+    mine.textContent=`你目前第 ${myRank||'—'} 名・共 ${srv.board?srv.board.people:rows.length} 位同修・你累積 ${longFmt(srv.board?.me?.t??rows[myRank-1]?.t??0)}`;
     rows.slice(0,50).forEach((r,i)=>{ const li=document.createElement('li'); if(r.k===UID) li.style.color='var(--gold)';
       const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
       const w=document.createElement('span'); w.className='who'; w.textContent=r.n+(r.k===UID?'（你）':''); const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm);
@@ -1566,7 +1650,7 @@ renderer.setAnimationLoop(()=>{
 });
 const ld=$('loading'); ld.style.opacity='0'; setTimeout(()=>ld.remove(),1300);
 addEventListener('pagehide',()=>{ // closing the page mid-sit still keeps the minutes
-  if(me.phase==='sit'&&me.sitSec>0){ myLedgerSync(); ledgerSave(); store.set('total',Math.max(me.total, Math.floor(ledger[UID]?.t||0))); }
+  if(me.phase==='sit'&&me.sitSec>0){ myLedgerSync(); ledgerSave(); store.set('total',Math.max(me.total, Math.floor(ledger[UID]?.t||0))); srvEnd(true); }
   try{ room?.leave(); }catch{} });
 </script>
 </body>
