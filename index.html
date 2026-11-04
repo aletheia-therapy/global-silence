@@ -236,8 +236,8 @@ body.on-intro #evPill{display:none}
     <a class="line-mini" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">共修時段與活動公告 → 加入 LINE 社群</a>
     <div id="introForm" class="hidden">
     <div class="row2">
-      <div><label class="f" for="inName">暱稱</label><input class="t" id="inName" maxlength="16" autocomplete="nickname" required></div>
-      <div><label class="f" for="inCountry">來自</label><input class="t" id="inCountry" maxlength="16" autocomplete="off" required></div>
+      <div><label class="f" for="inName">暱稱</label><input class="t" id="inName" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
+      <div><label class="f" for="inCountry">來自</label><input class="t" id="inCountry" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
     </div>
     <label class="f">修法</label>
     <div class="chips" id="chips"></div>
@@ -340,7 +340,7 @@ body.on-intro #evPill{display:none}
   <div class="ev-card-img"><img src="voucher.jpg" alt="7-ELEVEN 數位商品禮券 500 元"><div class="ev-badge">×3</div></div>
   <div class="ev-when" id="evWhen"></div>
   <ol class="ev-steps">
-    <li><b>11/8（日）晚上 9 點上山</b><span>台灣時間 21:00・泰國時間 20:00</span></li>
+    <li><b>11/8（日）晚上 9 點上山</b><span>台灣時間 21:00</span></li>
     <li><b>找個位置坐下，打開鏡頭</b><span>單次連續坐滿 <em>45 分鐘</em></span></li>
     <li><b>起座時，把結算畫面截圖</b><span>上面會顯示你這一座的時間</span></li>
     <li><b>加入 LINE 社群，把截圖貼上</b><span>主辦方從中隨機抽出 3 名，各送 7-11 禮券 500 元</span></li>
@@ -992,7 +992,7 @@ const peers=new Map(); // id -> Person
 let room=null, aSt=null, aPos=null, aSnap=null, aLed=null;
 
 /* ===================== intro form ===================== */
-$('inName').value=me.name; $('inCountry').value=me.country; // a returning visitor sees what they typed last time
+$('inName').value=''; $('inCountry').value=''; // always start blank: everyone types their own name and where they're from
 const filled=v=>/[\p{L}\p{N}]/u.test(v.trim());
 function checkEnter(){ const ok=filled($('inName').value)&&filled($('inCountry').value); $('btnEnter').disabled=!ok; $('enterHint').classList.toggle('hidden',ok); }
 ['inName','inCountry'].forEach(id=>$(id).addEventListener('input',checkEnter)); checkEnter();
@@ -1385,7 +1385,7 @@ function evText(){
   const tw=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric',weekday:'short',hour:'numeric',minute:'2-digit',hour12:false}).format(EVENT.start);
   const local=new Intl.DateTimeFormat('zh-TW',{hour:'numeric',minute:'2-digit',hour12:false}).format(EVENT.start);
   const sameTZ=Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Taipei';
-  const when=`${tw}（台灣時間）`+(sameTZ?'':`・你的時間 ${local}`);
+  const when=`${tw}（台灣時間）`;
   if(d<=0) return {live:true, when, pill:'共修進行中', card:'共修進行中・現在上山一起坐'};
   const days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4), s=Math.floor(d%6e4/1e3);
   const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分 ${s} 秒`;
