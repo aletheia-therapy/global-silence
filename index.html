@@ -2004,7 +2004,7 @@ function nextWeekly(after=Date.now()){ const d=new Date(after); let t=Date.UTC(d
   for(let i=0;i<8;i++,t+=864e5){ if(new Date(t).getUTCDay()===0&&t>after) return t; } return t; }
 const twDay=t=>{ const p=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).formatToParts(t); const g=k=>p.find(x=>x.type===k)?.value; return `${g('month')} 月 ${g('day')} 日（日）`; };
 const weeklyLiveNow=()=>{ const last=nextWeekly(Date.now()-WEEKLY_LIVE); return Date.now()>=last&&Date.now()<last+WEEKLY_LIVE; };
-const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-6*36e5&&n<EVENT.start+9*36e5; }; // 11/8 afternoon → early 11/9 (Taiwan)
+const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-15*6e4&&n<EVENT.start+9*36e5; }; // 11/8 20:45 → 11/9 06:00 (Taiwan)
 function nextSitHTML(){
   const nx=nextWeekly(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修！<br>今天是特別活動，所以有抽獎。<br>從下週起，每週日晚上 9:00 固定共修，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
   return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。</div>
