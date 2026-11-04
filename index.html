@@ -367,16 +367,10 @@ body.on-intro #lb{display:none}
       <div><label class="f" for="inName">暱稱</label><input class="t" id="inName" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
       <div><label class="f" for="inCountry">來自</label><input class="t" id="inCountry" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
     </div>
-    <label class="f">修法</label>
-    <div class="chips" id="chips"></div>
-    <div class="row2">
-      <div><label class="f">小人</label><div class="chips" id="genders"></div></div>
-      <div><label class="f">衣服</label><div class="chips" id="colors"></div></div>
-    </div>
     <button class="btn-main" id="btnEnter" disabled>上山</button>
     <div class="note" id="enterHint" style="margin-top:8px;text-align:center">請填寫暱稱和來自哪裡</div>
     </div>
-    <p class="note">入座時會請你開啟鏡頭：每幾秒更新一張畫面，只給此刻在山上的人看，不錄影、不存在任何伺服器。這裡不能聊天，只有靜默的同在。</p>
+    <p class="note">這裡不能聊天，只有靜默的同在。正式共修會開鏡頭，畫面只給此刻在山上的人看，不錄影、不存檔。</p>
   </div>
 </div>
 
@@ -1231,8 +1225,8 @@ function ledgerPut(uid,t,n,c){ if(!/^[a-z0-9]{8,24}$/.test(uid)) return false; t
   const e=ledger[uid]; if(e&&e.t>=t){ if(n&&uid!==UID){ e.n=String(n).slice(0,16); e.c=String(c||'').slice(0,16); } return false; }
   ledger[uid]={t,n:String(n||e?.n||'同修').slice(0,16),c:String(c||e?.c||'').slice(0,16)}; return true; }
 function ledgerSave(){ const keys=Object.keys(ledger); if(keys.length>3000){ keys.sort((a,b)=>ledger[b].t-ledger[a].t).slice(3000).forEach(k=>{ if(k!==UID) delete ledger[k]; }); } store.set('ledger',ledger); }
-const me={ id:null, name:store.get('name',''), country:store.get('country',''), method:store.get('method',METHODS[0]),
-  gender:store.get('gender','boy'), robe:store.get('robe','saffron'),
+const me={ id:null, name:store.get('name',''), country:store.get('country',''), method:'',
+  gender:store.get('gender',Math.random()<.5?'boy':'girl'), robe:store.get('robe',(k=>k[Math.floor(Math.random()*k.length)])(Object.keys(ROBES))),
   phase:'intro', sitSec:0, paused:'', lean:false, total:store.get('total',0), sessions:store.get('sessions',0), darkCam:false };
 let self=null;
 // the ledger is saved every 10 s while sitting, so it may hold time from a sit that was closed without standing up — keep the larger
@@ -1253,9 +1247,6 @@ function chipGroup(el,items,cur,on,cls='chip'){
   items.forEach(([v,label,style])=>{ const b=document.createElement('button'); b.className=cls+(v===cur?' on':''); if(label) b.textContent=label; if(style) b.style.background=style;
     b.setAttribute('aria-label',label||v); b.onclick=()=>{ [...el.children].forEach(c=>c.classList.toggle('on',c===b)); on(v); }; el.appendChild(b); });
 }
-chipGroup($('chips'),METHODS.map(m=>[m,m]),me.method,v=>me.method=v);
-chipGroup($('genders'),[['boy','小男生'],['girl','小女生']],me.gender,v=>{ me.gender=v; previewKid(); });
-chipGroup($('colors'),Object.entries(ROBES).map(([k,c])=>[k,'',c]),me.robe,v=>{ me.robe=v; previewKid(); },'sw');
 let preview=null;
 function previewKid(){}
 
@@ -1303,7 +1294,7 @@ netReady.then(()=>{
 });
 function sanitize(d){
   const s=(x,n)=>String(x??'').slice(0,n), num=(x,a,b,def=0)=>{ const v=Number(x); return Number.isFinite(v)?clamp(v,a,b):def; };
-  return { name:s(d.name,16)||'同修', country:s(d.country,16), method:s(d.method,20),
+  return { name:s(d.name,16)||'同修', country:s(d.country,16), method:'',
     gender:d.gender==='girl'?'girl':'boy', robe:ROBES[d.robe]?d.robe:'saffron',
     x:num(d.x,-40,40), z:num(d.z,-40,40,14), r:num(d.r,-20,20), lean:!!d.lean,
     phase:['walk','pose','cam','sit','free'].includes(d.phase)?d.phase:'walk',
@@ -1760,7 +1751,7 @@ function personCard(p){
   const img=document.createElement(p.hasImg?'img':'div'); img.className='p-img'; if(p.hasImg) img.src=p.imgEl.src;
   const box=document.createElement('div');
   const nm=document.createElement('div'); nm.className='p-name'; nm.textContent=info.name+(isSelf?'（你）':'');
-  const mt=document.createElement('div'); mt.className='p-meta'; mt.textContent=`來自 ${info.country}\n修法：${info.method}`;
+  const mt=document.createElement('div'); mt.className='p-meta'; mt.textContent=`來自 ${info.country}`+(info.method?`\n修法：${info.method}`:'');
   box.append(nm,mt); top.append(img,box);
   const grid=document.createElement('div'); grid.className='p-grid';
   const c1=document.createElement('div'); c1.className='p-cell'; const b1=document.createElement('b'); const s1=document.createElement('span'); s1.textContent='這一座'; c1.append(b1,s1);
