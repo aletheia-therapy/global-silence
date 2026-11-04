@@ -126,6 +126,7 @@ body.on-intro #lb{display:none}
 #lb .t{font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
 #lb .me{background:rgba(232,195,122,.16);border-radius:7px} #lb .me .w,#lb .me .t{color:var(--gold)}
 #lb .lb-more{text-align:center;color:var(--ink-faint);letter-spacing:.3em;line-height:1;padding:2px 0 0}
+#lb .lb-slot .w{color:rgba(244,239,228,.22)} #lb .lb-slot .r{color:rgba(244,239,228,.3)!important;font-weight:400!important}
 #lb .lb-empty{color:var(--ink-faint);font-size:11px;padding:4px 2px}
 @media (max-height:760px){ #lb .w small{display:none} #lb li,.lb-me{padding:2px} } /* short phones: one line per person so it never reaches the joystick */
 .ev-card{display:block;width:100%;text-align:left;margin:0 0 14px;padding:11px 14px;border-radius:14px;background:rgba(232,195,122,.13);border:1px solid rgba(232,195,122,.5)}
@@ -1393,14 +1394,16 @@ function lbRow(el,rank,r){ el.className=r.k===UID?'me':''; el.innerHTML='';
   const a=document.createElement('span'); a.className='r'; a.textContent=rank;
   const w=document.createElement('span'); w.className='w'; w.textContent=r.n; const sm=document.createElement('small'); sm.textContent=r.c||''; w.appendChild(sm);
   const t=document.createElement('span'); t.className='t'; t.textContent=shortFmt(r.t); el.append(a,w,t); }
+function lbPad(ol,n){ // 5 places while the mountain is young, 10 once more than 5 people are on the board; unfilled places wait empty
+  const slots=n<=5?5:10;
+  for(let i=n;i<slots;i++){ const li=document.createElement('li'); li.className='lb-slot'; li.innerHTML=`<span class="r">${i+1}</span><span class="w">—</span><span class="t"></span>`; ol.appendChild(li); } }
 function renderLB(){
   if(me.phase==='intro') return;
   if(srv.board){ // the shared board everyone sees
     const live=me.phase==='sit'&&!me.paused?srvLive():0;
     const top=srv.board.top.map(r=>({k:r.me?UID:'', n:r.me?me.name:r.n, c:r.me?me.country:r.c, t:r.t+(r.me?live:0)}));
     const ol=$('lbList'); ol.innerHTML='';
-    if(!top.length) ol.innerHTML='<li class="lb-empty" style="display:block">還沒有人上榜，你可以是第一位</li>';
-    top.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); });
+    top.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); }); lbPad(ol,Math.min(10,top.length));
     const m=srv.board.me, below=!!m&&m.rank>10;
     $('lbMore').classList.toggle('hidden',!below); $('lbMe').classList.toggle('hidden',!below);
     if(below){ lbRow($('lbMe'),m.rank,{k:UID,n:me.name,c:me.country,t:m.t+live}); $('lbMe').className='lb-me me'; }
@@ -1408,8 +1411,7 @@ function renderLB(){
   }
   const rows=Object.entries(ledger).map(([k,v])=>({k,n:k===UID?me.name:v.n,c:k===UID?me.country:v.c,t:v.t+liveOf(k)})).filter(r=>r.t>0||r.k===UID).sort((a,b)=>b.t-a.t);
   const ol=$('lbList'); ol.innerHTML='';
-  if(!rows.length){ ol.innerHTML='<li class="lb-empty" style="display:block">還沒有人上榜</li>'; }
-  rows.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); });
+  rows.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); }); lbPad(ol,Math.min(10,rows.length));
   const myRank=rows.findIndex(r=>r.k===UID)+1, below=myRank>10;
   $('lbMore').classList.toggle('hidden',!below); $('lbMe').classList.toggle('hidden',!below);
   if(below) lbRow($('lbMe'),myRank,rows[myRank-1]);
