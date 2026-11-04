@@ -105,13 +105,11 @@ body.on-intro #mus{display:none}
 .sw-t.on{background:var(--gold)} .sw-t.on::after{transform:translateX(18px)}
 .mp-vol{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--ink-dim)}
 .mp-vol input{flex:1;accent-color:var(--gold)}
-#fw{position:fixed;inset:0;width:100%;height:100%;z-index:46;pointer-events:none;display:none}
-#fw.on{display:block}
 #hourCd{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%);z-index:47;pointer-events:none;text-align:center;display:none;white-space:nowrap;padding:12px 24px 8px;border-radius:20px;background:rgba(12,16,28,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);text-shadow:0 2px 14px rgba(0,0,0,.55)}
 #hourCd.on{display:block}
 #hourCd .hc-k{font-size:19px;font-weight:600;letter-spacing:.1em;color:var(--ink);margin-bottom:2px}
 #hourCd .hc-n{font-family:var(--serif);font-size:68px;line-height:1.1;font-weight:600;color:var(--gold)}
-#hourMsg{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);z-index:47;pointer-events:none;text-align:center;display:none;text-shadow:0 2px 16px rgba(0,0,0,.6);white-space:nowrap;padding:14px 26px 13px;border-radius:20px;background:rgba(12,16,28,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#hourMsg{position:fixed;left:50%;top:max(132px,17%);transform:translate(-50%,-50%);z-index:47;pointer-events:none;text-align:center;display:none;text-shadow:0 2px 16px rgba(0,0,0,.6);white-space:nowrap;padding:14px 26px 13px;border-radius:20px;background:rgba(12,16,28,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 #hourMsg.on{display:block}
 #hourMsg .hm-k{font-size:15px;letter-spacing:.2em;color:var(--gold)} #hourMsg .hm-t{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);margin-top:4px}
 #hourMsg .hm-t b{color:var(--gold);font-size:32px;margin:0 2px} #hourMsg .hm-s{font-size:12.5px;color:var(--ink-dim);margin-top:6px}
@@ -591,7 +589,6 @@ body.on-intro #lb{display:none}
   <div id="homeBody"></div>
   <button class="btn-main" id="homeClose" style="margin-top:16px">好</button>
 </div></div>
-<canvas id="fw"></canvas>
 <div id="hourCd"><div class="hc-k"></div><div class="hc-n"></div></div>
 <div id="hourMsg"></div>
 <div id="dim"><div class="dd"></div><div class="dt" id="dimTime">0:00</div><div class="dh" id="dimHint">省電模式・輕觸畫面恢復亮度</div></div>
@@ -1489,20 +1486,7 @@ function runCountdown(hr){ // the words stay still; only the number changes, one
 function hideCountdown(){ $('hourCd').classList.remove('on'); }
 function celebrateHour(h){
   fwBusy=true; const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
-  msg.classList.add('on'); fireworks(7000); setTimeout(()=>{ msg.classList.remove('on'); fwBusy=false; },7500);
-}
-function fireworks(ms){ // silent, drawn over the scene; tapping still reaches the page underneath
-  const cv=$('fw'), c=cv.getContext('2d'), D=Math.min(2,devicePixelRatio||1); cv.width=innerWidth*D; cv.height=innerHeight*D; cv.classList.add('on');
-  const cols=['#ffd27a','#ffb3c7','#9fe3ff','#ffffff','#c8f59a','#e8c37a'], P=[], t0=performance.now(); let next=0;
-  const burst=()=>{ const x=cv.width*(.18+Math.random()*.64), y=cv.height*(.14+Math.random()*.3), col=cols[Math.floor(Math.random()*cols.length)], n=46+Math.floor(Math.random()*24), sp=(1.6+Math.random()*1.4)*D;
-    for(let i=0;i<n;i++){ const a=i/n*Math.PI*2+Math.random()*.2, v=sp*(.6+Math.random()*.5); P.push({x,y,px:x,py:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,col}); } };
-  const step=now=>{ const e=now-t0; c.clearRect(0,0,cv.width,cv.height);
-    if(e<ms-1800&&e>=next){ burst(); next=e+380+Math.random()*520; }
-    c.globalCompositeOperation='lighter'; c.lineCap='round';
-    for(let i=P.length-1;i>=0;i--){ const p=P[i]; p.px=p.x; p.py=p.y; p.vy+=.028*D; p.vx*=.985; p.vy*=.985; p.x+=p.vx; p.y+=p.vy; p.life-=.0105;
-      if(p.life<=0){ P.splice(i,1); continue; } c.globalAlpha=Math.max(0,p.life)*.9; c.strokeStyle=p.col; c.lineWidth=2*D; c.beginPath(); c.moveTo(p.px,p.py); c.lineTo(p.x,p.y); c.stroke(); }
-    c.globalAlpha=1; if(e<ms||P.length) requestAnimationFrame(step); else { cv.classList.remove('on'); c.clearRect(0,0,cv.width,cv.height); } };
-  requestAnimationFrame(step);
+  startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
 if(QS.get('fwtest')) setTimeout(()=>{ const t=mountainTotalAll(); runCountdown(isFinite(t)?Math.floor(t/3600)+1:1); },6000); // preview
 
@@ -2473,6 +2457,88 @@ function animateSurprises(t,dt,W,H){
   heartNear(); lanNear(); lotusNear(); tentNear();
 }
 
+
+/* ===================== 全球靜默時刻 fireworks: a silent show over the valley ===================== */
+const FWN=isMobile?7000:11000;
+const fwP=new Float32Array(FWN*3), fwV=new Float32Array(FWN*3), fwC=new Float32Array(FWN*3), fwBase=new Float32Array(FWN*3),
+      fwA=new Float32Array(FWN), fwS=new Float32Array(FWN), fwL=new Float32Array(FWN), fwM=new Float32Array(FWN),
+      fwDrag=new Float32Array(FWN), fwG=new Float32Array(FWN), fwK=new Uint8Array(FWN); // kind: 0 dead, 1 star, 2 spark, 3 rocket, 4 willow (leaves a trail), 5 glitter
+const fwRockets=new Map(); let fwPtr=0, fwLive=0;
+const fwGeo=new THREE.BufferGeometry();
+fwGeo.setAttribute('position',new THREE.BufferAttribute(fwP,3)); fwGeo.setAttribute('color',new THREE.BufferAttribute(fwC,3));
+fwGeo.setAttribute('alpha',new THREE.BufferAttribute(fwA,1)); fwGeo.setAttribute('size',new THREE.BufferAttribute(fwS,1));
+const fwMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,vertexColors:true,
+  vertexShader:`attribute float alpha,size; varying vec3 vC; varying float vA;
+    void main(){ vC=color; vA=alpha; vec4 mv=modelViewMatrix*vec4(position,1.); gl_PointSize=min(40.,size*${PR.toFixed(2)}*700./max(1.,-mv.z)); gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`varying vec3 vC; varying float vA; void main(){ if(vA<=0.) discard; float d=length(gl_PointCoord-.5); float a=smoothstep(.5,.0,d); a=a*a*vA; gl_FragColor=vec4(vC*a*1.7,a); }`});
+const fwPts=new THREE.Points(fwGeo,fwMat); fwPts.frustumCulled=false; fwPts.visible=false; scene.add(fwPts);
+function fwNew(){ for(let n=0;n<FWN;n++){ fwPtr=(fwPtr+1)%FWN; if(!fwK[fwPtr]) return fwPtr; } return -1; }
+function fwAdd(k,x,y,z,vx,vy,vz,col,life,size,drag,grav){ const i=fwNew(); if(i<0) return -1;
+  fwK[i]=k; fwP[i*3]=x; fwP[i*3+1]=y; fwP[i*3+2]=z; fwV[i*3]=vx; fwV[i*3+1]=vy; fwV[i*3+2]=vz;
+  fwBase[i*3]=col.r; fwBase[i*3+1]=col.g; fwBase[i*3+2]=col.b; fwL[i]=life; fwM[i]=life; fwS[i]=size; fwDrag[i]=drag; fwG[i]=grav; fwLive++; return i; }
+const FWCOL=['#ff4d5e','#ffb03b','#ffe066','#7cf29a','#5cc8ff','#b98cff','#ff7ad1','#ffffff','#ffd27a'].map(c=>new THREE.Color(c));
+const fwPick=()=>FWCOL[Math.floor(Math.random()*FWCOL.length)];
+function fwRocket(x,z,y1,type){ // launched from the valley floor, bursts at y1
+  const y0=worldH(x,z)+2, h=y1-y0, g=46, v=Math.sqrt(2*g*h);
+  const i=fwAdd(3,x,y0,z,(Math.random()-.5)*6,v,(Math.random()-.5)*6,new THREE.Color('#ffd9a0'),h/v*2+.1,2.2,0,g);
+  if(i>=0) fwRockets.set(i,{type,col:fwPick(),col2:fwPick()});
+}
+function fwBurst(x,y,z,o){
+  const T=o.type, c=o.col, c2=o.col2, R=T==='willow'?1:1;
+  const sph=(n,sp,k,life,size,drag,grav,colF)=>{ for(let j=0;j<n;j++){ const u=Math.random()*2-1, th=Math.random()*Math.PI*2, r=Math.sqrt(1-u*u), s=sp*(.86+Math.random()*.14);
+      fwAdd(k,x,y,z,r*Math.cos(th)*s,u*s,r*Math.sin(th)*s,colF(j),life*(.8+Math.random()*.4),size,drag,grav); } };
+  if(T==='peony') sph(isMobile?150:220,62,1,2.3,3.2,1.25,10,()=>c);
+  else if(T==='duo') sph(isMobile?170:240,66,1,2.4,3.2,1.25,10,j=>j%2?c:c2);
+  else if(T==='ring'){ const n=90, ax=new THREE.Vector3(Math.random()-.5,1,Math.random()-.5).normalize(), a=new THREE.Vector3(1,0,0).cross(ax).normalize(), b=ax.clone().cross(a);
+    for(let j=0;j<n;j++){ const th=j/n*Math.PI*2, d=a.clone().multiplyScalar(Math.cos(th)).addScaledVector(b,Math.sin(th)).multiplyScalar(58);
+      fwAdd(1,x,y,z,d.x,d.y,d.z,c,2.3,3.4,1.2,9); } sph(40,22,1,1.6,2.2,1.4,9,()=>c2); }
+  else if(T==='willow') sph(isMobile?90:130,48,4,4.2,3,.95,13,()=>new THREE.Color('#ffcf6b'));
+  else if(T==='palm'){ for(let j=0;j<10;j++){ const th=j/10*Math.PI*2; fwAdd(4,x,y,z,Math.cos(th)*48,18+Math.random()*10,Math.sin(th)*48,c,2.8,3.6,.9,16); } sph(30,20,1,1.2,2,1.5,10,()=>c); }
+  else if(T==='crackle'){ sph(isMobile?120:170,58,1,1.9,3,1.3,10,()=>c); setTimeout(()=>{ for(let j=0;j<(isMobile?160:240);j++){ const u=Math.random()*2-1, th=Math.random()*Math.PI*2, r=Math.sqrt(1-u*u), d=30+Math.random()*28;
+      fwAdd(5,x+r*Math.cos(th)*d,y+u*d-8,z+r*Math.sin(th)*d,(Math.random()-.5)*4,-2-Math.random()*4,(Math.random()-.5)*4,new THREE.Color('#fff6dc'),.5+Math.random()*.9,1.6,1,4); } },1300); }
+  // a soft flash at the centre
+  fwAdd(1,x,y,z,0,0,0,new THREE.Color('#fff4e0'),.35,26,0,0);
+}
+function fwStep(dt){
+  if(!fwLive&&!fwShow){ fwPts.visible=false; return; } fwPts.visible=true; dt=Math.min(dt,.25); // keep up with real time even on a slow phone
+  for(let i=0;i<FWN;i++){ const k=fwK[i]; if(!k) continue; const j=i*3;
+    fwL[i]-=dt; if(fwL[i]<=0){ if(k===3){ const r=fwRockets.get(i); if(r) fwBurst(fwP[j],fwP[j+1],fwP[j+2],r); fwRockets.delete(i); } fwK[i]=0; fwA[i]=0; fwLive--; continue; }
+    const dr=Math.exp(-fwDrag[i]*dt); fwV[j]*=dr; fwV[j+1]=fwV[j+1]*dr-fwG[i]*dt; fwV[j+2]*=dr;
+    fwP[j]+=fwV[j]*dt; fwP[j+1]+=fwV[j+1]*dt; fwP[j+2]+=fwV[j+2]*dt;
+    const lf=fwL[i]/fwM[i]; let a;
+    if(k===3){ a=1; if(Math.random()<.9) fwAdd(2,fwP[j],fwP[j+1]-1,fwP[j+2],(Math.random()-.5)*5,-6-Math.random()*6,(Math.random()-.5)*5,new THREE.Color('#ffb46b'),.45+Math.random()*.35,1.5,1.5,6); }
+    else if(k===4){ a=Math.min(1,lf*1.6); if(Math.random()<.55) fwAdd(2,fwP[j],fwP[j+1],fwP[j+2],0,-1.5,0,new THREE.Color(fwBase[j],fwBase[j+1],fwBase[j+2]).multiplyScalar(.85),1.1+Math.random()*.8,1.7,.6,3); }
+    else if(k===5){ a=Math.random()<.5?1:.15; }
+    else if(k===2){ a=lf*.8; }
+    else { a=lf<.35?lf/.35*(Math.random()<.25?.3:1):1; }
+    fwA[i]=a; const w=k===2||k===4?1:(.8+.2*lf); fwC[j]=fwBase[j]*w+(1-w)*.9; fwC[j+1]=fwBase[j+1]*w+(1-w)*.75; fwC[j+2]=fwBase[j+2]*w+(1-w)*.5;
+  }
+  fwGeo.attributes.position.needsUpdate=true; fwGeo.attributes.color.needsUpdate=true; fwGeo.attributes.alpha.needsUpdate=true; fwGeo.attributes.size.needsUpdate=true;
+}
+if(QS.get('debug')) window.__fw=()=>{ const c=[0,0,0,0,0,0]; let ys=[],as=[]; for(let i=0;i<FWN;i++){ c[fwK[i]]++; if(fwK[i]===1&&ys.length<5){ ys.push([fwP[i*3]|0,fwP[i*3+1]|0,fwP[i*3+2]|0]); as.push(+fwA[i].toFixed(2)); } } return {live:fwLive,kinds:c,ys,as,cam:[camera.position.x|0,camera.position.y|0,camera.position.z|0],show:!!fwShow,vis:fwPts.visible}; };
+/* the show: camera eases back and tilts up toward the valley, ~14 s of fireworks, then eases home */
+let fwShow=null, fwCam=null;
+function startFireworkShow(onDone){
+  const sx=self?self.x:0, sz=self?self.z:0, sy=self?hAt(sx,sz):0;
+  const dir=new THREE.Vector2(CITY.x-sx,CITY.z-sz).normalize(), side=new THREE.Vector2(-dir.y,dir.x);
+  const pos=new THREE.Vector3(sx-dir.x*7,sy+4.2,sz-dir.y*7);
+  const look=new THREE.Vector3(sx+dir.x*300,sy+125,sz+dir.y*300); // about 22° up, the valley along the bottom of the view
+  fwCam={pos,look}; const wasSaver=saver; setSaver(false); $('dim').classList.remove('on');
+  const plan=[]; const types=['peony','duo','ring','willow','palm','crackle'];
+  for(let t=2.6;t<11.2;t+=.45+Math.random()*.55){ const n=Math.random()<.3?2:1; for(let q=0;q<n;q++) plan.push([t+q*.12,types[Math.floor(Math.random()*types.length)]]); }
+  for(let q=0;q<14;q++) plan.push([11.4+q*.17,['peony','duo','willow','crackle','ring'][q%5]]); // finale
+  fwShow={t0:performance.now(),t:0,plan,dir,side,sx,sz};
+  setTimeout(()=>{ fwShow=null; fwCam=null; if(wasSaver&&seatedNow()) setSaver(true); onDone&&onDone(); },17500);
+}
+let fwLastT=0;
+function fwTick(){ const now=performance.now(), dt=fwLastT?Math.min(.25,(now-fwLastT)/1000):0; fwLastT=now; // its own real-time clock
+  if(fwShow){ fwShow.t=(performance.now()-fwShow.t0)/1000; const {dir,side,sx,sz}=fwShow; // real time, so a slow phone still sees the whole show
+    while(fwShow.plan.length&&fwShow.plan[0][0]<=fwShow.t){ const [,type]=fwShow.plan.shift();
+      const d=250+Math.random()*120, l=(Math.random()-.5)*360, x=sx+dir.x*d+side.x*l, z=sz+dir.y*d+side.y*l;
+      fwRocket(x,z,70+Math.random()*130,type); } }
+  fwStep(dt);
+}
+
 /* ===================== loop ===================== */
 /* power saving while sitting: lower resolution, no glow, frozen shadows, ~12 fps, and the screen dims after a minute */
 let curPR=PR, saver=false, lastFrame=0, dimTimer=null;
@@ -2529,6 +2595,8 @@ renderer.setAnimationLoop(()=>{
     if(lanFocus&&performance.now()<lanFocus.until&&me.phase==='walk') wantLook.lerp(lanFocus.obj.position,.6); // watch your lantern rise
     camK+=(14-camK)*Math.min(1,dt*1.6);
   }
+  if(fwCam){ wantPos.copy(fwCam.pos); wantLook.copy(fwCam.look); camK=Math.min(camK,1.3); }
+  fwTick();
   const k=1-Math.exp(-dt*camK); camPos.lerp(wantPos,k); camLook.lerp(wantLook,k);
   camera.position.copy(camPos); camera.lookAt(camLook);
   { // when a panel covers the bottom, lift the picture so the character stays visible
