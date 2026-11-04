@@ -79,6 +79,23 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #evPill b{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
 #evPill.live{background:rgba(232,195,122,.9);color:#2a2214} #evPill.live b{color:#2a2214}
 body.on-intro #evPill{display:none}
+#lb{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(122px + var(--safe-t));z-index:4;width:158px;
+  background:rgba(14,20,30,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:7px 8px 6px;
+  font-size:11.5px;color:var(--ink)}
+body.on-intro #lb{display:none}
+#lb .lb-h{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--serif);font-size:12.5px;letter-spacing:.1em;color:var(--gold);padding:1px 2px 5px}
+#lb .lb-h i{font-style:normal;color:var(--ink-faint);font-size:12px;letter-spacing:0;transition:transform .3s}
+#lb.closed .lb-h{padding-bottom:1px} #lb.closed .lb-h i{transform:rotate(-90deg)} #lb.closed ol,#lb.closed .lb-more,#lb.closed .lb-me{display:none}
+#lb ol{list-style:none;margin:0;padding:0}
+#lb li,.lb-me{display:grid;grid-template-columns:16px 1fr auto;column-gap:5px;align-items:baseline;padding:3px 2px;border-top:1px solid rgba(255,255,255,.07)}
+#lb .r{color:var(--ink-faint);font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
+#lb li:nth-child(-n+3) .r{color:var(--gold);font-weight:700}
+#lb .w{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis} #lb .w small{display:block;font-size:10px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis}
+#lb .t{font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+#lb .me{background:rgba(232,195,122,.16);border-radius:7px} #lb .me .w,#lb .me .t{color:var(--gold)}
+#lb .lb-more{text-align:center;color:var(--ink-faint);letter-spacing:.3em;line-height:1;padding:2px 0 0}
+#lb .lb-empty{color:var(--ink-faint);font-size:11px;padding:4px 2px}
+@media (max-height:760px){ #lb .w small{display:none} #lb li,.lb-me{padding:2px} } /* short phones: one line per person so it never reaches the joystick */
 .ev-card{display:block;width:100%;text-align:left;margin:0 0 14px;padding:11px 14px;border-radius:14px;background:rgba(232,195,122,.13);border:1px solid rgba(232,195,122,.5)}
 .ev-card .ev-k{font-size:11px;letter-spacing:.14em;color:var(--gold)}
 .ev-card .ev-t{font-family:var(--serif);font-size:16px;margin-top:2px}
@@ -217,6 +234,7 @@ body.on-intro #evPill{display:none}
 <div id="loading">山正在成形…</div>
 
 <button id="evPill" class="hidden"></button>
+<div id="lb"><button class="lb-h" id="lbHead">修行排行榜 <i>▾</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div></div>
 <div id="mtTotal"><span class="mt-l">累積靜默</span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
@@ -1019,7 +1037,7 @@ $('btnEnter').onclick=()=>{ setTimeout(()=>{ if(evText()&&me.phase!=='intro') op
   if(preview){ scene.remove(preview.k.g); preview=null; }
   self=new Person({name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,x:0,z:14,r:Math.PI},false);
   cam.yaw=ov.yaw; cam.pitch=.42; cam.dist=7; cam.tx=self.x; cam.ty=hAt(self.x,self.z)+.9; cam.tz=self.z;
-  document.body.classList.remove('on-intro'); me.phase='walk'; myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
+  document.body.classList.remove('on-intro'); me.phase='walk'; setTimeout(renderLB,50); myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
   $('walkHint').classList.remove('hidden'); setTimeout(()=>$('walkHint').style.opacity='0',6000); setTimeout(()=>$('walkHint').classList.add('hidden'),7200);
   sendState();
 };
@@ -1090,6 +1108,27 @@ function longFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec} 秒`; cons
   return h? `${h} 小時 ${m} 分` : `${m} 分 ${s} 秒`; }
 function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotal()); }
 setInterval(updateTotal,1000);
+
+/* left-side leaderboard: top 10 by lifetime silence, plus your own place if you're further down */
+function shortFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec}秒`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h?`${h}時${m}分`:`${m}分`; }
+function lbRow(el,rank,r){ el.className=r.k===UID?'me':''; el.innerHTML='';
+  const a=document.createElement('span'); a.className='r'; a.textContent=rank;
+  const w=document.createElement('span'); w.className='w'; w.textContent=r.n; const sm=document.createElement('small'); sm.textContent=r.c||''; w.appendChild(sm);
+  const t=document.createElement('span'); t.className='t'; t.textContent=shortFmt(r.t); el.append(a,w,t); }
+function renderLB(){
+  if(me.phase==='intro') return;
+  const rows=Object.entries(ledger).map(([k,v])=>({k,n:k===UID?me.name:v.n,c:k===UID?me.country:v.c,t:v.t+liveOf(k)})).filter(r=>r.t>0||r.k===UID).sort((a,b)=>b.t-a.t);
+  const ol=$('lbList'); ol.innerHTML='';
+  if(!rows.length){ ol.innerHTML='<li class="lb-empty" style="display:block">還沒有人上榜</li>'; }
+  rows.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); });
+  const myRank=rows.findIndex(r=>r.k===UID)+1, below=myRank>10;
+  $('lbMore').classList.toggle('hidden',!below); $('lbMe').classList.toggle('hidden',!below);
+  if(below) lbRow($('lbMe'),myRank,rows[myRank-1]);
+  if(below) $('lbMe').className='lb-me me';
+}
+setInterval(renderLB,2000);
+try{ if(store.get('lbClosed',false)) $('lb').classList.add('closed'); }catch{}
+$('lbHead').onclick=()=>{ const c=$('lb').classList.toggle('closed'); store.set('lbClosed',c); };
 function updateHud(){
   updateTotal();
   const all=everyone(), sitting=all.filter(p=>p.phase==='sit'), sum=sitting.reduce((a,p)=>a+p.live,0);
