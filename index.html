@@ -139,6 +139,10 @@ body.on-intro #evPill{display:none}
 .line-btn svg{width:20px;height:20px}
 .line-mini{display:inline-block;margin-top:12px;font-size:13px;color:var(--ink-dim);text-decoration:none;border-bottom:1px solid rgba(6,199,85,.6)}
 .ab-link{display:block;text-align:center;padding:11px;border-radius:12px;border:1px dashed var(--line);color:var(--ink-faint);font-size:14px;text-decoration:none}
+.ab-wisdom{margin:12px 0 4px;padding:12px 14px;border-radius:14px;background:rgba(232,195,122,.1);border-left:3px solid var(--gold)}
+.ab-wk{font-size:11px;letter-spacing:.14em;color:var(--gold);margin-bottom:4px}
+#abWisdom{font-family:var(--serif);font-size:15px;line-height:1.85;color:var(--ink);margin:0;animation:wIn 1.2s ease}
+@keyframes wIn{from{opacity:0}to{opacity:1}}
 .ab-quote{font-family:var(--serif);font-size:15px;line-height:1.9;color:var(--ink);margin:6px 0 4px}
 #walkHint{position:fixed;left:50%;bottom:calc(170px + var(--safe-b));transform:translateX(-50%);z-index:6;font-size:13px;color:var(--ink);background:var(--glass);border:1px solid var(--line);
   padding:8px 14px;border-radius:12px;white-space:nowrap;transition:opacity 1s;pointer-events:none}
@@ -313,6 +317,7 @@ body.on-intro #evPill{display:none}
   <div class="hud-title" style="font-size:12px;color:var(--ink-faint)">營火旁的老人</div>
   <h2 class="m-title" style="font-size:20px;margin-top:4px">關於靜默</h2>
   <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。」</p>
+  <div class="ab-wisdom"><div class="ab-wk">老人輕聲對你說</div><p id="abWisdom"></p></div>
   <div class="ab-sec">
     <h3>最新消息與聯絡</h3>
     <p>活動公告、抽獎名單、共修時段提醒，或想和創辦人聯絡，都在 LINE 社群。</p>
@@ -1375,7 +1380,11 @@ function elderNear(){
   const show=near&&!elderDismissed;
   if(show!==elderShown){ elderShown=show; $('elderAsk').classList.toggle('hidden',!show); }
 }
-$('elderYes').onclick=()=>{ elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; $('mAbout').classList.remove('hidden'); bell(.25); };
+const WISDOM=["閉上眼睛，放下一切，不追求平靜，不追求開悟。即是，即在，即成。", "當你不再急著抵達某個地方，才真正開始與自己相遇。", "靜下來，不是為了讓世界消失，而是終於聽見自己。", "不必改變每一個念頭，只需要看見它，然後讓它經過。", "你不需要成為更好的人，才能允許自己好好存在。", "當心不再追逐答案，答案便不再那麼重要。", "沉默不是沒有聲音，而是不再需要每個聲音都有回應。", "不與過去爭辯，不替未來焦慮，只讓此刻完整地發生。", "允許混亂存在，才是真正的平靜。", "坐著，不為了得到什麼；只是讓自己，不再失去當下。", "有些事情，不需要理解，只需要經歷。", "當你停止評價自己的每一個念頭，內心便多了一點自由。", "不必趕走黑暗，安靜地坐著，也是一種陪伴。", "生命不需要時時刻刻都有意義，有時候，存在本身就足夠了。", "讓呼吸自然來去，就像讓生命自然來去。", "你可以什麼都不做，而不代表你什麼都不是。", "放下控制，不代表放棄生活，而是學會與生活同行。", "不追逐寧靜，不排斥紛擾；無論晴雨，都能安住其中。", "當你不再努力扮演任何角色，才有機會看見最真實的自己。", "靜默不是逃離世界，而是重新學會如何與世界相處。"];
+let lastW=-1;
+function pickWisdom(){ let i; do{ i=Math.floor(Math.random()*WISDOM.length); }while(i===lastW&&WISDOM.length>1); lastW=i;
+  const p=$('abWisdom'); p.textContent=WISDOM[i]; p.style.animation='none'; void p.offsetWidth; p.style.animation=''; }
+$('elderYes').onclick=()=>{ pickWisdom(); elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; $('mAbout').classList.remove('hidden'); bell(.25); };
 $('abClose').onclick=()=>$('mAbout').classList.add('hidden');
 
 placeElder();
