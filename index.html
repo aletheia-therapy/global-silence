@@ -79,6 +79,21 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 #evPill b{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
 #evPill.live{background:rgba(232,195,122,.9);color:#2a2214} #evPill.live b{color:#2a2214}
 body.on-intro #evPill{display:none}
+#mus{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(122px + var(--safe-t));z-index:7;display:flex;flex-direction:column;align-items:flex-end}
+body.on-intro #mus{display:none}
+#btnMusic{display:flex;align-items:center;gap:6px;background:rgba(14,20,30,.5);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-radius:999px;padding:5px 11px;font-size:12px;color:var(--ink-dim)}
+#btnMusic .eq{display:inline-flex;align-items:flex-end;gap:2px;height:11px}
+#btnMusic .eq b{width:2px;background:var(--gold);border-radius:1px;height:3px}
+#btnMusic.on{color:var(--ink)} #btnMusic.on .eq b{animation:eq 1.1s ease-in-out infinite} #btnMusic.on .eq b:nth-child(2){animation-delay:.25s} #btnMusic.on .eq b:nth-child(3){animation-delay:.5s}
+@keyframes eq{0%,100%{height:3px}50%{height:11px}}
+#musPanel{margin-top:6px;width:200px;background:var(--glass-strong);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.mp-row{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.sw-t{position:relative;width:44px;height:26px;border-radius:13px;background:rgba(255,255,255,.18);transition:background .2s}
+.sw-t::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw-t.on{background:var(--gold)} .sw-t.on::after{transform:translateX(18px)}
+.mp-vol{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--ink-dim)}
+.mp-vol input{flex:1;accent-color:var(--gold)}
 #lb{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(122px + var(--safe-t));z-index:4;width:172px;
   background:rgba(14,20,30,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:7px 8px 6px;
   font-size:11.5px;color:var(--ink)}
@@ -234,6 +249,11 @@ body.on-intro #lb{display:none}
 <div id="loading">山正在成形…</div>
 
 <button id="evPill" class="hidden"></button>
+<div id="mus"><button id="btnMusic" aria-label="背景音樂"><span class="eq"><b></b><b></b><b></b></span><span id="musLbl">音樂</span></button>
+  <div id="musPanel" class="hidden">
+    <div class="mp-row"><span>背景音樂</span><button class="sw-t" id="musToggle" aria-label="開關背景音樂"></button></div>
+    <div class="mp-vol"><span>🔈</span><input type="range" id="musVol" min="0" max="100" aria-label="音量"><span>🔊</span></div>
+  </div></div>
 <div id="lb"><button class="lb-h" id="lbHead">修行排行榜 <i>▾</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div></div>
 <div id="mtTotal"><span class="mt-l">累積靜默</span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
@@ -1037,7 +1057,7 @@ $('btnEnter').onclick=()=>{ setTimeout(()=>{ if(evText()&&me.phase!=='intro') op
   if(preview){ scene.remove(preview.k.g); preview=null; }
   self=new Person({name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,x:0,z:14,r:Math.PI},false);
   cam.yaw=ov.yaw; cam.pitch=.42; cam.dist=7; cam.tx=self.x; cam.ty=hAt(self.x,self.z)+.9; cam.tz=self.z;
-  document.body.classList.remove('on-intro'); me.phase='walk'; setTimeout(renderLB,50); myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
+  document.body.classList.remove('on-intro'); me.phase='walk'; musPlay(); setTimeout(renderLB,50); myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); $('intro').classList.add('hidden'); $('hud').classList.remove('hidden'); setOverview(false);
   $('walkHint').classList.remove('hidden'); setTimeout(()=>$('walkHint').style.opacity='0',6000); setTimeout(()=>$('walkHint').classList.add('hidden'),7200);
   sendState();
 };
@@ -1349,6 +1369,26 @@ function rise(msg){
 $('btnEndOk').onclick=()=>$('mEnd').classList.add('hidden');
 
 let actx;
+/* background music: starts with the tap on 上山, remembers on/off and volume per phone.
+   Volume goes through a Web Audio gain node because iPhones ignore audio.volume. */
+const bgm=new Audio('bgm.mp3'); bgm.loop=true; bgm.preload='none'; bgm.crossOrigin='anonymous';
+let musOn=store.get('musOn',true), musVol=clamp(+store.get('musVol',0.4)||0,0,1), musGain=null, musStopT=null;
+function musGraph(){
+  try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(!musGain){ const src=actx.createMediaElementSource(bgm); musGain=actx.createGain(); musGain.gain.value=0; src.connect(musGain); musGain.connect(actx.destination); }
+    if(actx.state==='suspended') actx.resume(); }catch(e){ musGain=null; }
+}
+function musFade(to,sec){ if(musGain){ const t=actx.currentTime; musGain.gain.cancelScheduledValues(t); musGain.gain.setValueAtTime(musGain.gain.value,t); musGain.gain.linearRampToValueAtTime(to*to,t+sec); } else bgm.volume=to; }
+function musPlay(){ if(!musOn||me.phase==='intro') return; clearTimeout(musStopT); musGraph(); bgm.play().then(()=>musFade(musVol,2.5)).catch(()=>{}); musUI(); }
+function musStop(){ musFade(0,1); clearTimeout(musStopT); musStopT=setTimeout(()=>bgm.pause(),1100); musUI(); }
+function musUI(){ $('btnMusic').classList.toggle('on',musOn); $('musToggle').classList.toggle('on',musOn); $('musLbl').textContent=musOn?'音樂':'音樂 關'; $('musVol').value=Math.round(musVol*100); }
+musUI();
+$('btnMusic').onclick=e=>{ e.stopPropagation(); $('musPanel').classList.toggle('hidden'); };
+$('musPanel').onclick=e=>e.stopPropagation();
+document.addEventListener('click',()=>$('musPanel').classList.add('hidden'));
+$('musToggle').onclick=()=>{ musOn=!musOn; store.set('musOn',musOn); musOn?musPlay():musStop(); };
+$('musVol').oninput=e=>{ musVol=e.target.value/100; store.set('musVol',musVol); if(musOn){ if(bgm.paused) musPlay(); else musFade(musVol,.15); } };
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(!bgm.paused) bgm.pause(); } else if(musOn&&me.phase!=='intro') musPlay(); });
 function bell(vol=1){
   try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime, out=actx.createGain(); out.gain.value=.18*vol; out.connect(actx.destination);
     [[196,1],[392.6,.5],[588,.28],[983,.12]].forEach(([f,a])=>{ const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=f;
