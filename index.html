@@ -1233,9 +1233,11 @@ class Person{
   setSnap(url){ this.imgEl.src=url; this.hasImg=true; }
   get phase(){ return this.remote?this.info.phase:me.phase; }
   update(dt,t){
-    const px=this.x, pz=this.z;
+    // speed = how far we moved since the last frame (your own character is moved before this runs, so measure across frames)
+    const px=this.lastX??this.x, pz=this.lastZ??this.z;
     if(this.remote){ const f=1-Math.exp(-dt*8); this.x+=(this.tx-this.x)*f; this.z+=(this.tz-this.z)*f; this.r=lerpAngle(this.r,this.tr,f); }
-    const sp=Math.hypot(this.x-px,this.z-pz)/Math.max(dt,1e-3); this.speed+=(sp-this.speed)*Math.min(1,dt*10);
+    const step=Math.hypot(this.x-px,this.z-pz), sp=step>2?0:step/Math.max(dt,1e-3); this.lastX=this.x; this.lastZ=this.z;
+    this.speed+=(sp-this.speed)*Math.min(1,dt*10);
     const seated=['cam','sit','free'].includes(this.phase);
     this.sitP=clamp((this.sitP||0)+(seated?1:-1)*dt/(seated?2.8:1.1),0,1);
     { const p=this.sitP; this.sitAmt=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2; }
