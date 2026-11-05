@@ -1554,7 +1554,8 @@ class Person{
     const step=Math.hypot(this.x-px,this.z-pz), sp=step>2?0:step/Math.max(dt,1e-3); this.lastX=this.x; this.lastZ=this.z;
     this.speed+=(sp-this.speed)*Math.min(1,dt*10);
     const seated=['cam','sit','free'].includes(this.phase);
-    this.sitP=clamp((this.sitP||0)+(seated?1:-1)*dt/(seated?2.8:1.1),0,1);
+    if(this.plantT0!=null){ const a=t-this.plantT0; this.sitP=.44*smoothstep(0,.8,a)*(1-smoothstep(3.1,4.1,a)); } // crouch by the water, hands reaching out, then stand again
+    else this.sitP=clamp((this.sitP||0)+(seated?1:-1)*dt/(seated?2.8:1.1),0,1);
     { const p=this.sitP; this.sitAmt=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2; }
     this.leanAmt+=(((seated&&(this.remote?this.info.lean:me.lean))?1:0)-this.leanAmt)*Math.min(1,dt*5);
     this.ph+=dt*this.speed*3.4;
@@ -1665,7 +1666,7 @@ function sanitize(d){
     sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
-  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase==='enter'?'walk':me.phase,sitSec:me.phase==='free'?freeSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
+  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:(me.phase==='enter'||me.phase==='plant')?'walk':me.phase,sitSec:me.phase==='free'?freeSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
 function sendState(){ if(aSt&&me.phase!=='intro') aSt.send(myState()); }
 setInterval(sendState,STATE_MS);
 setInterval(()=>{ myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); },30000);
@@ -2518,10 +2519,10 @@ function makeLotus(x,z,id,opened){
 function setLotusOpen(L){ const o=L.open;
   L.outer.forEach(p=>{ p.rotation.x=-1.35+o*.85; }); L.inner.forEach(p=>{ p.rotation.x=-1.45+o*.4; });
   L.g.scale.setScalar(Math.max(.001,L.grow)); }
-function lotusSpotNear(px,pz){ // the free spot in the pond closest to where you stand
-  let best=null, bd=1e9; const r=rng(Math.floor(performance.now()));
-  for(let i=0;i<160;i++){ const a=r()*Math.PI*2, d=Math.sqrt(r())*(POND.r-.65), x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d;
-    if(lotuses.some(l=>Math.hypot(l.x-x,l.z-z)<.8)) continue; const dd=Math.hypot(px-x,pz-z); if(dd<bd){ bd=dd; best=[x,z]; } }
+function lotusSpotNear(px,pz){ // where it comes to rest: out toward the middle from your side, not right at the edge, never on top of another
+  let best=null, bd=1e9; const r=rng(Math.floor(performance.now())), side=Math.atan2(pz-POND.z,px-POND.x), R=POND.r-.65, want=R*(.18+Math.random()*.32);
+  for(let i=0;i<200;i++){ const a=side+(r()-.5)*1.3, d=Math.sqrt(r())*R, x=POND.x+Math.cos(a)*d, z=POND.z+Math.sin(a)*d;
+    if(lotuses.some(l=>Math.hypot(l.x-x,l.z-z)<.8)) continue; const dd=Math.abs(d-want)+Math.abs(a-side)*.6; if(dd<bd){ bd=dd; best=[x,z]; } }
   if(best) return best; const a=Math.random()*Math.PI*2, d=Math.random()*(POND.r-.7); return [POND.x+Math.cos(a)*d,POND.z+Math.sin(a)*d];
 }
 let lotusAll=0;
@@ -2556,10 +2557,12 @@ function plantLotus(x,z,wish,mine){
   const ring=new THREE.Mesh(new THREE.RingGeometry(.3,.36,40),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false}));
   ring.rotation.x=-Math.PI/2; ring.position.set(x,POND.y+.02,z); scene.add(ring); L.ring=ring;
   if(wish){ const d=document.createElement('div'); d.className='wish-tag lotus-wish'; d.textContent=wish; tagsEl.appendChild(d); L.tag=d; }
-  if(mine&&self){ // a small light drifts from your hands to the water first
-    const m=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),new THREE.MeshBasicMaterial({color:new THREE.Color('#ffd1e0').multiplyScalar(2.2)}));
-    m.position.set(self.x,hAt(self.x,self.z)+.9,self.z); scene.add(m); motes.push({m,from:m.position.clone(),to:new THREE.Vector3(x,POND.y+.12,z),t0:clock.elapsedTime});
-    L.born=clock.elapsedTime+1.6; lanFocus={obj:L.g,until:performance.now()+9000};
+  if(mine&&self){ // from your hands to the water's edge, then it drifts out toward the middle and opens there
+    const ang=Math.atan2(self.z-POND.z,self.x-POND.x), ex=POND.x+Math.cos(ang)*(POND.r-.45), ez=POND.z+Math.sin(ang)*(POND.r-.45), t0=clock.elapsedTime+2.1, dur=6.5;
+    const m=new THREE.Mesh(new THREE.SphereGeometry(.06,10,8),new THREE.MeshBasicMaterial({color:new THREE.Color('#ffd1e0').multiplyScalar(2.2)}));
+    m.position.set(self.x,hAt(self.x,self.z)+.55,self.z); scene.add(m); motes.push({m,from:m.position.clone(),to:new THREE.Vector3(ex,POND.y+.1,ez),t0:clock.elapsedTime+.6});
+    ring.position.set(ex,POND.y+.02,ez); L.g.position.set(ex,POND.y+.01,ez); L.drift={fx:ex,fz:ez,tx:x,tz:z,t0,dur}; L.x=ex; L.z=ez;
+    L.born=t0+dur-1.4; L.grow=0; setLotusOpen(L); lanFocus={obj:L.g,until:performance.now()+13000};
   }
   updatePondCap(); return L;
 }
@@ -2580,10 +2583,11 @@ $('lotusGo').onclick=()=>{
   const wish=$('lotusWish').value.trim().slice(0,60); if(!wish||!self) return;
   $('mLotus').classList.add('hidden'); lastLotus=Date.now(); store.set('lastLotus',lastLotus);
   const [x,z]=lotusSpotNear(self.x,self.z);
-  self.r=Math.atan2(x-self.x,z-self.z); cam.rate=.9; cam.yawTarget=self.r+Math.PI; cam.pitchTarget=.5; cam.distTarget=5.5;
-  plantLotus(x,z,wish,true); bell(.22);
+  self.r=Math.atan2(POND.x-self.x,POND.z-self.z); cam.rate=.9; cam.yawTarget=self.r+Math.PI+.5; cam.pitchTarget=.5; cam.distTarget=6;
+  me.phase='plant'; self.plantT0=clock.elapsedTime; showWalkUI(false);
+  const myL=plantLotus(x,z,wish,true); bell(.22);
   try{ aLotus?.send({x:+x.toFixed(3),z:+z.toFixed(3)}); }catch{}
-  if(srv.id) rpc('gs_plant',{...auth(),p_x:x,p_z:z}).then(r=>{ if(r&&r.id){ const L=lotuses.find(l=>Math.hypot(l.x-x,l.z-z)<.05); if(L) L.id=r.id; lotusAll++; updatePondCap(); } }).catch(()=>{});
+  if(srv.id) rpc('gs_plant',{...auth(),p_x:x,p_z:z}).then(r=>{ if(r&&r.id){ const L=myL||lotuses.find(l=>Math.hypot(l.x-x,l.z-z)<.05); if(L) L.id=r.id; lotusAll++; updatePondCap(); } }).catch(()=>{});
   setTimeout(()=>toast('🪷 你的蓮花已經種下，靜靜開在池中'),11000);
 };
 
@@ -2749,7 +2753,7 @@ function stepTentAnim(){
 function leaveTent(){ const t=inTent; if(!t) return; inTent=null; t.open=1; t.openT=1; setTimeout(()=>{ if(inTent!==t) t.openT=0; },1400);
   self.x=t.ex; self.z=t.ez; self.r=t.rot; }
 if(QS.get('debug')) window.__comp={ skip:(n)=>self?.comp?.list.forEach(c=>c.age+=n), list:()=>(self?.comp?.list||[]).map(c=>({kind:c.kind,x:+c.g.position.x.toFixed(2),z:+c.g.position.z.toFixed(2),mode:c.st?.mode})) };
-if(QS.get('debug')) window.__gs={tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r})};
+if(QS.get('debug')) window.__gs={tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r,sitP:self.sitP,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,lot:lotuses.map(l=>[+l.x.toFixed(2),+l.z.toFixed(2),!!l.drift,+(l.open||0).toFixed(2)])})};
 function animateTents(dt){ stepTentAnim();
   TENTS.forEach(t=>{ t.open+=(t.openT-t.open)*Math.min(1,dt*3.2); t.door.rotation.y=t.open*1.2; }); }
 
@@ -2763,10 +2767,16 @@ function animateSurprises(t,dt,W,H){
   // pond caption
   { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk'&&!(lanFocus&&performance.now()<lanFocus.until))?1:0; if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
   // light motes drifting to the water
-  for(let i=motes.length-1;i>=0;i--){ const o=motes[i], k=Math.min(1,(t-o.t0)/1.6), e=k*k*(3-2*k);
+  for(let i=motes.length-1;i>=0;i--){ const o=motes[i], k=clamp((t-o.t0)/1.6,0,1), e=k*k*(3-2*k);
     o.m.position.lerpVectors(o.from,o.to,e); o.m.position.y+=Math.sin(k*Math.PI)*.6; if(k>=1){ scene.remove(o.m); motes.splice(i,1); } }
   // lotuses: rise from the water, petals open, the blessing lingers then fades
   for(const l of lotuses){
+    if(l.drift){ const d=l.drift, k=clamp((t-d.t0)/d.dur,0,1), e=1-Math.pow(1-k,2.4); // glides out, slowing to a stop
+      l.x=d.fx+(d.tx-d.fx)*e; l.z=d.fz+(d.tz-d.fz)*e; l.g.position.x=l.x; l.g.position.z=l.z;
+      l.grow=t<d.t0?0:Math.min(1,(t-d.t0)/1.2); l.open=0; setLotusOpen(l);
+      if(l.tag) labelAt(l.tag,l.x,POND.y+1.25,l.z,0,W,H,50);
+      if(l.ring){ const k2=Math.min(1,Math.max(0,t-d.t0+.2)/3); l.ring.scale.setScalar(1+k2*4); l.ring.material.opacity=.6*(1-k2); if(k2>=1){ scene.remove(l.ring); l.ring=null; } }
+      l.g.position.y=POND.y+.01+Math.sin(t*.6+l.x)*.006; if(k>=1){ l.x=d.tx; l.z=d.tz; l.drift=null; } continue; }
     if(l.born>=0){ const a=t-l.born;
       if(a>=0){ l.grow=Math.min(1,a/1.4); l.open=clamp((a-1.0)/3.2,0,1); l.open=l.open*l.open*(3-2*l.open); setLotusOpen(l); }
       if(l.ring){ const ra=t-l.born+1.6, k=Math.min(1,ra/3); l.ring.scale.setScalar(1+k*5); l.ring.material.opacity=.6*(1-k); if(k>=1){ scene.remove(l.ring); l.ring=null; } }
@@ -2908,6 +2918,7 @@ renderer.setAnimationLoop(()=>{
   animateWorld(t,dt);
   if(self){
     if(me.phase==='walk') moveSelf(dt);
+    if(self.plantT0!=null&&t-self.plantT0>4.2){ self.plantT0=null; if(me.phase==='plant'){ me.phase='walk'; showWalkUI(true); } }
     self.update(dt,t);
     if(seatedNow()&&!ov.on&&cam.yawTarget==null&&performance.now()-lastDrag>4000) cam.yaw+=dt*.055; // ~2 min per slow circle; pauses while you drag
     const cr=cam.rate||2.5;
@@ -2928,7 +2939,7 @@ renderer.setAnimationLoop(()=>{
     const g=hAt(cx,cz)+.35; if(cy<g) cy=g;
     cam.lift=(cam.lift||0)+(((seatedNow())?3.4*clamp(Math.min((cam.pitch-.36)/.24,(dd-5)/7),0,1):0)-(cam.lift||0))*Math.min(1,dt*.5); // while sitting, look up toward the horizon
     wantPos.set(cx,cy,cz); wantLook.set(cam.tx,cam.ty+cam.lift,cam.tz);
-    if(lanFocus&&performance.now()<lanFocus.until&&me.phase==='walk') wantLook.lerp(lanFocus.obj.position,.6); // watch your lantern rise
+    if(lanFocus&&performance.now()<lanFocus.until&&(me.phase==='walk'||me.phase==='plant')) wantLook.lerp(lanFocus.obj.position,.6); // watch your lantern rise
     camK+=(14-camK)*Math.min(1,dt*1.6);
   }
   if(fwCam){ wantPos.copy(fwCam.pos); wantLook.copy(fwCam.look); camK=Math.min(camK,1.3); }
