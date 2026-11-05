@@ -1314,23 +1314,38 @@ function makeBird(){ // a little round robin: smooth body, cream belly, warm bre
   const legM=sm('#8b6b4c',.6), legs=[]; [-1,1].forEach(sx=>{ const l=new THREE.Mesh(new THREE.CylinderGeometry(.0035,.0035,.04,5),legM); l.position.set(sx*.017,.02,.005); g.add(l); legs.push(l); });
   g.userData={body,head,tail,wL,wR,legs}; return g;
 }
-function makeDeer(){
-  const g=new THREE.Group(), fur=cmat('#b98352'), light=cmat('#f1dfc6'), dark=cmat('#4a3222');
-  const body=new THREE.Group(); g.add(body);
-  const torso=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),fur); torso.scale.set(.8,.75,1.55); body.add(torso);
-  const belly=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),light); belly.scale.set(.8,.5,1.3); belly.position.y=-.1; body.add(belly);
-  [[-.12,.28],[.12,.28],[-.15,-.1],[.2,.05]].forEach(([x,z])=>{ const sp=new THREE.Mesh(new THREE.SphereGeometry(.03,5,4),light); sp.position.set(x,.2,z); body.add(sp); });
-  const neck=new THREE.Group(); neck.position.set(0,.12,.36); body.add(neck);
-  const nk=new THREE.Mesh(new THREE.CylinderGeometry(.08,.11,.42,7),fur); nk.position.y=.2; nk.rotation.x=.35; neck.add(nk);
-  const head=new THREE.Group(); head.position.set(0,.42,.1); neck.add(head);
-  const hd=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),fur); hd.scale.set(.85,.85,1.3); head.add(hd);
-  const snout=new THREE.Mesh(new THREE.SphereGeometry(.05,6,4),dark); snout.position.set(0,-.02,.15); head.add(snout);
-  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.ConeGeometry(.045,.16,5),fur); e.position.set(sx*.09,.09,-.02); e.rotation.z=-sx*.9; head.add(e); });
-  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.018,5,4),new THREE.MeshBasicMaterial({color:'#111'})); e.position.set(sx*.07,.03,.08); head.add(e); });
-  const tail=new THREE.Mesh(new THREE.SphereGeometry(.06,6,4),light); tail.position.set(0,.08,-.46); body.add(tail);
-  const legs=[]; [[-.13,.28],[.13,.28],[-.13,-.3],[.13,-.3]].forEach(([x,z])=>{ const l=new THREE.Group(); l.position.set(x,-.12,z); const m=new THREE.Mesh(new THREE.CylinderGeometry(.035,.03,.5,5),fur); m.position.y=-.25; l.add(m);
-    const hoof=new THREE.Mesh(new THREE.CylinderGeometry(.033,.033,.05,5),dark); hoof.position.y=-.5; l.add(hoof); body.add(l); legs.push(l); });
-  g.userData={body,neck,head,legs}; return g;
+function makeDeer(){ // a young spotted deer: smooth body, slender jointed legs, big ears and eyes
+  const sm=(c,r=.8)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+  const fur=sm('#a8744a'), furD=sm('#8c5e3a'), light=sm('#efe1cc'), dark=sm('#2b201a',.5), white=sm('#fbf6ee');
+  const g=new THREE.Group(), body=new THREE.Group(); body.position.y=.6; g.add(body);
+  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.15,.28,8,16),fur); torso.rotation.x=Math.PI/2; torso.scale.set(1,1.05,1); body.add(torso);
+  const chest=new THREE.Mesh(new THREE.SphereGeometry(.152,16,12),fur); chest.position.set(0,.01,.16); body.add(chest);
+  const rump=new THREE.Mesh(new THREE.SphereGeometry(.152,16,12),fur); rump.position.set(0,.02,-.17); body.add(rump);
+  const belly=new THREE.Mesh(new THREE.SphereGeometry(.13,16,12),light); belly.scale.set(.95,.6,1.9); belly.position.set(0,-.07,0); body.add(belly);
+  [[.06,.1,.08],[-.07,.11,-.02],[.05,.12,-.12],[-.04,.12,.14],[.09,.06,-.2],[-.1,.07,.04]].forEach(([x,y,z])=>{ const d=new THREE.Mesh(new THREE.SphereGeometry(.016,8,6),white); d.scale.set(1,.5,1.3); d.position.set(x,y+.035,z); body.add(d); });
+  const tail=new THREE.Group(); tail.position.set(0,.08,-.31); body.add(tail); const tl=new THREE.Mesh(new THREE.SphereGeometry(.04,10,8),white); tl.scale.set(.8,1.2,.7); tl.position.set(0,-.02,-.02); tail.add(tl);
+  const neck=new THREE.Group(); neck.position.set(0,.07,.26); body.add(neck);
+  const nk=new THREE.Mesh(new THREE.CapsuleGeometry(.06,.2,6,12),fur); nk.position.set(0,.13,.05); nk.rotation.x=.45; neck.add(nk);
+  const throat=new THREE.Mesh(new THREE.CapsuleGeometry(.045,.14,6,10),sm('#c39a74')); throat.position.set(0,.1,.085); throat.rotation.x=.45; neck.add(throat);
+  const head=new THREE.Group(); head.position.set(0,.27,.12); neck.add(head);
+  const skull=new THREE.Mesh(new THREE.SphereGeometry(.075,16,12),fur); skull.scale.set(.9,.92,1.05); head.add(skull);
+  const snout=new THREE.Mesh(new THREE.CapsuleGeometry(.04,.07,6,10),fur); snout.rotation.x=Math.PI/2+.35; snout.position.set(0,-.03,.08); head.add(snout);
+  const muzzle=new THREE.Mesh(new THREE.SphereGeometry(.033,10,8),light); muzzle.position.set(0,-.05,.11); head.add(muzzle);
+  const nose=new THREE.Mesh(new THREE.SphereGeometry(.017,8,6),dark); nose.position.set(0,-.035,.142); head.add(nose);
+  const ears=[]; [-1,1].forEach(sx=>{ const ep=new THREE.Group(); ep.position.set(sx*.052,.045,-.025); ep.rotation.z=-sx*1.05; ep.rotation.y=sx*.35; head.add(ep);
+    const e=new THREE.Mesh(new THREE.SphereGeometry(.085,14,10),fur); e.scale.set(.5,1,.2); e.position.y=.07; ep.add(e);
+    const ei=new THREE.Mesh(new THREE.SphereGeometry(.068,12,8),sm('#ead0bf')); ei.scale.set(.42,.86,.1); ei.position.set(0,.068,.012); ep.add(ei); ears.push(ep); });
+  const eyeM=sm('#120d0a',.15), hiM=new THREE.MeshBasicMaterial({color:'#fff'});
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.019,12,10),eyeM); e.scale.set(.8,1,1); e.position.set(sx*.052,.012,.04); head.add(e);
+    const hi=new THREE.Mesh(new THREE.SphereGeometry(.005,6,4),hiM); hi.position.set(sx*.062,.02,.05); head.add(hi); });
+  const legs=[]; // [front-left, front-right, hind-left, hind-right]: hip/shoulder → knee → hoof
+  [[.08,.17,1],[-.08,.17,1],[.08,-.17,0],[-.08,-.17,0]].forEach(([x,z,front])=>{ const up=new THREE.Group(); up.position.set(x,-.06,z); body.add(up);
+    const u=new THREE.Mesh(new THREE.CapsuleGeometry(front?.034:.045,.2,6,10),front?fur:furD); u.position.y=-.13; up.add(u);
+    const kn=new THREE.Group(); kn.position.y=-.27; up.add(kn);
+    const l=new THREE.Mesh(new THREE.CapsuleGeometry(.022,.21,6,8),fur); l.position.y=-.12; kn.add(l);
+    const hoof=new THREE.Mesh(new THREE.CylinderGeometry(.02,.025,.035,8),dark); hoof.position.y=-.255; kn.add(hoof);
+    legs.push({up,kn,front}); });
+  g.userData={body,neck,head,legs,ears,tail}; return g;
 }
 function makeCrane(){
   const g=new THREE.Group(), white=cmat('#f6f4ee'), black=cmat('#1d1d22'), red=new THREE.MeshBasicMaterial({color:'#d8282e'}), legM=cmat('#3a3a3a');
@@ -1406,13 +1421,28 @@ class Companions{
         u.legs.forEach((l,j)=>l.rotation.x=st.mode==='walk'?Math.sin(st.t*15+j*Math.PI)*.35:0);
         u.body.position.y=st.mode==='pause'?Math.sin(t*2.4)*.0015:0; // breathing
       },{st:{mode:'fly'}}); }
-    if(i===2){ const sp=compSpot(p,-.85,3.1); if(!sp) return; const [x,z]=sp, a0=Math.atan2(x-p.x,z-p.z), sx=x+Math.sin(a0)*11, sz=z+Math.cos(a0)*11;
-      this.add('deer',makeDeer(),1.15,(dt,t,c)=>{ const u=c.g.userData, walkT=8, k=Math.min(1,c.age/walkT);
-        if(k<1){ const px=sx+(x-sx)*k, pz=sz+(z-sz)*k; c.g.position.set(px,gy(px,pz)+.7,pz); c.g.rotation.y=Math.atan2(x-sx,z-sz); const sw=Math.sin(c.age*6)*.45;
-          u.legs.forEach((l,j)=>l.rotation.x=(j%2?sw:-sw)*(j<2?1:-1)); u.body.position.y=Math.abs(Math.sin(c.age*6))*.03; return; }
-        const lie=Math.min(1,(c.age-walkT)/2.2), e=lie*lie*(3-2*lie); c.g.position.set(x,gy(x,z)+.7-.46*e,z);
-        u.legs.forEach((l,j)=>{ l.rotation.x=(j<2?-.9:.9)*e; l.scale.y=1-.8*e; }); // legs fold away under the body c.g.rotation.y=lerpAngle(c.g.rotation.y,Math.atan2(cx()-x,cz()-z)-.7,.01);
-        u.neck.rotation.x=-.15*e+.05*Math.sin(t*.4); u.head.rotation.y=Math.sin(t*.23)*.5; }); }
+    if(i===2){ const sp=compSpot(p,-.85,3.1); if(!sp) return; const [x,z]=sp, a0=Math.atan2(x-p.x,z-p.z)+(Math.random()-.5)*.8, sx=x+Math.sin(a0)*6.5, sz=z+Math.cos(a0)*6.5;
+      const WALK=15.5, TURN=3, LIE=3.4;
+      const gait=(u,ph,amt)=>u.legs.forEach((L,j)=>{ // four-beat walk: hind-left, fore-left, hind-right, fore-right
+        const off=[.25,.75,0,.5][j], q=(ph+off)%1, swing=q<.38, s=swing?Math.sin(q/.38*Math.PI):0, f=swing?-Math.cos(q/.38*Math.PI):1-2*(q-.38)/.62; // f: -1 back … +1 forward
+        L.up.rotation.x=-.34*f*amt; L.kn.rotation.x=(L.front?.8:.55)*s*amt; });
+      this.add('deer',makeDeer(),1.05,(dt,t,c)=>{ const u=c.g.userData, e=c.age;
+        if(e<WALK){ const k=e/WALK, prog=(k-(k>.8?(k-.8)**2/.4:0))/.9; const px=sx+(x-sx)*prog, pz=sz+(z-sz)*prog; // steady pace, easing to a stop
+          c.g.position.set(px,gy(px,pz),pz); c.g.rotation.y=Math.atan2(x-sx,z-sz); const ph=e/1.35;
+          gait(u,ph,1-Math.max(0,(k-.9)/.1)); u.body.position.y=.6+Math.abs(Math.sin(ph*Math.PI*2))*.012; u.neck.rotation.x=Math.sin(ph*Math.PI*4)*.06; u.body.rotation.x=0; return; }
+        const face=Math.atan2(cx()-x,cz()-z)-.55; // turned toward the sitter, a little to the side
+        if(e<WALK+TURN){ const k=(e-WALK)/TURN; c.g.position.set(x,gy(x,z),z); c.g.rotation.y=lerpAngle(c.g.rotation.y,face,Math.min(1,dt*1.2)); gait(u,e/1.6,.45*(1-k)); u.body.position.y=.6; return; }
+        const k=Math.min(1,(e-WALK-TURN)/LIE), kf=Math.min(1,k/.55), kh=Math.max(0,(k-.35)/.65), sf=kf*kf*(3-2*kf), sh=kh*kh*(3-2*kh);
+        c.g.position.set(x,gy(x,z),z); c.g.rotation.y=lerpAngle(c.g.rotation.y,face,Math.min(1,dt*1.2));
+        u.legs.forEach(L=>{ if(L.front){ L.up.rotation.x=1.5*sf; L.kn.rotation.x=-2.8*sf; } else { L.up.rotation.x=-1.3*sh; L.kn.rotation.x=2.7*sh; } }); // front knees first, then the hind legs fold under
+        u.body.position.y=.6-.22*sf-.2*sh; u.body.rotation.x=.18*(sf-sh);
+        // resting: breathing, ears flick, head turns slowly and now and then looks at the sitter
+        if(k>=1){ u.body.scale.y=1+Math.sin(t*1.6)*.012;
+          const look=Math.sin(t*.13+c.ph)*.7+(Math.sin(t*.05)>.6?(Math.atan2(cx()-x,cz()-z)-c.g.rotation.y)*.0:0);
+          u.head.rotation.y+=(look-u.head.rotation.y)*Math.min(1,dt*.8); u.neck.rotation.x+=((-.1+Math.sin(t*.21)*.08)-u.neck.rotation.x)*Math.min(1,dt);
+          u.ears.forEach((ep,j)=>{ ep.rotation.x=Math.sin(t*9+j)>.985?.5:ep.rotation.x*.9; });
+          u.tail.rotation.x=Math.sin(t*1.3+c.ph)>.97?.5:u.tail.rotation.x*.92; }
+      },{ph:Math.random()*6}); }
     if(i===3){ const sp=compSpot(p,2.35,2.7); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*16, sz=z+Math.cos(a0)*16;
       this.add('crane',makeCrane(),1.1,(dt,t,c)=>{ const u=c.g.userData, flyT=7, k=Math.min(1,c.age/flyT);
         if(k<1){ const e=1-Math.pow(1-k,2.2); c.g.position.set(sx+(x-sx)*e,gy(x,z)+9*(1-e)*(1-e),sz+(z-sz)*e); c.g.rotation.y=Math.atan2(x-sx,z-sz);
