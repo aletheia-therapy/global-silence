@@ -124,8 +124,8 @@ body.on-intro #mus{display:none}
   font-size:11px;color:var(--ink)}
 body.on-intro #lb{display:none}
 #lb .lb-h{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--serif);font-size:12.5px;letter-spacing:.1em;color:var(--gold);padding:1px 2px 5px}
-#lb .lb-h i{font-style:normal;color:var(--ink-faint);font-size:12px;letter-spacing:0;transition:transform .3s}
-#lb.closed .lb-h{padding-bottom:1px} #lb.closed .lb-h i{transform:rotate(-90deg)} #lb.closed ol,#lb.closed .lb-more,#lb.closed .lb-me{display:none}
+#lb .lb-h i{font-style:normal;flex:0 0 auto;font-family:var(--sans,inherit);font-size:10.5px;font-weight:600;letter-spacing:.02em;color:#2a2111;background:var(--gold);border-radius:999px;padding:3px 8px 2px;box-shadow:0 0 0 2px rgba(232,195,122,.25)}
+#lb.closed .lb-h{padding-bottom:1px} #lb.closed ol,#lb.closed .lb-more,#lb.closed .lb-me{display:none}
 #lb ol{list-style:none;margin:0;padding:0}
 #lb .lb-note{margin-top:5px;padding:6px 0 1px;border-top:1px solid rgba(232,195,122,.3);font-family:var(--serif);font-size:9.8px;line-height:1.7;letter-spacing:0;white-space:nowrap;color:#f1dba6;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.45)}
 #lb.closed .lb-note{margin-top:4px}
@@ -382,7 +382,7 @@ body.on-intro #lb{display:none}
     <div class="mp-row"><span>背景音樂</span><button class="sw-t" id="musToggle" aria-label="開關背景音樂"></button></div>
     <div class="mp-vol"><span>🔈</span><input type="range" id="musVol" min="0" max="100" aria-label="音量"><span>🔊</span></div>
   </div></div>
-<div id="lb"><button class="lb-h" id="lbHead">靜默排行榜 <i>▾</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div><div class="lb-note">數字會累積，覺察只在此刻。<br>排名留給數字，覺察留給自己。</div></div>
+<div id="lb"><button class="lb-h" id="lbHead"><span>靜默排行榜</span><i id="lbTog">收起 ▲</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div><div class="lb-note">數字會累積，覺察只在此刻。<br>排名留給數字，覺察留給自己。</div></div>
 <div id="mtTotal"><span class="mt-l">全球累積靜默</span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
@@ -1529,7 +1529,9 @@ function renderLB(){
 }
 setInterval(renderLB,2000);
 try{ if(store.get('lbClosed',false)) $('lb').classList.add('closed'); }catch{}
-$('lbHead').onclick=()=>{ const c=$('lb').classList.toggle('closed'); store.set('lbClosed',c); };
+const lbTogText=()=>{ $('lbTog').textContent=$('lb').classList.contains('closed')?'展開 ▼':'收起 ▲'; };
+$('lbHead').onclick=()=>{ const c=$('lb').classList.toggle('closed'); store.set('lbClosed',c); lbTogText(); };
+lbTogText();
 function updateHud(){
   updateTotal();
   const all=everyone(), sitting=all.filter(p=>p.phase==='sit'||p.phase==='free'), sum=0;
