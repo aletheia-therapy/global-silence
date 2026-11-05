@@ -119,7 +119,7 @@ body.on-intro #mus{display:none}
 #dim .dt{font-family:var(--serif);font-size:44px;letter-spacing:.06em;color:rgba(244,239,228,.38);font-variant-numeric:tabular-nums}
 #dim .dh{font-size:12.5px;color:rgba(244,239,228,.3);letter-spacing:.12em}
 #dim .dd{width:6px;height:6px;border-radius:50%;background:rgba(232,195,122,.45);animation:breath 6s ease-in-out infinite}
-#lb{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(122px + var(--safe-t));z-index:4;width:172px;
+#lb{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(122px + var(--safe-t));z-index:4;width:min(212px,calc(100vw - 150px));
   background:rgba(14,20,30,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:7px 8px 6px;
   font-size:11.5px;color:var(--ink)}
 body.on-intro #lb{display:none}
@@ -130,13 +130,13 @@ body.on-intro #lb{display:none}
 #lb li,.lb-me{display:grid;grid-template-columns:16px 1fr auto;column-gap:5px;align-items:baseline;padding:3px 2px;border-top:1px solid rgba(255,255,255,.07)}
 #lb .r{color:var(--ink-faint);font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
 #lb li:nth-child(-n+3) .r{color:var(--gold);font-weight:700}
-#lb .w{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis} #lb .w small{display:block;font-size:10px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis}
-#lb .t{font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+#lb .w{min-width:0;overflow:hidden;white-space:nowrap;display:flex;align-items:baseline;gap:5px} #lb .w .nm{flex:0 0 auto;max-width:62%;overflow:hidden;text-overflow:ellipsis} #lb .w small{flex:0 2 auto;min-width:2.8em;font-size:.82em;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lb .t{font-size:10.5px;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
 #lb .me{background:rgba(232,195,122,.16);border-radius:7px} #lb .me .w,#lb .me .t{color:var(--gold)}
 #lb .lb-more{text-align:center;color:var(--ink-faint);letter-spacing:.3em;line-height:1;padding:2px 0 0}
 #lb .lb-slot .w{color:rgba(244,239,228,.22)} #lb .lb-slot .r{color:rgba(244,239,228,.3)!important;font-weight:400!important}
 #lb .lb-empty{color:var(--ink-faint);font-size:11px;padding:4px 2px}
-@media (max-height:760px){ #lb .w small{display:none} #lb li,.lb-me{padding:2px} } /* short phones: one line per person so it never reaches the joystick */
+@media (max-height:760px){ #lb li,.lb-me{padding:2px} } /* short phones: keep rows tight so the list never reaches the joystick */
 .ev-card{display:block;width:100%;text-align:left;margin:0 0 14px;padding:11px 14px;border-radius:14px;background:rgba(232,195,122,.13);border:1px solid rgba(232,195,122,.5)}
 .ev-card .ev-k{font-size:11px;letter-spacing:.14em;color:var(--gold)}
 .ev-card .ev-t{font-family:var(--serif);font-size:16px;margin-top:2px}
@@ -1497,7 +1497,8 @@ function shortFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec}秒`; cons
   return h?`${h}小時${m}分`:(s?`${m}分${s}秒`:`${m}分鐘`); }
 function lbRow(el,rank,r){ el.className=r.k===UID?'me':''; el.innerHTML='';
   const a=document.createElement('span'); a.className='r'; a.textContent=rank;
-  const w=document.createElement('span'); w.className='w'; const bi=badgeIcon(r.t); w.textContent=(bi?bi+' ':'')+r.n; const sm=document.createElement('small'); sm.textContent=r.c||''; w.appendChild(sm);
+  const w=document.createElement('span'); w.className='w'; const bi=badgeIcon(r.t); const nm=document.createElement('span'); nm.className='nm'; nm.textContent=(bi?bi+' ':'')+r.n; w.appendChild(nm);
+  if(r.c){ const sm=document.createElement('small'); sm.textContent='· '+r.c; w.appendChild(sm); } // where they sit from, on the same line
   const t=document.createElement('span'); t.className='t'; t.textContent=shortFmt(r.t); el.append(a,w,t); }
 function lbPad(ol,n){ // 5 places while the mountain is young, 10 once more than 5 people are on the board; unfilled places wait empty
   const slots=n<=5?5:10;
