@@ -1294,17 +1294,25 @@ function makeFirefly(){
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:'#d6ff6a',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); halo.scale.setScalar(.55);
   g.add(dot,halo); g.userData={halo}; return g;
 }
-function makeBird(){
-  const g=new THREE.Group(), body=new THREE.Mesh(new THREE.SphereGeometry(.1,8,6),cmat('#7a5236')); body.scale.set(1,.85,1.45); body.position.y=.13;
-  const breast=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),cmat('#e8743a')); breast.position.set(0,.12,.07);
-  const head=new THREE.Group(); head.position.set(0,.22,.11); const hd=new THREE.Mesh(new THREE.SphereGeometry(.065,8,6),cmat('#6b4630'));
-  const beak=new THREE.Mesh(new THREE.ConeGeometry(.018,.06,5),cmat('#f2c14e')); beak.rotation.x=Math.PI/2; beak.position.z=.07;
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.012,5,4),new THREE.MeshBasicMaterial({color:'#111'})); eye.position.set(.045,.015,.035); const eye2=eye.clone(); eye2.position.x=-.045;
-  head.add(hd,beak,eye,eye2);
-  const tail=new THREE.Mesh(new THREE.BoxGeometry(.07,.015,.13),cmat('#5a3a26')); tail.position.set(0,.15,-.17); tail.rotation.x=-.4;
-  const wm=cmat('#5e3f2a'); wm.side=THREE.DoubleSide; const wL=new THREE.Mesh(wingGeo(.17,.16),wm), wR=new THREE.Mesh(wingGeo(-.17,.16),wm); wL.position.set(.05,.17,0); wR.position.set(-.05,.17,0);
-  const legs=new THREE.Mesh(new THREE.BoxGeometry(.06,.07,.01),cmat('#c9a14a')); legs.position.y=.035;
-  g.add(body,breast,head,tail,wL,wR,legs); g.userData={head,wL,wR}; return g;
+function makeBird(){ // a little round robin: smooth body, cream belly, warm breast, folded wings that open on their shoulders
+  const sm=(c,r=.85)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+  const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
+  const back=new THREE.Mesh(new THREE.SphereGeometry(.06,16,12),sm('#7d5a40')); back.scale.set(1,.92,1.32); back.position.y=.075; body.add(back);
+  const belly=new THREE.Mesh(new THREE.SphereGeometry(.052,16,12),sm('#efe3cc')); belly.scale.set(.92,.82,1.1); belly.position.set(0,.064,.016); body.add(belly);
+  const breast=new THREE.Mesh(new THREE.SphereGeometry(.04,14,10),sm('#dd8448')); breast.scale.set(1,.95,.8); breast.position.set(0,.085,.05); body.add(breast);
+  const head=new THREE.Group(); head.position.set(0,.125,.052); body.add(head);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(.037,16,12),sm('#7a573e')); head.add(hd);
+  const face=new THREE.Mesh(new THREE.SphereGeometry(.03,14,10),sm('#dd8448')); face.position.set(0,-.012,.016); head.add(face);
+  const eyeM=new THREE.MeshStandardMaterial({color:'#111',roughness:.2}), hiM=new THREE.MeshBasicMaterial({color:'#fff'});
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.0085,10,8),eyeM); e.position.set(sx*.026,.006,.02); head.add(e);
+    const hi=new THREE.Mesh(new THREE.SphereGeometry(.0028,6,4),hiM); hi.position.set(sx*.03,.01,.026); head.add(hi); });
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.0075,.024,8),sm('#3e3228',.5)); beak.rotation.x=Math.PI/2; beak.position.set(0,-.004,.045); head.add(beak);
+  const tail=new THREE.Group(); tail.position.set(0,.085,-.07); body.add(tail);
+  const tl=new THREE.Mesh(new THREE.SphereGeometry(.03,12,8),sm('#5f4330')); tl.scale.set(.75,.18,1.5); tl.position.z=-.03; tail.add(tl); tail.rotation.x=-.35;
+  const wing=sx=>{ const pv=new THREE.Group(); pv.position.set(sx*.045,.1,.005); const w=new THREE.Mesh(new THREE.SphereGeometry(.04,14,10),sm('#664632')); w.scale.set(.28,.62,1.35); w.position.set(0,-.024,-.012); pv.add(w); body.add(pv); return pv; };
+  const wL=wing(1), wR=wing(-1);
+  const legM=sm('#8b6b4c',.6), legs=[]; [-1,1].forEach(sx=>{ const l=new THREE.Mesh(new THREE.CylinderGeometry(.0035,.0035,.04,5),legM); l.position.set(sx*.017,.02,.005); g.add(l); legs.push(l); });
+  g.userData={body,head,tail,wL,wR,legs}; return g;
 }
 function makeDeer(){
   const g=new THREE.Group(), fur=cmat('#b98352'), light=cmat('#f1dfc6'), dark=cmat('#4a3222');
@@ -1371,12 +1379,33 @@ class Companions{
       else ['blue','pink'].forEach((kind,k)=>this.add('fly',makeButterfly(kind),.8,(dt,t,c)=>{ const a=t*.42*c.dir+c.ph, r=c.rad+.22*Math.sin(t*.37+c.ph), x=cx()+Math.sin(a)*r, z=cz()+Math.cos(a)*r; // two of them, a blue and a pink, drifting round at different heights
           c.g.position.set(x,gy(cx(),cz())+c.hy+.25*Math.sin(t*1.1+c.ph)+.06*Math.sin(t*5+c.ph),z); c.g.rotation.y=a+Math.PI/2*c.dir; const f=.25+Math.sin(t*9+c.ph)*.75; c.g.userData.L.rotation.z=-f; c.g.userData.R.rotation.z=f; },{ph:Math.random()*6+k*3,dir:k?-1:1,rad:k?1.35:1.05,hy:k?1.25:.9}));
     }
-    if(i===1){ const sp=compSpot(p,1.25,1.35); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*7, sz=z+Math.cos(a0)*7;
-      this.add('bird',makeBird(),1.5,(dt,t,c)=>{ const u=c.g.userData, gyv=gy(x,z), k=Math.min(1,c.age/3.2);
-        if(k<1){ const e=k*k*(3-2*k); c.g.position.set(sx+(x-sx)*e,gyv+3.5*(1-e)+Math.sin(e*Math.PI)*.8,sz+(z-sz)*e); c.g.rotation.y=Math.atan2(x-sx,z-sz); const f=Math.sin(t*22)*.9; u.wL.rotation.z=f; u.wR.rotation.z=-f; return; }
-        u.wL.rotation.z=u.wR.rotation.z=0; const face=Math.atan2(cx()-x,cz()-z)+.6; c.g.rotation.y=lerpAngle(c.g.rotation.y,face+Math.sin(t*.3)*.5,.02);
-        const hop=(t*.45+c.ph)%1, peck=(t*.31+c.ph*.7)%1; c.g.position.set(x+Math.sin(t*.2)*.08,gyv+(hop<.08?Math.sin(hop/.08*Math.PI)*.07:0),z);
-        u.head.rotation.x=peck<.12?Math.sin(peck/.12*Math.PI)*.9:0; },{ph:Math.random()}); }
+    if(i===1){ const sp=compSpot(p,1.25,1.35); if(!sp) return; const [hx,hz]=sp, a0=Math.random()*6.28, sx=hx+Math.sin(a0)*7, sz=hz+Math.cos(a0)*7;
+      const flap=(u,o)=>{ u.wL.rotation.z=o; u.wR.rotation.z=-o; };
+      this.add('bird',makeBird(),.95,(dt,t,c)=>{ const u=c.g.userData, st=c.st;
+        if(st.mode==='fly'){ const k=Math.min(1,c.age/3.4), e=k*k*(3-2*k);
+          c.g.position.set(sx+(hx-sx)*e,gy(hx,hz)+3*(1-e)+Math.sin(e*Math.PI)*.6,sz+(hz-sz)*e); c.g.rotation.y=Math.atan2(hx-sx,hz-sz);
+          flap(u,.5+Math.sin(t*19)*.85); u.body.rotation.x=-.25; if(k>=1){ st.mode='settle'; st.t=0; st.x=hx; st.z=hz; } return; }
+        st.t+=dt; u.body.rotation.x*=.9;
+        if(st.mode==='settle'){ const k=Math.min(1,st.t/2.6); flap(u,(1-k)*(.55+.55*Math.sin(st.t*(7-4*k)))); if(k>=1){ flap(u,0); st.mode='pause'; st.t=0; st.dur=1.8+Math.random()*2; } }
+        else if(st.mode==='pause'){ // look about; now and then a tail flick or a single peck
+          if(!st.look||st.t>st.lookAt){ st.look=(Math.random()-.5)*1.4; st.lookAt=st.t+.6+Math.random()*1.2; }
+          u.head.rotation.y+=(st.look-u.head.rotation.y)*Math.min(1,dt*6);
+          if(st.peck==null) st.peck=Math.random()<.18?.4+Math.random()*(st.dur-.8):-1;
+          const pk=st.peck>0?st.t-st.peck:-1; u.head.rotation.x=pk>0&&pk<.35?Math.sin(pk/.35*Math.PI)*.75:0;
+          u.tail.rotation.x=-.35+(Math.sin(st.t*1.7)>.985?.35:0);
+          if(st.t>st.dur){ st.mode='walk'; st.t=0; st.peck=null; let tx,tz,tries=0;
+            do{ const a=Math.random()*6.28, r=.12+Math.random()*.3; tx=hx+Math.sin(a)*r; tz=hz+Math.cos(a)*r; tries++; }while(tries<8&&Math.hypot(tx-cx(),tz-cz())<.75);
+            st.tx=tx; st.tz=tz; } }
+        else if(st.mode==='walk'){ // little hopping steps
+          const dx=st.tx-st.x, dz=st.tz-st.z, d=Math.hypot(dx,dz), want=Math.atan2(dx,dz);
+          c.g.rotation.y=lerpAngle(c.g.rotation.y,want,Math.min(1,dt*7)); u.head.rotation.y*=.85;
+          if(d<.015){ st.mode='pause'; st.t=0; st.dur=1.2+Math.random()*2.6; }
+          else { const sp=Math.min(d,dt*.32); st.x+=dx/d*sp; st.z+=dz/d*sp; } }
+        const hop=st.mode==='walk'?Math.abs(Math.sin(st.t*15))*.014:0;
+        c.g.position.set(st.x,gy(st.x,st.z)+hop,st.z);
+        u.legs.forEach((l,j)=>l.rotation.x=st.mode==='walk'?Math.sin(st.t*15+j*Math.PI)*.35:0);
+        u.body.position.y=st.mode==='pause'?Math.sin(t*2.4)*.0015:0; // breathing
+      },{st:{mode:'fly'}}); }
     if(i===2){ const sp=compSpot(p,-.85,3.1); if(!sp) return; const [x,z]=sp, a0=Math.atan2(x-p.x,z-p.z), sx=x+Math.sin(a0)*11, sz=z+Math.cos(a0)*11;
       this.add('deer',makeDeer(),1.15,(dt,t,c)=>{ const u=c.g.userData, walkT=8, k=Math.min(1,c.age/walkT);
         if(k<1){ const px=sx+(x-sx)*k, pz=sz+(z-sz)*k; c.g.position.set(px,gy(px,pz)+.7,pz); c.g.rotation.y=Math.atan2(x-sx,z-sz); const sw=Math.sin(c.age*6)*.45;
