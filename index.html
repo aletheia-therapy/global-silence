@@ -1246,15 +1246,15 @@ const cmat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.8,flatShading:t
 const glowTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'), r=g.createRadialGradient(32,32,0,32,32,32);
   r.addColorStop(0,'rgba(255,255,255,1)'); r.addColorStop(.25,'rgba(255,255,255,.55)'); r.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=r; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); })();
 function wingGeo(w,h){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0, w,0,h*.55, w*.85,0,-h*.45, 0,0,0, w*.85,0,-h*.45, w*.25,0,-h*.6],3)); g.computeVertexNormals(); return g; }
-const butterflyTex=(()=>{ // a real-looking blue morpho wing: bright blue near the body, dark velvety margin with small white spots, fine dark veins, scale texture, soft edges
+const wingTex=(cols,sheen,emi)=>(()=>{ // a real-looking wing (blue morpho / pink): bright blue near the body, dark velvety margin with small white spots, fine dark veins, scale texture, soft edges
   const N=512, c=document.createElement('canvas'); c.width=c.height=N; const g=c.getContext('2d'); g.scale(2,2);
   const fore=new Path2D(); fore.moveTo(6,124); fore.bezierCurveTo(30,50,140,8,240,18); fore.bezierCurveTo(250,56,238,92,210,114); fore.bezierCurveTo(150,128,70,128,6,124);
   const hind=new Path2D(); hind.moveTo(8,132); hind.bezierCurveTo(90,126,186,142,208,176); hind.bezierCurveTo(204,212,170,234,132,240); hind.bezierCurveTo(92,244,40,212,8,132);
   const paint=(path,cx,cy)=>{ g.save(); g.clip(path);
-    const gr=g.createRadialGradient(cx,cy,2,cx,cy,235); gr.addColorStop(0,'#bfe6ff'); gr.addColorStop(.18,'#62b8ff'); gr.addColorStop(.45,'#2f7cf0'); gr.addColorStop(.7,'#4a52d6'); gr.addColorStop(.86,'#3a2a6e'); gr.addColorStop(1,'#1c1424');
+    const gr=g.createRadialGradient(cx,cy,2,cx,cy,235); cols.forEach(([o,cl])=>gr.addColorStop(o,cl));
     g.fillStyle=gr; g.fillRect(0,0,256,256);
     // a soft sheen across the wing
-    const sh=g.createLinearGradient(20,40,200,200); sh.addColorStop(0,'rgba(255,255,255,0)'); sh.addColorStop(.45,'rgba(200,235,255,.22)'); sh.addColorStop(.6,'rgba(255,255,255,0)'); g.fillStyle=sh; g.fillRect(0,0,256,256);
+    const sh=g.createLinearGradient(20,40,200,200); sh.addColorStop(0,'rgba(255,255,255,0)'); sh.addColorStop(.45,sheen); sh.addColorStop(.6,'rgba(255,255,255,0)'); g.fillStyle=sh; g.fillRect(0,0,256,256);
     // scale texture
     for(let i=0;i<2600;i++){ const x=Math.random()*256, y=Math.random()*256; g.fillStyle=Math.random()<.5?'rgba(255,255,255,.07)':'rgba(10,10,40,.08)'; g.fillRect(x,y,1.2,1.2); }
     // veins
@@ -1271,9 +1271,12 @@ const butterflyTex=(()=>{ // a real-looking blue morpho wing: bright blue near t
   // soften the outline a touch
   const o=document.createElement('canvas'); o.width=o.height=N; const og=o.getContext('2d'); og.filter='blur(1.2px)'; og.drawImage(c,0,0); og.filter='none'; og.drawImage(c,0,0);
   const t=new THREE.CanvasTexture(o); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; })();
-function makeButterfly(){
-  const g=new THREE.Group(), W=.22;
-  const wm=new THREE.MeshStandardMaterial({map:butterflyTex,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.55,emissive:'#3a6cff',emissiveIntensity:.12});
+const BFLY={
+  blue:{tex:wingTex([[0,'#bfe6ff'],[.18,'#62b8ff'],[.45,'#2f7cf0'],[.7,'#4a52d6'],[.86,'#3a2a6e'],[1,'#1c1424']],'rgba(200,235,255,.22)'),emi:'#3a6cff'},
+  pink:{tex:wingTex([[0,'#fff0f6'],[.18,'#ffc2dc'],[.45,'#ff8fbf'],[.7,'#e866a6'],[.86,'#6e2a4e'],[1,'#24141c']],'rgba(255,240,248,.25)'),emi:'#ff6aa8'}};
+function makeButterfly(kind='blue'){
+  const g=new THREE.Group(), W=.22, B=BFLY[kind];
+  const wm=new THREE.MeshStandardMaterial({map:B.tex,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.55,emissive:B.emi,emissiveIntensity:.12});
   const geo=new THREE.PlaneGeometry(W,W); geo.translate(W/2,0,0); geo.rotateX(Math.PI/2); // root at the body, lying flat, forewing toward the head
   const R=new THREE.Mesh(geo,wm), L=new THREE.Mesh(geo,wm); L.scale.x=-1;
   const fuzz=new THREE.MeshStandardMaterial({color:'#3b3026',roughness:1});
@@ -1365,8 +1368,8 @@ class Companions{
     if(i===0){
       if(PAL.nw>.5){ for(let k=0;k<3;k++) this.add('ff',makeFirefly(),1,(dt,t,c)=>{ const a=t*.35*c.dir+c.ph, r=1.05+.35*Math.sin(t*.5+c.ph);
           c.g.position.set(cx()+Math.sin(a)*r,gy(cx(),cz())+.7+.35*Math.sin(t*.8+c.ph*2),cz()+Math.cos(a)*r); c.g.userData.halo.material.opacity=.45+.55*Math.max(0,Math.sin(t*2.2+c.ph*3)); },{ph:k*2.1,dir:k%2?1:-1}); }
-      else this.add('fly',makeButterfly(),1.6,(dt,t,c)=>{ const a=t*.42+c.ph, r=1.15+.25*Math.sin(t*.37), x=cx()+Math.sin(a)*r, z=cz()+Math.cos(a)*r;
-          c.g.position.set(x,gy(cx(),cz())+1.0+.28*Math.sin(t*1.1)+.08*Math.sin(t*5),z); c.g.rotation.y=a+Math.PI/2; const f=.25+Math.sin(t*9)*.75; c.g.userData.L.rotation.z=-f; c.g.userData.R.rotation.z=f; },{ph:Math.random()*6});
+      else ['blue','pink'].forEach((kind,k)=>this.add('fly',makeButterfly(kind),.8,(dt,t,c)=>{ const a=t*.42*c.dir+c.ph, r=c.rad+.22*Math.sin(t*.37+c.ph), x=cx()+Math.sin(a)*r, z=cz()+Math.cos(a)*r; // two of them, a blue and a pink, drifting round at different heights
+          c.g.position.set(x,gy(cx(),cz())+c.hy+.25*Math.sin(t*1.1+c.ph)+.06*Math.sin(t*5+c.ph),z); c.g.rotation.y=a+Math.PI/2*c.dir; const f=.25+Math.sin(t*9+c.ph)*.75; c.g.userData.L.rotation.z=-f; c.g.userData.R.rotation.z=f; },{ph:Math.random()*6+k*3,dir:k?-1:1,rad:k?1.35:1.05,hy:k?1.25:.9}));
     }
     if(i===1){ const sp=compSpot(p,1.25,1.35); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*7, sz=z+Math.cos(a0)*7;
       this.add('bird',makeBird(),1.5,(dt,t,c)=>{ const u=c.g.userData, gyv=gy(x,z), k=Math.min(1,c.age/3.2);
