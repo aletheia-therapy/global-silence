@@ -1466,13 +1466,15 @@ function mountainTotalAll(){
   const sitting=[...peers.values()].filter(p=>(p.info.phase==='sit'&&!p.info.paused)||p.info.phase==='free').length+((me.phase==='sit'&&!me.paused)||me.phase==='free'?1:0);
   return Number(srv.board.total)+srvLive()*sitting;
 }
-function updateTotal(){ $('mtVal').textContent=longFmt(mountainTotalAll()); }
+let worldPeak=0; // the shown world total never steps backwards (the live estimate can run a little ahead of the server between refreshes)
+function worldTotal(){ const v=mountainTotalAll(); if(isFinite(v)) worldPeak=Math.max(worldPeak,v); return worldPeak; }
+function updateTotal(){ $('mtVal').textContent=longFmt(worldTotal()); }
 setInterval(updateTotal,1000);
 
 /* 全球靜默時刻: every time the whole mountain passes another full hour — a quiet 10-second countdown, then silent fireworks */
 let hourSeen=null, lastTot=0, fwBusy=false;
 setInterval(()=>{
-  if(me.phase==='intro'||fwBusy) return; const t=mountainTotalAll(); if(!isFinite(t)||t<=0) return;
+  if(me.phase==='intro'||fwBusy) return; const t=worldTotal(); if(!isFinite(t)||t<=0) return;
   const h=Math.floor(t/3600), rising=t>lastTot+.05; lastTot=t;
   if(hourSeen===null){ hourSeen=Math.max(h,store.get('fwHour',0)); return; }
   if(h>hourSeen){ hourSeen=h; store.set('fwHour',h); celebrateHour(h); return; } // jumped past without a countdown
