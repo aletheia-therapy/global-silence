@@ -1657,7 +1657,8 @@ function srvLive(){ return srv.board?Math.min(30,(performance.now()-srv.boardAt)
 
 function mountainTotalAll(){
   if(!srv.board) return mountainTotal();
-  const sitting=[...peers.values()].filter(p=>(p.info.phase==='sit'&&!p.info.paused)||p.info.phase==='free').length+((me.phase==='sit'&&!me.paused)||me.phase==='free'?1:0);
+  const freeOn='free' in srv.board; // the server counts 自由靜坐 only once free.sql has been run — don't let the live estimate run ahead of it
+  const sitting=[...peers.values()].filter(p=>(p.info.phase==='sit'&&!p.info.paused)||(freeOn&&p.info.phase==='free')).length+((me.phase==='sit'&&!me.paused)||(freeOn&&me.phase==='free')?1:0);
   return Number(srv.board.total)+srvLive()*sitting;
 }
 let worldPeak=0; // the shown world total never steps backwards (the live estimate can run a little ahead of the server between refreshes)
@@ -2090,7 +2091,7 @@ function openHome(){
 $('homeClose').onclick=()=>{ $('mHome').classList.add('hidden'); if(homeUrlBack){ history.replaceState(null,'',homeUrlBack); homeUrlBack=null; } };
 document.querySelectorAll('[data-home]').forEach(b=>b.onclick=openHome);
 homeLinks();
-if(QS.get('why')) setTimeout(()=>alertBox(`【放到桌面提示・檢查】<br>從桌面 App 開啟：${STANDALONE?'是（所以提示會隱藏）':'否'}<br>判斷為手機：${isMobile||/Android|iPhone|iPad|iPod/i.test(UA)?'是':'否'}<br>LINE／FB 內建瀏覽器：${IN_APP?'是':'否'}<br>提示顯示中：${[...document.querySelectorAll('[data-home]')].some(b=>!b.classList.contains('hidden'))?'是':'否'}<br><small style="opacity:.6">${UA.slice(0,120)}</small>`),1500);
+if(QS.get('why')) setTimeout(()=>alertBox(`【放到桌面提示・檢查】<br>從桌面 App 開啟：${STANDALONE?'是（所以提示會隱藏）':'否'}<br>判斷為手機：${isMobile||/Android|iPhone|iPad|iPod/i.test(UA)?'是':'否'}<br>LINE／FB 內建瀏覽器：${IN_APP?'是':'否'}<br>伺服器計入自由靜坐：${srv.board?('free' in srv.board?'是':'否（free.sql 尚未執行）'):'讀取中'}<br>提示顯示中：${[...document.querySelectorAll('[data-home]')].some(b=>!b.classList.contains('hidden'))?'是':'否'}<br><small style="opacity:.6">${UA.slice(0,120)}</small>`),1500);
 function alertBox(html){ const d=document.createElement('div'); d.style.cssText='position:fixed;left:12px;right:12px;top:30%;z-index:99;background:rgba(15,20,32,.95);color:#fff;border:1px solid #e8c37a;border-radius:14px;padding:16px;font-size:15px;line-height:1.8'; d.innerHTML=html+'<br><button style="margin-top:8px;padding:6px 16px;border-radius:999px;background:#e8c37a;color:#222">關閉</button>'; d.querySelector('button').onclick=()=>d.remove(); document.body.appendChild(d); }
 /* the event certificate: shown on the end screen, meant to be screenshotted into the LINE group */
 const twTime=t=>new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(t);
