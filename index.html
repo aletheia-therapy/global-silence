@@ -1673,6 +1673,8 @@ function sitCinematic(){
 /* face presence, detected on this phone only (MediaPipe) — the picture never leaves the device for this */
 const FD_VER='1.2.0', FD_BASE=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${FD_VER}`;
 const FD_MODEL='https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+const OD_MODEL='https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite'; // finds a person's shape: far away, dim light, head turned
+const FACE_MIN=.55, PERSON_MIN=.45, RESUME_STREAK=3; // confident detections only; once paused, a person must be seen 3 checks in a row (a shaken camera can fool one frame, not three)
 const FACE_GRACE=8, FACE_LIMIT=60; // seconds: pause counting after 8s unseen, stand up after 60s
 /* eyes are closed while sitting, so the camera warnings are also heard: soft rounded tones + a calm voice, never sharp or loud */
 let faceAlert=0; // 0 fine · 1 paused (told) · 2 reminded at 30 s · 3 final five seconds
@@ -1699,7 +1701,7 @@ function faceAlerts(gone,found){
   else if(faceAlert<3&&left<=5.5){ faceAlert=3; softTones([784,659.3,523.3],.15,.38); sayGently('還有五秒，就會自動起座。請調整鏡頭角度或燈光。',1300); }
   else if(faceAlert===3&&left>0&&left<=4.5) softTick();
 }
-let faceDet=null, faceState='idle', faceLoadT=0, lastFaceAt=0, lastFdTs=0;  // idle | loading | ready | failed
+let faceDet=null, objDet=null, faceState='idle', faceLoadT=0, lastFaceAt=0, lastFdTs=0, lastOdTs=0, seenStreak=0;  // idle | loading | ready | failed
 async function loadFace(){
   if(faceState!=='idle') return; faceState='loading'; faceLoadT=performance.now();
   try{
@@ -1708,18 +1710,25 @@ async function loadFace(){
     const opt=d=>({baseOptions:{modelAssetPath:FD_MODEL,delegate:d},runningMode:'VIDEO',minDetectionConfidence:.4});
     try{ faceDet=await V.FaceDetector.createFromOptions(fs,opt('GPU')); }catch{ faceDet=await V.FaceDetector.createFromOptions(fs,opt('CPU')); }
     faceState='ready';
+    const oopt=d=>({baseOptions:{modelAssetPath:OD_MODEL,delegate:d},runningMode:'VIDEO',scoreThreshold:PERSON_MIN,maxResults:3,categoryAllowlist:['person']});
+    try{ objDet=await V.ObjectDetector.createFromOptions(fs,oopt('GPU')); }catch{ try{ objDet=await V.ObjectDetector.createFromOptions(fs,oopt('CPU')); }catch{ objDet=null; } } // optional extra
   }catch(e){ console.warn('face detection unavailable',e); faceState='failed'; }
 }
-function faceSeen(v){ // true / false, or null when we can't tell
+function faceSeen(v){ // is a person there? a confident face, or a person's shape. true / false, or null when we can't tell
   if(faceState!=='ready'||!v||v.readyState<2) return null;
-  try{ let ts=performance.now(); if(ts<=lastFdTs) ts=lastFdTs+1; lastFdTs=ts; return (faceDet.detectForVideo(v,ts).detections||[]).length>0; }catch{ return null; }
+  let seen=false, ok=false;
+  try{ let ts=performance.now(); if(ts<=lastFdTs) ts=lastFdTs+1; lastFdTs=ts;
+    seen=(faceDet.detectForVideo(v,ts).detections||[]).some(d=>(d.categories?.[0]?.score??1)>=FACE_MIN); ok=true; }catch{}
+  if(!seen&&objDet){ try{ let ts=performance.now(); if(ts<=lastOdTs) ts=lastOdTs+1; lastOdTs=ts;
+    seen=(objDet.detectForVideo(v,ts).detections||[]).some(d=>d.categories?.some(c=>c.categoryName==='person'&&c.score>=PERSON_MIN)); ok=true; }catch{} }
+  return ok?seen:null;
 }
 
 /* camera check */
 let stream=null, wakeLock=null, snapTimer=null, tickTimer=null, checkTimer=null, hiddenAt=0, lastSnap=null;
 const camPrev=$('camPrev'), sitPrev=$('sitPrev'), snapC=$('snapC'), sctx=snapC.getContext('2d',{willReadFrequently:true});
 function setCk(id,state,text){ const li=$(id); li.className=state; li.textContent=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text; }
-function resetCamCheck(){ setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你的臉'); setCk('ck4','','架好手機、坐穩'); loadFace();
+function resetCamCheck(){ setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你'); setCk('ck4','','架好手機、坐穩'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
   $('camHint').textContent='準備好了再按開始，不用急。'; }
 $('camBack').onclick=()=>{ stopCamera(); if(cameFromFree){ startFree(); } else { me.phase='cam'; sheet('sheetMode'); sendState(); } };
@@ -1738,7 +1747,7 @@ $('camOpen').onclick=async()=>{
     if(faceState==='loading'&&performance.now()-faceLoadT>15000) faceState='failed'; // never block anyone on a slow download
     const f=faceSeen(camPrev); if(f) lastFaceAt=performance.now();
     const faceOk=f===true||faceState==='failed';
-    setCk('ck3',faceOk?'ok':faceState==='loading'?'':'bad', faceState==='failed'?'臉部偵測無法使用（不影響靜坐）':faceState==='loading'?'臉部偵測準備中…':f?'偵測到你的臉':'看不到你的臉');
+    setCk('ck3',faceOk?'ok':faceState==='loading'?'':'bad', faceState==='failed'?'臉部偵測無法使用（不影響靜坐）':faceState==='loading'?'臉部偵測準備中…':f?'偵測到你':'看不到你（臉或身形）');
     setCk('ck4',settled?'ok':'','架好手機、坐穩'+(settled?'':'…'));
     $('camStart').disabled=!(bright&&settled&&faceOk);
     $('camHint').textContent=!bright?'換個角度或開燈，讓同修看得見你。':!faceOk&&faceState==='ready'?'讓臉出現在畫面裡，鏡頭放在面前一兩公尺內。':settled?'看起來都好了。準備好就開始吧。':'把手機架穩，調整一下坐姿。';
@@ -1755,7 +1764,7 @@ function grabFrame(){
 $('camStart').onclick=async()=>{
   clearInterval(checkTimer);
   try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
-  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); faceAlert=0; primeVoice(); sheet('sheetSit'); bell(); srvStart(); setSaver(true);
+  me.phase='sit'; me.sitSec=0; me.paused=''; lastFaceAt=performance.now(); faceAlert=0; seenStreak=0; primeVoice(); sheet('sheetSit'); bell(); srvStart(); setSaver(true);
   // drift up to a 45° view from above and slowly circle the sitter, with the mountains behind
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw);
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
@@ -1768,9 +1777,11 @@ function snap(){
 }
 function tick(){
   if(me.sitSec%10===0){ myLedgerSync(); ledgerSave(); }
-  const f=document.hidden?null:faceSeen(sitPrev); if(f) lastFaceAt=performance.now();
+  const f=document.hidden?null:faceSeen(sitPrev); seenStreak=f?seenStreak+1:0;
+  const pausedNow=(performance.now()-lastFaceAt)/1000>FACE_GRACE;
+  if(f&&(!pausedNow||seenStreak>=RESUME_STREAK)) lastFaceAt=performance.now(); // counting: one sighting keeps it going · paused: needs a steady 3 s
   const gone=faceState==='ready'&&!document.hidden?(performance.now()-lastFaceAt)/1000:0;
-  faceAlerts(gone,!!f);
+  faceAlerts(gone,gone<1&&!!f);
   if(gone>=FACE_LIMIT){ faceAlert=0; softTones([523.3,392],.1,.5,2); sayGently('已自動起座。這一座的時數，算到剛才為止。',1200); rise('一分鐘沒有偵測到你，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
   let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住'; else if(gone>FACE_GRACE) reason='沒有偵測到人';
   if(reason!==me.paused){ me.paused=reason; sendState(); }
