@@ -1826,7 +1826,7 @@ function updateHud(){
   const ps=[...peers.values()], ns=ps.filter(p=>p.info.phase==='sit'||p.info.phase==='free').length;
   $('introLive').textContent=!room?'正在尋找山上的同修…':ps.length?`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`:'此刻山上還沒有人。你可以是第一位。';
   if(me.phase==='intro') return;
-  $('hudStat').textContent=!room?'連線中…':all.length<=1?'此刻山上只有你':`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`;
+  $('hudStat').textContent=!room?'連線中…':all.length<=1?'此刻，山陪著你':`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`;
   $('hudSum').textContent='';
 }
 let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
@@ -2087,7 +2087,7 @@ function tick(){
   $('sitTime').textContent=fmt(me.sitSec); $('dimTime').textContent=fmt(me.sitSec);
   const st=$('sitStatus'), n=[...peers.values()].filter(p=>p.info.phase==='sit').length;
   if(reason){ st.textContent=`暫停計時：${reason}`+(reason==='沒有偵測到人'?`，${Math.max(0,Math.ceil(FACE_LIMIT-gone))} 秒後自動起座`:''); st.classList.add('warn'); }
-  else { st.textContent=n?`與 ${n} 位同修一起靜坐`:'靜坐中・山上只有你'; st.classList.remove('warn'); }
+  else { st.textContent=n?`與 ${n} 位同修一起靜坐`:'靜坐中・山陪著你'; st.classList.remove('warn'); }
   $('dimHint').textContent=reason?st.textContent:'省電模式・輕觸畫面恢復亮度';
   updateHud();
 }
