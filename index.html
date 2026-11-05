@@ -1347,21 +1347,50 @@ function makeDeer(){ // a young spotted deer: smooth body, slender jointed legs,
     legs.push({up,kn,front}); });
   g.userData={body,neck,head,legs,ears,tail}; return g;
 }
-function makeCrane(){
-  const g=new THREE.Group(), white=cmat('#f6f4ee'), black=cmat('#1d1d22'), red=new THREE.MeshBasicMaterial({color:'#d8282e'}), legM=cmat('#3a3a3a');
-  const body=new THREE.Group(); body.position.y=.8; g.add(body);
-  const torso=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),white); torso.scale.set(.8,.75,1.5); body.add(torso);
-  const tail=new THREE.Mesh(new THREE.ConeGeometry(.14,.32,6),black); tail.rotation.x=-Math.PI/2-.35; tail.position.set(0,-.02,-.36); body.add(tail);
-  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.6,6),black); neck.position.set(0,.3,.24); neck.rotation.x=.25; body.add(neck);
-  const head=new THREE.Group(); head.position.set(0,.6,.32); body.add(head);
-  head.add(new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),white)); const crown=new THREE.Mesh(new THREE.SphereGeometry(.035,6,4),red); crown.position.set(0,.045,0); head.add(crown);
-  const beak=new THREE.Mesh(new THREE.ConeGeometry(.018,.2,5),cmat('#c9b58a')); beak.rotation.x=Math.PI/2; beak.position.z=.13; head.add(beak);
-  const wm=new THREE.MeshStandardMaterial({color:'#f6f4ee',roughness:.8,flatShading:true,side:THREE.DoubleSide});
-  const wL=new THREE.Mesh(wingGeo(.75,.5),wm), wR=new THREE.Mesh(wingGeo(-.75,.5),wm); wL.position.set(.12,.08,0); wR.position.set(-.12,.08,0);
-  const tipM=new THREE.MeshStandardMaterial({color:'#1d1d22',side:THREE.DoubleSide}); const tL=new THREE.Mesh(wingGeo(.25,.3),tipM), tR=new THREE.Mesh(wingGeo(-.25,.3),tipM); tL.position.set(.6,0,-.12); tR.position.set(-.6,0,-.12); wL.add(tL); wR.add(tR);
-  body.add(wL,wR);
-  [-.06,.06].forEach(x=>{ const l=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.8,4),legM); l.position.set(x,.4,0); g.add(l); });
-  g.userData={body,head,wL,wR}; return g;
+const craneWingTex=(()=>{ // a red-crowned crane's wing from above: white, the inner trailing feathers black, a soft feathered edge
+  const c=document.createElement('canvas'); c.width=512; c.height=256; const g=c.getContext('2d');
+  const wing=new Path2D(); wing.moveTo(0,40); wing.bezierCurveTo(160,20,360,26,470,60); wing.bezierCurveTo(505,76,505,100,470,108);
+  for(let i=0;i<9;i++){ const x=460-i*52, y=118+Math.sin(i*1.3)*4; wing.quadraticCurveTo(x-10,y+40-(i<4?0:10),x-26,y+2); }
+  wing.lineTo(0,150); wing.closePath();
+  g.save(); g.clip(wing); g.fillStyle='#f8f6f1'; g.fillRect(0,0,512,256);
+  const sh=g.createLinearGradient(0,0,0,256); sh.addColorStop(0,'rgba(0,0,0,0)'); sh.addColorStop(1,'rgba(90,90,110,.18)'); g.fillStyle=sh; g.fillRect(0,0,512,256);
+  const blk=g.createLinearGradient(0,0,300,0); blk.addColorStop(0,'#17171b'); blk.addColorStop(.85,'#1c1c22'); blk.addColorStop(1,'rgba(28,28,34,0)');
+  g.fillStyle=blk; g.beginPath(); g.moveTo(0,98); g.bezierCurveTo(120,96,230,104,300,112); g.lineTo(300,200); g.lineTo(0,200); g.fill();
+  g.strokeStyle='rgba(120,120,130,.25)'; g.lineWidth=1.2; for(let i=0;i<14;i++){ const x=40+i*32; g.beginPath(); g.moveTo(x,60); g.lineTo(x-14,140); g.stroke(); }
+  g.restore();
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; })();
+function makeCrane(){ // a small red-crowned crane: white body, black neck and bustle, red crown, long legs; neck and legs swing between flying and standing
+  const sm=(c,r=.75)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+  const white=sm('#f6f4ee'), black=sm('#1c1c21',.6), grey=sm('#4a4a4f',.5), red=sm('#c8202a',.5), bill=sm('#a8a982',.45);
+  const g=new THREE.Group(), body=new THREE.Group(); body.position.y=.62; g.add(body);
+  const torso=new THREE.Mesh(new THREE.SphereGeometry(.13,18,14),white); torso.scale.set(.85,.82,1.55); body.add(torso);
+  const bustle=new THREE.Mesh(new THREE.SphereGeometry(.09,14,10),black); bustle.scale.set(1,.7,1.5); bustle.position.set(0,-.03,-.2); bustle.rotation.x=.4; body.add(bustle);
+  // neck: a smooth tube that bends between an upright S (standing) and a straight reach (flying)
+  const neckG=new THREE.Group(); neckG.position.set(0,.05,.17); body.add(neckG);
+  const head=new THREE.Group(); neckG.add(head);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(.04,14,10),black); hd.scale.set(.9,.95,1.15); head.add(hd);
+  const nape=new THREE.Mesh(new THREE.SphereGeometry(.033,12,8),white); nape.position.set(0,.006,-.02); head.add(nape);
+  const crown=new THREE.Mesh(new THREE.SphereGeometry(.022,10,8),red); crown.scale.set(1,.5,1.3); crown.position.set(0,.035,.008); head.add(crown);
+  const bk=new THREE.Mesh(new THREE.ConeGeometry(.012,.12,8),bill); bk.rotation.x=Math.PI/2; bk.position.z=.095; head.add(bk);
+  const eyeM=new THREE.MeshStandardMaterial({color:'#0b0b0b',roughness:.2}); [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.007,8,6),eyeM); e.position.set(sx*.032,.008,.025); head.add(e); });
+  let tube=null; const neckPts=f=>{ const up=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,.13,.06),new THREE.Vector3(0,.27,.03),new THREE.Vector3(0,.38,.07)],
+      fw=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,.03,.14),new THREE.Vector3(0,.05,.28),new THREE.Vector3(0,.06,.4)];
+    return up.map((v,i)=>v.clone().lerp(fw[i],f)); };
+  const setNeck=f=>{ const pts=neckPts(f); if(tube){ neckG.remove(tube); tube.geometry.dispose(); }
+    tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,.026,8,false),black); neckG.add(tube);
+    head.position.copy(pts[3]); head.rotation.x=f*.15-(1-f)*.05; };
+  setNeck(0);
+  // wings hinge at the shoulders; the plane lies flat, root at the body
+  const wm=new THREE.MeshStandardMaterial({map:craneWingTex,transparent:true,alphaTest:.3,side:THREE.DoubleSide,roughness:.8});
+  const wgeo=new THREE.PlaneGeometry(.62,.31); wgeo.translate(.31,0,0); wgeo.rotateX(Math.PI/2);
+  const wL=new THREE.Group(), wR=new THREE.Group(); wL.position.set(.07,.06,.02); wR.position.set(-.07,.06,.02);
+  const mL=new THREE.Mesh(wgeo,wm), mR=new THREE.Mesh(wgeo,wm); mR.scale.x=-1; wL.add(mL); wR.add(mR); body.add(wL,wR);
+  // legs: thigh (feathered) → long shank → toes; they trail behind in flight
+  const legs=new THREE.Group(); legs.position.set(0,-.06,-.02); body.add(legs);
+  [-.045,.045].forEach(x=>{ const th=new THREE.Mesh(new THREE.CapsuleGeometry(.022,.06,4,8),white); th.position.set(x,-.05,0); legs.add(th);
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(.008,.007,.5,6),grey); sh.position.set(x,-.33,-.01); legs.add(sh);
+    const toe=new THREE.Mesh(new THREE.BoxGeometry(.012,.006,.07),grey); toe.position.set(x,-.58,.02); legs.add(toe); });
+  g.userData={body,head,neckG,setNeck,wL,wR,legs}; return g;
 }
 function compSpot(p,ang,dist){ // a free patch of ground near the sitter, roughly in the asked direction
   for(let k=0;k<10;k++){ const a=p.r+ang+(k%2?1:-1)*Math.ceil(k/2)*.35, x=p.x+Math.sin(a)*dist, z=p.z+Math.cos(a)*dist;
@@ -1382,8 +1411,12 @@ class Companions{
     this.night=night;
     for(let i=this.list.length-1;i>=0;i--){ const c=this.list[i]; c.age+=dt;
       if(c.leaving){ c.fade=Math.max(0,c.fade-dt*.9); if(c.fade<=0){ scene.remove(c.g); this.list.splice(i,1); continue; } }
-      else c.fade=Math.min(1,c.fade+dt*.8);
-      c.g.scale.setScalar(c.base*(.2+.8*c.fade)); c.step(dt,t,c); }
+      else c.fade=Math.min(1,c.fade+dt*(c.slowIn?.35:.8));
+      if(c.slowIn){ c.g.scale.setScalar(c.base); // walkers keep their size and fade in out of the shade instead
+        if(!c.mats){ c.mats=[]; c.g.traverse(o=>{ if(o.isMesh){ o.material=o.material.clone(); c.mats.push(o.material); } }); }
+        const op=c.fade, see=op<.999; c.mats.forEach(m=>{ if(m.transparent!==see){ m.transparent=see; m.needsUpdate=true; } m.opacity=op; }); }
+      else c.g.scale.setScalar(c.base*(.2+.8*c.fade));
+      c.step(dt,t,c); }
   }
   add(kind,g,base,step,extra={}){ const c={kind,g,base,step,age:0,fade:0,leaving:false,...extra}; scene.add(g); this.list.push(c); return c; }
   spawn(i){
@@ -1421,12 +1454,16 @@ class Companions{
         u.legs.forEach((l,j)=>l.rotation.x=st.mode==='walk'?Math.sin(st.t*15+j*Math.PI)*.35:0);
         u.body.position.y=st.mode==='pause'?Math.sin(t*2.4)*.0015:0; // breathing
       },{st:{mode:'fly'}}); }
-    if(i===2){ const sp=compSpot(p,-.85,3.1); if(!sp) return; const [x,z]=sp, a0=Math.atan2(x-p.x,z-p.z)+(Math.random()-.5)*.8, sx=x+Math.sin(a0)*6.5, sz=z+Math.cos(a0)*6.5;
-      const WALK=15.5, TURN=3, LIE=3.4;
+    if(i===2){ const sp=compSpot(p,-.85,3.1); if(!sp) return; const [x,z]=sp;
+      // it steps out from under the nearest tree (just beside the trunk), not out of thin air
+      const tr=OBST.filter(o=>o.kind==='tree').map(o=>({o,d:Math.hypot(o.x-x,o.z-z)})).filter(e=>e.d>3.5&&e.d<16).sort((a,b)=>a.d-b.d)[0];
+      let sx,sz; if(tr){ const a=Math.atan2(x-tr.o.x,z-tr.o.z); sx=tr.o.x+Math.sin(a)*(tr.o.r*.6); sz=tr.o.z+Math.cos(a)*(tr.o.r*.6); }
+      else { const a0=Math.atan2(x-p.x,z-p.z); sx=x+Math.sin(a0)*6.5; sz=z+Math.cos(a0)*6.5; }
+      const WALK=Math.max(8,Math.hypot(x-sx,z-sz)/.42), TURN=3, LIE=3.4;
       const gait=(u,ph,amt)=>u.legs.forEach((L,j)=>{ // four-beat walk: hind-left, fore-left, hind-right, fore-right
         const off=[.25,.75,0,.5][j], q=(ph+off)%1, swing=q<.38, s=swing?Math.sin(q/.38*Math.PI):0, f=swing?-Math.cos(q/.38*Math.PI):1-2*(q-.38)/.62; // f: -1 back … +1 forward
         L.up.rotation.x=-.34*f*amt; L.kn.rotation.x=(L.front?.8:.55)*s*amt; });
-      this.add('deer',makeDeer(),1.05,(dt,t,c)=>{ const u=c.g.userData, e=c.age;
+      const dc=this.add('deer',makeDeer(),1.05,(dt,t,c)=>{ const u=c.g.userData, e=c.age;
         if(e<WALK){ const k=e/WALK, prog=(k-(k>.8?(k-.8)**2/.4:0))/.9; const px=sx+(x-sx)*prog, pz=sz+(z-sz)*prog; // steady pace, easing to a stop
           c.g.position.set(px,gy(px,pz),pz); c.g.rotation.y=Math.atan2(x-sx,z-sz); const ph=e/1.35;
           gait(u,ph,1-Math.max(0,(k-.9)/.1)); u.body.position.y=.6+Math.abs(Math.sin(ph*Math.PI*2))*.012; u.neck.rotation.x=Math.sin(ph*Math.PI*4)*.06; u.body.rotation.x=0; return; }
@@ -1442,14 +1479,23 @@ class Companions{
           u.head.rotation.y+=(look-u.head.rotation.y)*Math.min(1,dt*.8); u.neck.rotation.x+=((-.1+Math.sin(t*.21)*.08)-u.neck.rotation.x)*Math.min(1,dt);
           u.ears.forEach((ep,j)=>{ ep.rotation.x=Math.sin(t*9+j)>.985?.5:ep.rotation.x*.9; });
           u.tail.rotation.x=Math.sin(t*1.3+c.ph)>.97?.5:u.tail.rotation.x*.92; }
+      },{ph:Math.random()*6}); dc.slowIn=true; }
+    if(i===3){ const sp=compSpot(p,2.35,2.7); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*22, sz=z+Math.cos(a0)*22, FLY=13;
+      this.add('crane',makeCrane(),.75,(dt,t,c)=>{ const u=c.g.userData, e=c.age, wing=a=>{ u.wL.rotation.z=a; u.wR.rotation.z=-a; };
+        if(e<FLY){ const k=e/FLY, glide=1-Math.pow(1-k,1.8), gyv=gy(x,z);
+          c.g.position.set(sx+(x-sx)*glide,gyv+11*Math.pow(1-k,1.6),sz+(z-sz)*glide); c.g.rotation.y=Math.atan2(x-sx,z-sz);
+          const land=Math.max(0,(k-.82)/.18); // last stretch: body rises, legs come down, quicker beats
+          const beat=(Math.sin(e*(5.2+land*4))*(k>.35&&k<.6?.15:.62)); wing(.08+beat);
+          u.body.rotation.x=-.12+land*.5; if(c.nf!==Math.round((1-land)*8)){ c.nf=Math.round((1-land)*8); u.setNeck(c.nf/8); }
+          u.legs.rotation.x=1.35*(1-land); u.body.position.y=.62; return; }
+        // landed: a couple of slow beats, then the wings fold along the body
+        const s2=e-FLY, fold=Math.min(1,s2/2.2), ease=fold*fold*(3-2*fold);
+        c.g.position.set(x,gy(x,z),z); u.legs.rotation.x=0; u.body.rotation.x+=(-.05-u.body.rotation.x)*Math.min(1,dt*2);
+        if(c.nf!==0){ c.nf=0; u.setNeck(0); }
+        wing((1-ease)*(.3+Math.sin(s2*4)*.35)-.12*ease); u.wL.rotation.y=1.45*ease; u.wR.rotation.y=-1.45*ease; u.wL.scale.x=u.wR.scale.x=1-.5*ease; // folded back along the body, like a real crane
+        c.g.rotation.y=lerpAngle(c.g.rotation.y,Math.atan2(cx()-x,cz()-z)+1.15+Math.sin(t*.13)*.35,Math.min(1,dt*.5));
+        u.head.rotation.y=Math.sin(t*.37+c.ph)*.6; u.neckG.rotation.x=Math.sin(t*.29)*.08; u.body.position.y=.62+Math.sin(t*1.4)*.004;
       },{ph:Math.random()*6}); }
-    if(i===3){ const sp=compSpot(p,2.35,2.7); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*16, sz=z+Math.cos(a0)*16;
-      this.add('crane',makeCrane(),1.1,(dt,t,c)=>{ const u=c.g.userData, flyT=7, k=Math.min(1,c.age/flyT);
-        if(k<1){ const e=1-Math.pow(1-k,2.2); c.g.position.set(sx+(x-sx)*e,gy(x,z)+9*(1-e)*(1-e),sz+(z-sz)*e); c.g.rotation.y=Math.atan2(x-sx,z-sz);
-          const f=Math.sin(c.age*4)*.7*(1-Math.max(0,k-.85)/.15); u.wL.rotation.z=f; u.wR.rotation.z=-f; u.body.rotation.x=.25*(1-k); return; }
-        const fold=Math.min(1,(c.age-flyT)/1.5); u.wL.rotation.z=-1.25*fold; u.wR.rotation.z=1.25*fold; u.wL.scale.setScalar(1-.45*fold); u.wR.scale.setScalar(1-.45*fold);
-        c.g.position.set(x,gy(x,z),z); c.g.rotation.y=lerpAngle(c.g.rotation.y,Math.atan2(cx()-x,cz()-z)+1.1+Math.sin(t*.15)*.4,.01);
-        u.head.rotation.x=Math.max(0,Math.sin(t*.5))*.35; u.body.rotation.x=0; }); }
   }
 }
 function compLine(){ const tr=me.compTier??-1; if(tr<0) return '';
