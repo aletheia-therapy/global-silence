@@ -269,6 +269,7 @@ body.on-intro #lb{display:none}
 .next-sit .ns-next{margin-top:8px} .next-sit .ns-next span{display:block;font-size:11.5px;letter-spacing:.14em;color:var(--ink-faint)}
 .next-sit .ns-next b{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--gold)} .next-sit .ns-next small{font-size:11.5px;color:var(--ink-faint)}
 .ev-weekly{margin:12px 0 2px;padding:10px 12px;border-radius:12px;background:rgba(232,195,122,.1);font-size:13px;line-height:1.7;color:var(--ink-dim);text-align:left} .ev-weekly b{color:var(--gold)}
+.comp-line{margin:8px auto 2px;font-size:13.5px;color:var(--ink);letter-spacing:.03em}
 .home-link{display:block;width:100%;margin-top:10px;padding:6px 4px;background:none;font-size:13px;color:var(--gold);opacity:.88;letter-spacing:.04em}
 .home-link u{text-decoration:none;border-bottom:1px dotted rgba(232,195,122,.6);padding-bottom:1px}
 .home-ic{display:block;width:68px;height:68px;border-radius:16px;margin:2px auto 10px;box-shadow:0 8px 22px rgba(0,0,0,.4)}
@@ -1237,6 +1238,129 @@ function pose(k,t,mv,s,lean,ph){
 
 /* people */
 const tagsEl=$('tags');
+
+/* ===================== 陪坐的小動物: the longer someone sits, the more of the mountain comes close ===================== */
+const COMP_SPEED=QS.get('compfast')?60:1; // preview: one minute passes in a second
+const COMP_TIERS=[5*60,15*60,30*60,60*60]; // butterfly (fireflies at night) · bird · deer · crane
+const cmat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.8,flatShading:true});
+const glowTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'), r=g.createRadialGradient(32,32,0,32,32,32);
+  r.addColorStop(0,'rgba(255,255,255,1)'); r.addColorStop(.25,'rgba(255,255,255,.55)'); r.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=r; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); })();
+function wingGeo(w,h){ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0, w,0,h*.55, w*.85,0,-h*.45, 0,0,0, w*.85,0,-h*.45, w*.25,0,-h*.6],3)); g.computeVertexNormals(); return g; }
+function makeButterfly(){
+  const g=new THREE.Group(), col=['#ff9a3c','#5ab4ff','#ffd84a','#ff6fa8'][Math.floor(Math.random()*4)];
+  const wm=new THREE.MeshStandardMaterial({color:col,roughness:.6,side:THREE.DoubleSide,emissive:col,emissiveIntensity:.35});
+  const L=new THREE.Mesh(wingGeo(.2,.26),wm), R=new THREE.Mesh(wingGeo(-.2,.26),wm);
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.16,5),cmat('#2a2016')); body.rotation.x=Math.PI/2;
+  g.add(L,R,body); g.userData={L,R}; return g;
+}
+function makeFirefly(){
+  const g=new THREE.Group(); const dot=new THREE.Mesh(new THREE.SphereGeometry(.035,6,4),new THREE.MeshBasicMaterial({color:'#e9ff8a'}));
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:'#d6ff6a',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); halo.scale.setScalar(.55);
+  g.add(dot,halo); g.userData={halo}; return g;
+}
+function makeBird(){
+  const g=new THREE.Group(), body=new THREE.Mesh(new THREE.SphereGeometry(.1,8,6),cmat('#7a5236')); body.scale.set(1,.85,1.45); body.position.y=.13;
+  const breast=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),cmat('#e8743a')); breast.position.set(0,.12,.07);
+  const head=new THREE.Group(); head.position.set(0,.22,.11); const hd=new THREE.Mesh(new THREE.SphereGeometry(.065,8,6),cmat('#6b4630'));
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.018,.06,5),cmat('#f2c14e')); beak.rotation.x=Math.PI/2; beak.position.z=.07;
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.012,5,4),new THREE.MeshBasicMaterial({color:'#111'})); eye.position.set(.045,.015,.035); const eye2=eye.clone(); eye2.position.x=-.045;
+  head.add(hd,beak,eye,eye2);
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(.07,.015,.13),cmat('#5a3a26')); tail.position.set(0,.15,-.17); tail.rotation.x=-.4;
+  const wm=cmat('#5e3f2a'); wm.side=THREE.DoubleSide; const wL=new THREE.Mesh(wingGeo(.17,.16),wm), wR=new THREE.Mesh(wingGeo(-.17,.16),wm); wL.position.set(.05,.17,0); wR.position.set(-.05,.17,0);
+  const legs=new THREE.Mesh(new THREE.BoxGeometry(.06,.07,.01),cmat('#c9a14a')); legs.position.y=.035;
+  g.add(body,breast,head,tail,wL,wR,legs); g.userData={head,wL,wR}; return g;
+}
+function makeDeer(){
+  const g=new THREE.Group(), fur=cmat('#b98352'), light=cmat('#f1dfc6'), dark=cmat('#4a3222');
+  const body=new THREE.Group(); g.add(body);
+  const torso=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),fur); torso.scale.set(.8,.75,1.55); body.add(torso);
+  const belly=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),light); belly.scale.set(.8,.5,1.3); belly.position.y=-.1; body.add(belly);
+  [[-.12,.28],[.12,.28],[-.15,-.1],[.2,.05]].forEach(([x,z])=>{ const sp=new THREE.Mesh(new THREE.SphereGeometry(.03,5,4),light); sp.position.set(x,.2,z); body.add(sp); });
+  const neck=new THREE.Group(); neck.position.set(0,.12,.36); body.add(neck);
+  const nk=new THREE.Mesh(new THREE.CylinderGeometry(.08,.11,.42,7),fur); nk.position.y=.2; nk.rotation.x=.35; neck.add(nk);
+  const head=new THREE.Group(); head.position.set(0,.42,.1); neck.add(head);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),fur); hd.scale.set(.85,.85,1.3); head.add(hd);
+  const snout=new THREE.Mesh(new THREE.SphereGeometry(.05,6,4),dark); snout.position.set(0,-.02,.15); head.add(snout);
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.ConeGeometry(.045,.16,5),fur); e.position.set(sx*.09,.09,-.02); e.rotation.z=-sx*.9; head.add(e); });
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.018,5,4),new THREE.MeshBasicMaterial({color:'#111'})); e.position.set(sx*.07,.03,.08); head.add(e); });
+  const tail=new THREE.Mesh(new THREE.SphereGeometry(.06,6,4),light); tail.position.set(0,.08,-.46); body.add(tail);
+  const legs=[]; [[-.13,.28],[.13,.28],[-.13,-.3],[.13,-.3]].forEach(([x,z])=>{ const l=new THREE.Group(); l.position.set(x,-.12,z); const m=new THREE.Mesh(new THREE.CylinderGeometry(.035,.03,.5,5),fur); m.position.y=-.25; l.add(m);
+    const hoof=new THREE.Mesh(new THREE.CylinderGeometry(.033,.033,.05,5),dark); hoof.position.y=-.5; l.add(hoof); body.add(l); legs.push(l); });
+  g.userData={body,neck,head,legs}; return g;
+}
+function makeCrane(){
+  const g=new THREE.Group(), white=cmat('#f6f4ee'), black=cmat('#1d1d22'), red=new THREE.MeshBasicMaterial({color:'#d8282e'}), legM=cmat('#3a3a3a');
+  const body=new THREE.Group(); body.position.y=.8; g.add(body);
+  const torso=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),white); torso.scale.set(.8,.75,1.5); body.add(torso);
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(.14,.32,6),black); tail.rotation.x=-Math.PI/2-.35; tail.position.set(0,-.02,-.36); body.add(tail);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.6,6),black); neck.position.set(0,.3,.24); neck.rotation.x=.25; body.add(neck);
+  const head=new THREE.Group(); head.position.set(0,.6,.32); body.add(head);
+  head.add(new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),white)); const crown=new THREE.Mesh(new THREE.SphereGeometry(.035,6,4),red); crown.position.set(0,.045,0); head.add(crown);
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.018,.2,5),cmat('#c9b58a')); beak.rotation.x=Math.PI/2; beak.position.z=.13; head.add(beak);
+  const wm=new THREE.MeshStandardMaterial({color:'#f6f4ee',roughness:.8,flatShading:true,side:THREE.DoubleSide});
+  const wL=new THREE.Mesh(wingGeo(.75,.5),wm), wR=new THREE.Mesh(wingGeo(-.75,.5),wm); wL.position.set(.12,.08,0); wR.position.set(-.12,.08,0);
+  const tipM=new THREE.MeshStandardMaterial({color:'#1d1d22',side:THREE.DoubleSide}); const tL=new THREE.Mesh(wingGeo(.25,.3),tipM), tR=new THREE.Mesh(wingGeo(-.25,.3),tipM); tL.position.set(.6,0,-.12); tR.position.set(-.6,0,-.12); wL.add(tL); wR.add(tR);
+  body.add(wL,wR);
+  [-.06,.06].forEach(x=>{ const l=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.8,4),legM); l.position.set(x,.4,0); g.add(l); });
+  g.userData={body,head,wL,wR}; return g;
+}
+function compSpot(p,ang,dist){ // a free patch of ground near the sitter, roughly in the asked direction
+  for(let k=0;k<10;k++){ const a=p.r+ang+(k%2?1:-1)*Math.ceil(k/2)*.35, x=p.x+Math.sin(a)*dist, z=p.z+Math.cos(a)*dist;
+    if(walkable(x,z)&&!OBST.some(o=>Math.hypot(o.x-x,o.z-z)<o.r+.25)&&Math.hypot(x-POND.x,z-POND.z)>POND.r+.4) return [x,z]; }
+  return null;
+}
+class Companions{
+  constructor(p){ this.p=p; this.list=[]; this.tier=-1; this.since=null; this.night=null; }
+  seatedSecs(){ return this.since==null?0:(performance.now()-this.since)/1000*COMP_SPEED; }
+  update(dt,t){
+    const p=this.p, seated=['cam','sit','free'].includes(p.phase);
+    if(seated&&this.since==null){ const pre=p.remote?(p.info.sitSec||0)/COMP_SPEED:0; this.since=performance.now()-pre*1000; this.tier=-1; if(p===self){ me.compTier=-1; } }
+    if(!seated&&this.since!=null){ this.since=null; this.list.forEach(c=>c.leaving=true); }
+    if(seated){ const sec=this.seatedSecs(); let tier=-1; COMP_TIERS.forEach((sv,i)=>{ if(sec>=sv) tier=i; });
+      while(this.tier<tier){ this.tier++; this.spawn(this.tier); } if(p===self){ me.compTier=this.tier; me.compNight=PAL.nw>.5; } }
+    const night=PAL.nw>.5;
+    if(this.night!==null&&night!==this.night&&seated&&this.tier>=0){ this.list.filter(c=>c.kind==='fly'||c.kind==='ff').forEach(c=>c.leaving=true); this.spawn(0); }
+    this.night=night;
+    for(let i=this.list.length-1;i>=0;i--){ const c=this.list[i]; c.age+=dt;
+      if(c.leaving){ c.fade=Math.max(0,c.fade-dt*.9); if(c.fade<=0){ scene.remove(c.g); this.list.splice(i,1); continue; } }
+      else c.fade=Math.min(1,c.fade+dt*.8);
+      c.g.scale.setScalar(c.base*(.2+.8*c.fade)); c.step(dt,t,c); }
+  }
+  add(kind,g,base,step,extra={}){ const c={kind,g,base,step,age:0,fade:0,leaving:false,...extra}; scene.add(g); this.list.push(c); return c; }
+  spawn(i){
+    const p=this.p, cx=()=>p.x, cz=()=>p.z, gy=(x,z)=>hAt(x,z);
+    if(i===0){
+      if(PAL.nw>.5){ for(let k=0;k<3;k++) this.add('ff',makeFirefly(),1,(dt,t,c)=>{ const a=t*.35*c.dir+c.ph, r=1.05+.35*Math.sin(t*.5+c.ph);
+          c.g.position.set(cx()+Math.sin(a)*r,gy(cx(),cz())+.7+.35*Math.sin(t*.8+c.ph*2),cz()+Math.cos(a)*r); c.g.userData.halo.material.opacity=.45+.55*Math.max(0,Math.sin(t*2.2+c.ph*3)); },{ph:k*2.1,dir:k%2?1:-1}); }
+      else this.add('fly',makeButterfly(),1.6,(dt,t,c)=>{ const a=t*.42+c.ph, r=1.15+.25*Math.sin(t*.37), x=cx()+Math.sin(a)*r, z=cz()+Math.cos(a)*r;
+          c.g.position.set(x,gy(cx(),cz())+1.0+.28*Math.sin(t*1.1)+.08*Math.sin(t*5),z); c.g.rotation.y=a+Math.PI/2; const f=Math.sin(t*13)*.95; c.g.userData.L.rotation.z=f; c.g.userData.R.rotation.z=-f; },{ph:Math.random()*6});
+    }
+    if(i===1){ const sp=compSpot(p,1.25,1.35); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*7, sz=z+Math.cos(a0)*7;
+      this.add('bird',makeBird(),1.5,(dt,t,c)=>{ const u=c.g.userData, gyv=gy(x,z), k=Math.min(1,c.age/3.2);
+        if(k<1){ const e=k*k*(3-2*k); c.g.position.set(sx+(x-sx)*e,gyv+3.5*(1-e)+Math.sin(e*Math.PI)*.8,sz+(z-sz)*e); c.g.rotation.y=Math.atan2(x-sx,z-sz); const f=Math.sin(t*22)*.9; u.wL.rotation.z=f; u.wR.rotation.z=-f; return; }
+        u.wL.rotation.z=u.wR.rotation.z=0; const face=Math.atan2(cx()-x,cz()-z)+.6; c.g.rotation.y=lerpAngle(c.g.rotation.y,face+Math.sin(t*.3)*.5,.02);
+        const hop=(t*.45+c.ph)%1, peck=(t*.31+c.ph*.7)%1; c.g.position.set(x+Math.sin(t*.2)*.08,gyv+(hop<.08?Math.sin(hop/.08*Math.PI)*.07:0),z);
+        u.head.rotation.x=peck<.12?Math.sin(peck/.12*Math.PI)*.9:0; },{ph:Math.random()}); }
+    if(i===2){ const sp=compSpot(p,-.85,3.1); if(!sp) return; const [x,z]=sp, a0=Math.atan2(x-p.x,z-p.z), sx=x+Math.sin(a0)*11, sz=z+Math.cos(a0)*11;
+      this.add('deer',makeDeer(),1.15,(dt,t,c)=>{ const u=c.g.userData, walkT=8, k=Math.min(1,c.age/walkT);
+        if(k<1){ const px=sx+(x-sx)*k, pz=sz+(z-sz)*k; c.g.position.set(px,gy(px,pz)+.7,pz); c.g.rotation.y=Math.atan2(x-sx,z-sz); const sw=Math.sin(c.age*6)*.45;
+          u.legs.forEach((l,j)=>l.rotation.x=(j%2?sw:-sw)*(j<2?1:-1)); u.body.position.y=Math.abs(Math.sin(c.age*6))*.03; return; }
+        const lie=Math.min(1,(c.age-walkT)/2.2), e=lie*lie*(3-2*lie); c.g.position.set(x,gy(x,z)+.7-.46*e,z);
+        u.legs.forEach((l,j)=>{ l.rotation.x=(j<2?-.9:.9)*e; l.scale.y=1-.8*e; }); // legs fold away under the body c.g.rotation.y=lerpAngle(c.g.rotation.y,Math.atan2(cx()-x,cz()-z)-.7,.01);
+        u.neck.rotation.x=-.15*e+.05*Math.sin(t*.4); u.head.rotation.y=Math.sin(t*.23)*.5; }); }
+    if(i===3){ const sp=compSpot(p,2.35,2.7); if(!sp) return; const [x,z]=sp, a0=Math.random()*6.28, sx=x+Math.sin(a0)*16, sz=z+Math.cos(a0)*16;
+      this.add('crane',makeCrane(),1.1,(dt,t,c)=>{ const u=c.g.userData, flyT=7, k=Math.min(1,c.age/flyT);
+        if(k<1){ const e=1-Math.pow(1-k,2.2); c.g.position.set(sx+(x-sx)*e,gy(x,z)+9*(1-e)*(1-e),sz+(z-sz)*e); c.g.rotation.y=Math.atan2(x-sx,z-sz);
+          const f=Math.sin(c.age*4)*.7*(1-Math.max(0,k-.85)/.15); u.wL.rotation.z=f; u.wR.rotation.z=-f; u.body.rotation.x=.25*(1-k); return; }
+        const fold=Math.min(1,(c.age-flyT)/1.5); u.wL.rotation.z=-1.25*fold; u.wR.rotation.z=1.25*fold; u.wL.scale.setScalar(1-.45*fold); u.wR.scale.setScalar(1-.45*fold);
+        c.g.position.set(x,gy(x,z),z); c.g.rotation.y=lerpAngle(c.g.rotation.y,Math.atan2(cx()-x,cz()-z)+1.1+Math.sin(t*.15)*.4,.01);
+        u.head.rotation.x=Math.max(0,Math.sin(t*.5))*.35; u.body.rotation.x=0; }); }
+  }
+}
+function compLine(){ const tr=me.compTier??-1; if(tr<0) return '';
+  const names=[(me.compNight?'✨ 螢火蟲':'🦋 蝴蝶'),'🐦 小鳥','🦌 小鹿','🕊️ 白鶴'].slice(0,tr+1);
+  return `<div class="comp-line">今天陪你坐的有：${names.join('・')}</div>`; }
+
 class Person{
   constructor(info,remote){
     this.remote=remote; this.info={...info}; this.k=makeKid(info); scene.add(this.k.g);
@@ -1275,6 +1399,7 @@ class Person{
     this.ph+=dt*this.speed*3.4;
     this.k.g.position.set(this.x,hAt(this.x,this.z),this.z); this.k.g.rotation.y=this.r;
     pose(this.k,t,Math.min(1,this.speed/3),this.sitAmt,this.leanAmt,this.ph);
+    (this.comp||(this.comp=new Companions(this))).update(dt,t);
   }
   drawTag(W,H){
     const v=new THREE.Vector3(this.x,hAt(this.x,this.z)+1.5-.35*this.sitAmt,this.z), dist=v.distanceTo(camera.position);
@@ -1379,7 +1504,7 @@ function sanitize(d){
     sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
-  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase==='enter'?'walk':me.phase,sitSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
+  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:me.phase==='enter'?'walk':me.phase,sitSec:me.phase==='free'?freeSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
 function sendState(){ if(aSt&&me.phase!=='intro') aSt.send(myState()); }
 setInterval(sendState,STATE_MS);
 setInterval(()=>{ myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); },30000);
@@ -1663,7 +1788,7 @@ $('btnFreeRise').onclick=async()=>{
   $('endTime').textContent=sec<60?`${sec} 秒`:`${Math.floor(sec/60)} 分 ${sec%60} 秒`;
   const paint=()=>{ const g=fs.secs>0?fs.secs:sec;
     $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><br><span style="font-size:12.5px;color:var(--ink-faint)">自由靜坐計入全球累積，不計入個人時數</span><br>`
-      +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')
+      +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')+compLine()
       +nextSitHTML()+`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修」🌏</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
@@ -1825,7 +1950,7 @@ function rise(msg){
   const startedAt=srv.startedAt||Date.now()-sec*1000;
   const nLikes=likesGot.length; clearLikes();
   const bStart=srv.badgeStart??badgeIdx(me.total-sec);
-  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}<br>`+(nLikes?`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`:'隨喜 🙏')+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
+  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}<br>`+(nLikes?`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`:'隨喜 🙏')+compLine()+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
     +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotalAll())}</b><small>這座山上所有人一起坐下的時間</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…</div>'); srvEnd(false).then(()=>paint()); }
