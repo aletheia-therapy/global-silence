@@ -1474,10 +1474,10 @@ let hourSeen=null, lastTot=0, fwBusy=false;
 setInterval(()=>{
   if(me.phase==='intro'||fwBusy) return; const t=mountainTotalAll(); if(!isFinite(t)||t<=0) return;
   const h=Math.floor(t/3600), rising=t>lastTot+.05; lastTot=t;
-  if(hourSeen===null){ hourSeen=h; return; }
-  if(h>hourSeen){ hourSeen=h; celebrateHour(h); return; } // jumped past without a countdown
+  if(hourSeen===null){ hourSeen=Math.max(h,store.get('fwHour',0)); return; }
+  if(h>hourSeen){ hourSeen=h; store.set('fwHour',h); celebrateHour(h); return; } // jumped past without a countdown
   const left=(h+1)*3600-t;
-  if(rising&&left<=12&&left>0){ hourSeen=h+1; runCountdown(h+1); } // from here on, a steady countdown of its own
+  if(h+1>hourSeen&&rising&&left<=12&&left>0){ hourSeen=h+1; store.set('fwHour',h+1); runCountdown(h+1); } // each hour only once, ever (the total can dip back a little after a server refresh)
 },250);
 function runCountdown(hr){ // the words stay still; only the number changes, one step every 1.2 s
   fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent=`全球累積靜默，即將滿 ${hr} 小時`;
