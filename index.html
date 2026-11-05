@@ -1862,7 +1862,7 @@ setInterval(checkBadges,5000);
 /* ===================== 放到手機桌面 (add to home screen) ===================== */
 let installEvt=null, homeUrlBack=null;
 const SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
-function homeLinks(){ const show=isMobile&&!STANDALONE&&!store.get('installed',false); document.querySelectorAll('[data-home]').forEach(b=>b.classList.toggle('hidden',!show)); }
+function homeLinks(){ const show=!STANDALONE&&(isMobile||/Android|iPhone|iPad|iPod/i.test(UA)); /* hidden only when opened from the home-screen icon itself */ document.querySelectorAll('[data-home]').forEach(b=>b.classList.toggle('hidden',!show)); }
 addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; });
 addEventListener('appinstalled',()=>{ store.set('installed',true); installEvt=null; homeLinks(); $('mHome').classList.add('hidden'); toast('已放到手機桌面，下次一點就上山 🙏'); });
 function openHome(){
