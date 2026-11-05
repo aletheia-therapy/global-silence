@@ -402,7 +402,7 @@ body.on-intro #lb{display:none}
     <div class="en-script intro-en" lang="en">Global Silence Space</div>
     <p class="intro-sub">一座山頂，俯瞰群山與遠方的城市。<br>世界各地的人，此刻在這裡一起閉上眼睛。</p>
     <button class="ev-card hidden" id="evCard"><div class="ev-k" id="evK">第一場線上共修</div><div class="ev-t" id="evT"></div><div class="ev-c" id="evC"></div></button>
-    <div class="live-line"><span class="dot"></span><span id="introLive">正在尋找山上的同修…</span></div>
+    <div class="live-line hidden" id="introLiveLine"><span class="dot"></span><span id="introLive"></span></div>
     <button class="btn-main" id="btnStart">我要上山</button>
     <a class="line-mini" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">共修時段與活動公告 → 加入 LINE 社群</a>
     <button class="home-link hidden" data-home style="margin-top:4px">📲 <u>放到手機桌面，下次一點就上山</u></button>
@@ -1629,7 +1629,7 @@ $('btnEnter').onclick=()=>{ setTimeout(()=>{ if(evText()&&me.phase!=='intro') op
 
 /* ===================== networking ===================== */
 netReady.then(()=>{
-  if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('hudStat').textContent='離線'; return; }
+  if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('introLiveLine').classList.remove('hidden'); $('hudStat').textContent='離線'; return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
   aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aHi=room.makeAction('hi'); aLan=room.makeAction('lan'); aLotus=room.makeAction('lotus');
@@ -1824,7 +1824,8 @@ function updateHud(){
   updateTotal();
   const all=everyone(), sitting=all.filter(p=>p.phase==='sit'||p.phase==='free'), sum=0;
   const ps=[...peers.values()], ns=ps.filter(p=>p.info.phase==='sit'||p.info.phase==='free').length;
-  $('introLive').textContent=!room?'正在尋找山上的同修…':ps.length?`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`:'此刻山上還沒有人。你可以是第一位。';
+  { const on=!!room&&ps.length>0; $('introLiveLine').classList.toggle('hidden',!on); // only say something when there are people; an empty mountain stays a quiet surprise
+    if(on) $('introLive').textContent=`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`; }
   if(me.phase==='intro') return;
   $('hudStat').textContent=!room?'連線中…':all.length<=1?'此刻，山陪著你':`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`;
   $('hudSum').textContent='';
