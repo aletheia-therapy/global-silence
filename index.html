@@ -2439,7 +2439,7 @@ function evText(){
   const local=new Intl.DateTimeFormat('zh-TW',{hour:'numeric',minute:'2-digit',hour12:false}).format(EVENT.start);
   const sameTZ=Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Taipei';
   const when=`${tw}（台灣時間）`;
-  if(d<=10*60000) return {live:true, when, pill:'共修活動進行中', card:'共修活動進行中・現在上山一起坐'};
+  if(d<=10*60000||QS.get('evlive')) return {live:true, when, pill:'共修活動進行中', card:'共修活動進行中・現在上山一起坐'};
   const days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4), s=Math.floor(d%6e4/1e3);
   const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分 ${s} 秒`;
   return {live:false, when, pill:`第一場共修活動倒數 <b>${cd}</b>`, card:`倒數 ${cd}`};
