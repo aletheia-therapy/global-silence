@@ -2121,8 +2121,12 @@ $('camStart').onclick=async()=>{
 function snap(){
   if(!stream) return; const lum=grabFrame(); me.darkCam=lum<14;
   lastSnap=snapC.toDataURL('image/jpeg',.62); self.setSnap(lastSnap);
-  if(aSnap&&!document.hidden) aSnap.send(lastSnap);
+  const now=performance.now();
+  if(aSnap&&!document.hidden&&now-lastSnapSent>=snapEvery()){ lastSnapSent=now; aSnap.send(lastSnap); }
 }
+/* the busier the mountain, the less often each face picture goes out to everyone (people sitting hardly change; it saves data and battery) */
+let lastSnapSent=-1e9;
+function snapEvery(){ const n=peers.size; return n>=30?20000:n>=15?12000:SNAP_MS; }
 function tick(){
   if(me.sitSec%10===0){ myLedgerSync(); ledgerSave(); }
   const f=document.hidden?null:faceSeen(sitPrev); seenStreak=f?seenStreak+1:0;
