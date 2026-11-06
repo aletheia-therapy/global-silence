@@ -1673,7 +1673,7 @@ function sanitize(d){
     sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
-  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:(me.phase==='enter'||me.phase==='plant')?'walk':me.phase,sitSec:me.phase==='free'?freeSec:me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
+  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:(me.phase==='enter'||me.phase==='plant')?'walk':me.phase,sitSec:me.phase==='free'?Math.floor(freeSec):me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
 function sendState(){ if(aSt&&me.phase!=='intro') aSt.send(myState()); }
 setInterval(sendState,STATE_MS);
 setInterval(()=>{ myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); },30000);
@@ -1949,8 +1949,9 @@ async function startFree(){
   me.phase='free'; sheet('sheetFree'); sendState(); bell(.5);
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw); setSaver(true); // same slow orbit as formal sitting
   try{ wakeLock=wakeLock||await navigator.wakeLock?.request('screen'); }catch{}
-  $('freeTime').textContent=fmt(freeSec); clearInterval(freeTimer); freeStart();
-  freeTimer=setInterval(()=>{ if(me.phase!=='free') return; if(!document.hidden) freeSec++; if(performance.now()-fs.lastBeat>=20000) freeBeat(); $('freeTime').textContent=fmt(freeSec); $('dimTime').textContent=fmt(freeSec); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
+  $('freeTime').textContent=fmt(Math.floor(freeSec)); clearInterval(freeTimer); freeStart();
+  let freeLast=performance.now();
+  freeTimer=setInterval(()=>{ const now=performance.now(), d=(now-freeLast)/1000; freeLast=now; if(me.phase!=='free') return; if(d<=45) freeSec+=d; /* real elapsed time, the same rule the server counts by (a gap over 45 s counts nothing) */ if(performance.now()-fs.lastBeat>=20000) freeBeat(); $('freeTime').textContent=fmt(Math.floor(freeSec)); $('dimTime').textContent=fmt(Math.floor(freeSec)); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
 }
 function stopFree(){ clearInterval(freeTimer); freeTimer=null; if(fs.session) freeEnd(); }
 $('btnFreeToFormal').onclick=()=>{ // switch to formal: camera check first; counting starts only after it passes
@@ -1958,11 +1959,11 @@ $('btnFreeToFormal').onclick=()=>{ // switch to formal: camera check first; coun
   cam.rate=1.2; cam.pitchTarget=.36; cam.distTarget=5; sheet('sheetCam'); resetCamCheck(); sendState();
 };
 $('btnFreeRise').onclick=async()=>{
-  if(me.phase!=='free') return; const sec=freeSec, nLikes=likesGot.length; clearLikes();
+  if(me.phase!=='free') return; const sec=Math.floor(freeSec), nLikes=likesGot.length; clearLikes();
   clearInterval(freeTimer); freeTimer=null; const ending=freeEnd();
   try{ wakeLock?.release(); }catch{} wakeLock=null; standUp(); bell(.6);
-  $('endTime').textContent=sec<60?`${sec} 秒`:`${Math.floor(sec/60)} 分 ${sec%60} 秒`;
-  const paint=()=>{ const g=fs.secs>0?fs.secs:sec;
+  const paint=()=>{ const g=fs.secs>0?fs.secs:sec; // once the server answers, both lines show the server's number, so they always agree
+    $('endTime').textContent=g<60?`${g} 秒`:`${Math.floor(g/60)} 分 ${g%60} 秒`;
     $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><br><span style="font-size:12.5px;color:var(--ink-faint)">自由靜坐計入全球累積，不計入個人時數</span><br>`
       +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')+compLine()
       +nextSitHTML()+`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修」🌏</small></div>`; };
