@@ -453,6 +453,10 @@ body.on-intro #lb{display:none}
     </ul>
   </div>
   <p class="s-sub" id="camHint" style="margin-top:12px">準備好了再按開始，不用急。</p>
+  <div id="camHelp" class="hidden" style="margin:0 0 12px;padding:10px 12px;border-radius:12px;border:1px solid var(--gold-soft);background:rgba(232,195,122,.08);font-size:13.5px;line-height:1.6">
+    <div id="camHelpTxt">鏡頭好像不太順？可以先自由靜坐，一樣計入全球累積。</div>
+    <button id="camToFree" style="margin-top:8px;padding:7px 14px;border-radius:999px;background:var(--gold);color:#2a2214;font-weight:600;font-size:13.5px">🪷 改用自由靜坐</button>
+  </div>
   <p class="s-sub" style="margin:-6px 0 10px;font-size:12px;color:var(--ink-faint)">靜坐中若超過一分鐘偵測不到你，會自動起座，時數只算到你離開為止。</p>
   <div class="acts">
     <button class="btn-sec" id="camBack">返回</button>
@@ -1574,7 +1578,7 @@ class Person{
     const ph=this.phase, showImg=ph==='sit'&&this.hasImg;
     this.imgEl.style.display=showImg?'':'none';
     if(ph==='sit'){ const p=this.remote?this.info.paused:me.paused; this.timeEl.textContent=p?'暫離':fmt(this.remote?peerSec(this.info):me.sitSec); this.timeEl.classList.toggle('warn',!!p); }
-    else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?'選位置中':'準備入座'; this.timeEl.classList.remove('warn'); }
+    else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?'選位置中':'入座中…'; this.timeEl.classList.remove('warn'); }
     else if(ph==='free'){ this.timeEl.textContent='自由靜坐'; this.timeEl.classList.remove('warn'); }
     else this.timeEl.textContent='';
   }
@@ -1920,6 +1924,10 @@ $('poseUp').onclick=standUp;
 function standUp(){ if(inTent) leaveTent(); stopFree(); freeSec=0; cameFromFree=false; setSaver(false); clearTimeout(cineT); cam.rate=1.2; cam.pitchTarget=.42; cam.distTarget=7; stopCamera(); if(me.lean&&preLean){ self.x=preLean.x; self.z=preLean.z; } me.lean=false; preLean=null;
   me.phase='walk'; sheet(null); showWalkUI(true); sendState(); sendPosNow(); }
 let cineT=null;
+let lastAct=performance.now(); ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{ lastAct=performance.now(); },{passive:true,capture:true}));
+let camPhaseSince=0;
+setInterval(()=>{ if(me.phase!=='cam'){ camPhaseSince=0; return; } const n=performance.now(); if(!camPhaseSince) camPhaseSince=n;
+  if(n-Math.max(lastAct,camPhaseSince)>10*60000){ standUp(); toast('停留太久沒有動作，先幫你起身了。想坐的時候，再坐下就好 🙏'); } },15000);
 /* pick an orbit angle near `base` with no tree crown between the camera and the sitter */
 function clearYaw(base,dist=12,pitch=.6){
   const blocked=y=>{ let n=0; for(let k=.15;k<=1;k+=.12){ const px=self.x+Math.sin(y)*Math.cos(pitch)*dist*k, pz=self.z+Math.cos(y)*Math.cos(pitch)*dist*k, py=1+Math.sin(pitch)*dist*k;
@@ -1933,6 +1941,7 @@ const seatedNow=()=>me.phase==='sit'||me.phase==='free';
 $('modeBack').onclick=standUp;
 $('modeFormal').onclick=()=>{ cameFromFree=false; me.phase='cam'; sheet('sheetCam'); resetCamCheck(); sendState(); };
 $('modeFree').onclick=startFree;
+$('camToFree').onclick=()=>{ stopCamera(); cameFromFree=false; startFree(); };
 async function startFree(){
   me.phase='free'; sheet('sheetFree'); sendState(); bell(.5);
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw); setSaver(true); // same slow orbit as formal sitting
@@ -2026,13 +2035,15 @@ function faceSeen(v){ // is a person there? a confident face, or a person's shap
 let stream=null, wakeLock=null, snapTimer=null, tickTimer=null, checkTimer=null, hiddenAt=0, lastSnap=null;
 const camPrev=$('camPrev'), sitPrev=$('sitPrev'), snapC=$('snapC'), sctx=snapC.getContext('2d',{willReadFrequently:true});
 function setCk(id,state,text){ const li=$(id); li.className=state; li.textContent=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text; }
-function resetCamCheck(){ setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你'); setCk('ck4','','架好手機、坐穩'); loadFace();
+let camCheckT0=0;
+function camHelp(txt){ $('camHelpTxt').textContent=txt; $('camHelp').classList.remove('hidden'); }
+function resetCamCheck(){ camCheckT0=performance.now(); $('camHelp').classList.add('hidden'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。'); setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你'); setCk('ck4','','架好手機、坐穩'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
   $('camHint').textContent='準備好了再按開始，不用急。'; }
 $('camBack').onclick=()=>{ stopCamera(); if(cameFromFree){ startFree(); } else { me.phase='cam'; sheet('sheetMode'); sendState(); } };
 $('camOpen').onclick=async()=>{
   try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:320},height:{ideal:320}},audio:false}); }
-  catch(e){ setCk('ck1','bad','鏡頭沒有開啟'); $('camHint').textContent='請允許瀏覽器使用鏡頭，再試一次。這裡需要真實的同在。'; return; }
+  catch(e){ setCk('ck1','bad','鏡頭沒有開啟'); $('camHint').textContent='請允許瀏覽器使用鏡頭，再試一次。這裡需要真實的同在。'; camHelp(IN_APP?'你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。':'鏡頭打不開嗎？可以先自由靜坐，一樣計入全球累積。'); return; }
   camPrev.srcObject=stream; sitPrev.srcObject=stream; camPrev.play().catch(()=>{}); sitPrev.play().catch(()=>{});
   stream.getVideoTracks()[0].addEventListener('ended',()=>{ if(me.phase==='sit') rise('鏡頭已關閉'); else resetCamCheck(); });
   setCk('ck1','ok','鏡頭已開啟'); $('camOpen').classList.add('hidden'); $('camStart').classList.remove('hidden');
@@ -2048,6 +2059,7 @@ $('camOpen').onclick=async()=>{
     setCk('ck3',faceOk?'ok':faceState==='loading'?'':'bad', faceState==='failed'?'臉部偵測無法使用（不影響靜坐）':faceState==='loading'?'臉部偵測準備中…':f?'偵測到你':'看不到你（臉或身形）');
     setCk('ck4',settled?'ok':'','架好手機、坐穩'+(settled?'':'…'));
     $('camStart').disabled=!(bright&&settled&&faceOk);
+    if($('camStart').disabled&&performance.now()-camCheckT0>60000&&$('camHelp').classList.contains('hidden')) camHelp('檢查好像一直過不了？可以先自由靜坐，一樣計入全球累積。');
     $('camHint').textContent=!bright?'換個角度或開燈，讓同修看得見你。':!faceOk&&faceState==='ready'?'讓臉出現在畫面裡，鏡頭放在面前一兩公尺內。':settled?'看起來都好了。準備好就開始吧。':'把手機架穩，調整一下坐姿。';
   },500);
 };
@@ -2251,7 +2263,7 @@ function personCard(p){
     const done=()=>{ hb.textContent='👋 已打過招呼'; hb.disabled=true; }; hb.textContent='👋 打招呼'; if(!canHi(p)) done();
     hb.onclick=()=>{ sendHi(p); done(); }; el.appendChild(hb); }
   el.append(q);
-  const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):ph==='free'?'自由靜坐':(ph==='walk'?'走動中':'準備入座'); };
+  const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):ph==='free'?'自由靜坐':(ph==='walk'?'走動中':'入座中…'); };
   upd(); clearInterval(personCard.t); personCard.t=setInterval(upd,1000);
   $('mPerson').classList.remove('hidden');
 }
