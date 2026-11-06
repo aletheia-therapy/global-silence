@@ -2072,7 +2072,7 @@ const camPrev=$('camPrev'), sitPrev=$('sitPrev'), snapC=$('snapC'), sctx=snapC.g
 function setCk(id,state,text){ const li=$(id); li.className=state; li.textContent=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text; }
 let camCheckT0=0;
 function camHelp(txt){ $('camHelpTxt').textContent=txt; $('camHelp').classList.remove('hidden'); }
-function resetCamCheck(){ camCheckT0=performance.now(); { const e=evText(); $('camSound').classList.toggle('hidden',!(e&&e.live)); } $('camHelp').classList.add('hidden'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。'); setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你'); setCk('ck4','','架好手機、坐穩'); loadFace();
+function resetCamCheck(){ camCheckT0=performance.now(); { const e=evText(); $('camSound').classList.toggle('hidden',!(e&&e.live)&&!QS.get('bellsim')); } $('camHelp').classList.add('hidden'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。'); setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你'); setCk('ck4','','架好手機、坐穩'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
   $('camHint').textContent='準備好了再按開始，不用急。'; }
 $('camBack').onclick=()=>{ stopCamera(); if(cameFromFree){ startFree(); } else { me.phase='cam'; sheet('sheetMode'); sendState(); } };
@@ -2114,6 +2114,9 @@ $('camStart').onclick=async()=>{
   cam.rate=.45; cam.pitchTarget=.6; cam.distTarget=12; cam.yawTarget=clearYaw(cam.yaw);
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
   $('sitTime').textContent='0:00'; sendState(); updateHud();
+  if(QS.get('bellsim')){ // ?bellsim=1 — preview: the start note at once, then 10 s later act as if 45 minutes were reached
+    setTimeout(()=>{ if(me.phase!=='sit') return; $('sitNote').textContent='坐滿 45 分鐘時，會響三聲鐘聲。在那之前，安心閉上眼睛就好。'; $('sitNote').classList.remove('hidden'); },3000);
+    setTimeout(()=>{ if(me.phase!=='sit'||srv.code) return; srv.minSecs=2700; srvApply({code:'TEST-DEMO',seconds:srv.secs||me.sitSec}); },10000); }
 };
 function snap(){
   if(!stream) return; const lum=grabFrame(); me.darkCam=lum<14;
