@@ -1868,8 +1868,8 @@ addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
   canvas.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); canvas.setPointerCapture(e.pointerId);
     if(pts.size===2){ const [a,b]=[...pts.values()]; pinch0=Math.hypot(a.x-b.x,a.y-b.y); dist0=cam.dist; } });
   canvas.addEventListener('pointermove',e=>{ const p=pts.get(e.pointerId); if(!p) return;
-    if(pts.size===1){ lastDrag=performance.now(); if(ov.on){ ov.yaw+=(e.clientX-p.x)*.005; ov.pitch=clamp(ov.pitch-(e.clientY-p.y)*.003,.25,1.2); /* grab-the-scene: the view moves with your finger, like street view */ }
-      else { cam.yaw+=(e.clientX-p.x)*.0065; cam.pitch=clamp(cam.pitch-(e.clientY-p.y)*.004,.08,1.25); } }
+    if(pts.size===1){ lastDrag=performance.now(); if(ov.on){ ov.yaw+=(e.clientX-p.x)*.005; ov.pitch=clamp(ov.pitch+(e.clientY-p.y)*.003,.25,1.2); /* left/right: grab-the-scene, like street view; up/down as before */ }
+      else { cam.yaw+=(e.clientX-p.x)*.0065; cam.pitch=clamp(cam.pitch+(e.clientY-p.y)*.004,.08,1.25); } }
     p.x=e.clientX; p.y=e.clientY;
     if(pts.size===2){ const [a,b]=[...pts.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch0) cam.dist=clamp(dist0*pinch0/d,3.2,16); } });
   const end=e=>{ pts.delete(e.pointerId); if(pts.size<2) pinch0=0; };
