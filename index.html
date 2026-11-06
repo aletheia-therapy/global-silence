@@ -2391,7 +2391,7 @@ function nextSitHTML(){
     <div class="ns-p">不需要抽獎，不需要特別理由。<br>只要想安靜一下，隨時歡迎回來。</div>
     <div class="ns-next"><span>下一次共修</span><b>${twDay(nx)} 晚上 9:00</b><small>（台灣時間）</small></div></div>`;
 }
-const EVENT={start:Date.UTC(2026,10,8,13,0), live:150*60*1000}; // Sun 8 Nov 2026, 21:00 Taiwan (UTC+8); shown as live for 2.5 h
+const EVENT={start:Date.UTC(2026,10,8,13,0), live:180*60*1000}; // Sun 8 Nov 2026, 21:00 Taiwan (UTC+8); shown as live until midnight, when starting a sit stops counting
 function evText(){
   const now=Date.now(), d=EVENT.start-now;
   if(now>EVENT.start+EVENT.live) return null;

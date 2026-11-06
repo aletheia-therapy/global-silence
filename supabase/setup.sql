@@ -52,7 +52,7 @@ revoke all on table public.gs_users, public.gs_events, public.gs_sessions from a
 -- ---------- events ----------
 insert into public.gs_events (key, title, starts_at, start_until, min_seconds, code_prefix) values
   ('rehearsal', '彩排測試（坐滿 5 分鐘）', '2026-11-04 00:00+08', '2026-11-07 23:59+08', 300,  'TEST'),
-  ('first-sit', '第一場線上共修',          '2026-11-08 20:50+08', '2026-11-08 22:15+08', 2700, 'GS')
+  ('first-sit', '第一場線上共修',          '2026-11-08 20:50+08', '2026-11-09 00:00+08', 2700, 'GS')
 on conflict (key) do update set title=excluded.title, starts_at=excluded.starts_at,
   start_until=excluded.start_until, min_seconds=excluded.min_seconds, code_prefix=excluded.code_prefix;
 
