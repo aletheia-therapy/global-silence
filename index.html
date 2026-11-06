@@ -1776,17 +1776,20 @@ setInterval(()=>{
   if(me.phase==='intro'||fwBusy) return; const t=worldTotal(); if(!isFinite(t)||t<=0) return;
   const h=Math.floor(t/3600), rising=t>lastTot+.05; lastTot=t;
   if(hourSeen===null){ hourSeen=Math.max(h,store.get('fwHour',0)); return; }
-  if(h>hourSeen){ hourSeen=h; store.set('fwHour',h); celebrateHour(h); return; } // jumped past without a countdown
-  const left=(h+1)*3600-t;
-  if(h+1>hourSeen&&rising&&left<=12&&left>0){ hourSeen=h+1; store.set('fwHour',h+1); runCountdown(h+1); } // each hour only once, ever (the total can dip back a little after a server refresh)
+  const step=fwEvery(), M=Math.floor(h/step)*step, N=M+step, cool=Date.now()-store.get('fwAt',0)>10*60000;
+  if(M>hourSeen){ const near=M-hourSeen<=step; hourSeen=M; store.set('fwHour',M); if(near&&cool) celebrateHour(M); return; } // jumped past without a countdown (a far jump, e.g. when the group-sit window ends, passes quietly)
+  const left=N*3600-t;
+  if(N>hourSeen&&rising&&left<=12&&left>0){ hourSeen=N; store.set('fwHour',N); if(cool) runCountdown(N); } // each milestone only once, ever; one inside the 10-minute rest passes quietly
 },250);
+/* during the Sunday group sit (20:50–24:00 Taiwan time) the mountain fills fast, so only every 10 hours; otherwise every hour */
+function fwEvery(){ const tw=new Date(Date.now()+8*3600000), m=tw.getUTCHours()*60+tw.getUTCMinutes(); return tw.getUTCDay()===0&&m>=20*60+50?10:1; }
 function runCountdown(hr){ // the words stay still; only the number changes, one step every 1.2 s
   fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent=`全球累積靜默，即將滿 ${hr} 小時`;
   let n=10; const tick=()=>{ if(n>0){ el.querySelector('.hc-n').textContent=n--; el.classList.add('on'); setTimeout(tick,1200); } else { el.classList.remove('on'); celebrateHour(hr); } }; tick();
 }
 function hideCountdown(){ $('hourCd').classList.remove('on'); }
 function celebrateHour(h){
-  fwBusy=true; const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
+  fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
   startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
 if(QS.get('fwtest')) setTimeout(()=>{ const t=mountainTotalAll(); runCountdown(isFinite(t)?Math.floor(t/3600)+1:1); },6000); // preview
