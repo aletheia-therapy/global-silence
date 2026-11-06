@@ -1551,6 +1551,7 @@ class Person{
   }
   setSnap(url){ this.imgEl.src=url; this.hasImg=true; }
   get phase(){ return this.remote?this.info.phase:me.phase; }
+  get stale(){ return this.remote&&!!this.halfSince&&Date.now()-this.halfSince>10*60000; } // someone left half-seated (old page, walked away): stop showing them
   update(dt,t){
     // speed = how far we moved since the last frame (your own character is moved before this runs, so measure across frames)
     const px=this.lastX??this.x, pz=this.lastZ??this.z;
@@ -1570,7 +1571,8 @@ class Person{
   drawTag(W,H){
     const v=new THREE.Vector3(this.x,hAt(this.x,this.z)+1.5-.35*this.sitAmt,this.z), dist=v.distanceTo(camera.position);
     v.project(camera);
-    if(v.z>1||dist>150){ this.tagEl.style.display='none'; return; }
+    this.k.g.visible=!this.stale;
+    if(v.z>1||dist>150||this.stale){ this.tagEl.style.display='none'; return; }
     this.tagEl.style.display='';
     const sc=clamp(9/dist,.62,1.15), x=(v.x+1)/2*W, y=(1-v.y)/2*H;
     this.tagEl.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%) scale(${sc})`;
@@ -1652,6 +1654,7 @@ netReady.then(()=>{
     let p=peers.get(peerId);
     if(!p){ p=new Person(s,true); p.peerId=peerId; p.x=p.tx=s.x; p.z=p.tz=s.z; peers.set(peerId,p); }
     else { const sitNow=s.phase==='sit'||s.phase==='free', sitBefore=p.info.phase==='sit'||p.info.phase==='free'; if(sitNow&&(!sitBefore||s.phase!==p.info.phase)) s.sitStartedAt=Date.now(); p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
+    if(s.phase==='pose'||s.phase==='cam'){ if(!p.halfSince) p.halfSince=Date.now(); } else p.halfSince=0;
     p.info.recvAt=performance.now(); p.lastSeen=Date.now(); if(s.uid&&s.uid!==UID&&ledgerPut(s.uid,s.total,s.name,s.country)) ledgerSave(); updateHud();
   };
   aPos.onMessage=(d,{peerId})=>{ const p=peers.get(peerId); if(!p||!d) return;
@@ -1688,7 +1691,7 @@ function fmt(sec){ sec=Math.floor(sec); const h=Math.floor(sec/3600), m=Math.flo
   return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`; }
 function hrs(sec){ const h=sec/3600; return h<1?(sec<60?`${Math.floor(sec)} 秒`:`${Math.round(sec/60)} 分鐘`):`${h.toFixed(1)} 小時`; }
 function everyone(){
-  const arr=[...peers.values()].map(p=>({person:p,name:p.info.name,country:p.info.country,phase:p.info.phase,total:p.info.total,live:peerSec(p.info),self:false}));
+  const arr=[...peers.values()].filter(p=>!p.stale).map(p=>({person:p,name:p.info.name,country:p.info.country,phase:p.info.phase,total:p.info.total,live:peerSec(p.info),self:false}));
   if(self) arr.push({person:self,name:me.name,country:me.country,phase:me.phase,total:me.total,live:me.phase==='sit'?me.sitSec:0,self:true});
   return arr;
 }
@@ -1827,7 +1830,7 @@ lbTogText();
 function updateHud(){
   updateTotal();
   const all=everyone(), sitting=all.filter(p=>p.phase==='sit'||p.phase==='free'), sum=0;
-  const ps=[...peers.values()], ns=ps.filter(p=>p.info.phase==='sit'||p.info.phase==='free').length;
+  const ps=[...peers.values()].filter(p=>!p.stale), ns=ps.filter(p=>p.info.phase==='sit'||p.info.phase==='free').length;
   { const on=!!room&&ps.length>0; $('introLiveLine').classList.toggle('hidden',!on); // only say something when there are people; an empty mountain stays a quiet surprise
     if(on) $('introLive').textContent=`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`; }
   if(me.phase==='intro') return;
