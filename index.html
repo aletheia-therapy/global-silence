@@ -1854,12 +1854,28 @@ async function refreshBoard(){
     renderLB(); updateTotal(); }catch(e){}
 }
 refreshBoard(); setInterval(refreshBoard,30000);
-async function srvStart(){
-  srv.session=null; srv.code=null; srv.secs=0; srv.event=null; srv.total=null; srv.startedAt=Date.now(); srv.lastBeat=performance.now(); srv.badgeStart=badgeIdx(me.total);
-  if(!srv.id){ await srvJoin(); } if(!srv.id) return;
-  $('sitNote').classList.add('hidden');
-  try{ const r=await rpc('gs_start',auth()); if(r&&r.session){ srv.session=r.session; srv.event=r.event; srv.eventTitle=r.event_title||''; srv.minSecs=r.min_seconds||0; srv.lastBeat=performance.now();
-    if(srv.event&&srv.minSecs){ $('sitNote').textContent=`坐滿 ${Math.round(srv.minSecs/60)} 分鐘時，會響三聲鐘聲。在那之前，安心閉上眼睛就好。`; $('sitNote').classList.remove('hidden'); } } }catch(e){}
+async function srvStart(keep){
+  if(srv.starting) return; srv.starting=true; srv.netFail=false; srv.lastTry=performance.now();
+  try{
+  srv.session=null; srv.code=null; srv.secs=0; srv.event=null; if(!keep){ srv.total=null; srv.startedAt=Date.now(); srv.badgeStart=badgeIdx(me.total); } srv.lastBeat=performance.now();
+  if(!srv.id){ await srvJoin(); } if(!srv.id){ srv.netFail=true; return; }
+  if(!keep) $('sitNote').classList.add('hidden');
+  try{ const r=await rpc('gs_start',auth()); if(!(r&&r.session)) srv.netFail=true; if(r&&r.session){ srv.session=r.session; srv.event=r.event; srv.eventTitle=r.event_title||''; srv.minSecs=r.min_seconds||0; srv.lastBeat=performance.now();
+    if(srv.event&&srv.minSecs){ $('sitNote').textContent=`坐滿 ${Math.round(srv.minSecs/60)} 分鐘時，會響三聲鐘聲。在那之前，安心閉上眼睛就好。`; $('sitNote').classList.remove('hidden'); } } }catch(e){ srv.netFail=true; }
+  } finally { srv.starting=false; }
+}
+/* keep the formal sit connected to the server, so nobody sits 45 minutes for nothing:
+   · the server couldn't be reached when the sit began → keep trying every 15 s
+   · someone sat down before the event window opened (20:50 Taiwan) → when it opens, quietly start a new session that counts for the event */
+async function srvGuard(){
+  if(me.phase!=='sit'||srv.starting||srv.switching) return;
+  if(!srv.session&&srv.netFail&&performance.now()-(srv.lastTry||0)>15000){ await srvStart(true); if(me.phase!=='sit') srvEnd(false); return; }
+  const n=Date.now(), evOpen=n>=EVENT.start-10*6e4&&n<EVENT.start+EVENT.live;
+  if(srv.session&&!srv.event&&!srv.code&&evOpen){ srv.switching=true;
+    try{ await srvEnd(false); if(me.phase!=='sit') return; await srvStart(true); if(me.phase!=='sit'){ srvEnd(false); return; }
+      if(srv.event&&srv.minSecs){ const fin=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit',hour12:false}).format(Date.now()+srv.minSecs*1000);
+        $('sitNote').innerHTML=`🪷 共修活動開始了<br>抽獎的 ${Math.round(srv.minSecs/60)} 分鐘從現在起算，約 <b style="color:var(--gold)">${fin}</b>（台灣時間）完成，會響三聲鐘聲。繼續安心坐著就好。`; $('sitNote').classList.remove('hidden'); } }
+    finally{ srv.switching=false; } }
 }
 function srvApply(r){
   if(!r) return; if(r.error==='session'||r.error==='auth'){ srv.session=null; return; }
@@ -1867,7 +1883,8 @@ function srvApply(r){
   if(r.code&&!srv.code){ srv.code=r.code; const m=Math.round((srv.minSecs||2700)/60);
     [0,3800,7600].forEach(d=>setTimeout(()=>bell(.6),d)); // three slow, fading bells
     $('sitNote').innerHTML=`<b style="color:var(--gold)">✓ 已滿 ${m} 分鐘，你完成了</b><br>可以繼續坐，也可以慢慢起座，不用擔心。<br>起座時會顯示你的專屬代碼。`; $('sitNote').classList.remove('hidden');
-    toast(`🎉 已滿 ${m} 分鐘，你完成了！可以繼續坐，不用擔心`); }
+    toast(`🎉 已滿 ${m} 分鐘，你完成了！可以繼續坐，不用擔心`);
+    try{ saveCert({code:srv.code, test:srv.event==='rehearsal'||/^TEST/.test(srv.code), name:me.name, country:me.country, when:`${twTime(srv.startedAt||Date.now())} – ${twTime(Date.now()).slice(-5)}`, secs:srv.secs}); }catch{} }
 }
 async function srvBeat(){
   if(!srv.session||srv.busy) return; srv.busy=true; srv.lastBeat=performance.now();
@@ -2101,7 +2118,7 @@ $('btnFreeRise').onclick=async()=>{
     $('endTime').textContent=g<60?`${g} 秒`:`${Math.floor(g/60)} 分 ${g%60} 秒`;
     $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><br><span style="font-size:12.5px;color:var(--ink-faint)">自由靜坐計入全球累積，不計入個人時數</span><br>`
       +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')+compLine()
-      +nextSitHTML()+`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修活動」🌏</small></div>`; };
+      +nextSitHTML(true)+`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修活動」🌏</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
 };
@@ -2243,6 +2260,7 @@ function tick(){
   if(reason!==me.paused){ me.paused=reason; sendState(); }
   if(!reason) me.sitSec++;
   if(!reason&&srv.session&&performance.now()-srv.lastBeat>=20000) srvBeat(); // tell the server we're still here
+  if(me.sitSec%5===0) srvGuard();
   $('sitTime').textContent=fmt(me.sitSec); $('dimTime').textContent=fmt(me.sitSec);
   const st=$('sitStatus'), n=[...peers.values()].filter(p=>p.info.phase==='sit').length;
   if(reason){ st.textContent=`暫停計時：${reason}`+(reason==='沒有偵測到人'?`，${Math.max(0,Math.ceil(FACE_LIMIT-gone))} 秒後自動起座`:''); st.classList.add('warn'); }
@@ -2553,8 +2571,8 @@ function nextWeekly(after=Date.now()){ const d=new Date(after); let t=Date.UTC(d
 const twDay=t=>{ const p=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).formatToParts(t); const g=k=>p.find(x=>x.type===k)?.value; return `${g('month')} 月 ${g('day')} 日（日）`; };
 const weeklyLiveNow=()=>{ const last=nextWeekly(Date.now()-WEEKLY_LIVE); return Date.now()>=last&&Date.now()<last+WEEKLY_LIVE; };
 const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-15*6e4&&n<EVENT.start+9*36e5; }; // 11/8 20:45 → 11/9 06:00 (Taiwan)
-function nextSitHTML(){
-  const nx=nextWeekly(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修活動！<br>今天是特別活動，所以有抽獎。<br>從下週起，每週日晚上 9:00 固定共修活動，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
+function nextSitHTML(free){
+  const nx=nextWeekly(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修活動！<br>今天是特別活動，所以有抽獎${free?'（抽獎需選「正式共修活動」打開鏡頭坐滿 45 分鐘，自由靜坐不列入）':''}。<br>從下週起，每週日晚上 9:00 固定共修活動，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
   return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。</div>
     <div class="ns-k">每週日晚上 9:00・全球固定線上共修活動</div>
     <div class="ns-p">不需要抽獎，不需要特別理由。<br>只要想安靜一下，隨時歡迎回來。</div>
