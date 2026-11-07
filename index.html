@@ -1167,7 +1167,7 @@ const birds=[];
     const beak=new THREE.Mesh(beakG,mat); beak.position.set(0,.01,.46); b.add(beak);
     b.add(new THREE.Mesh(tailG,mat));
     const L=wing(1), R=wing(-1); b.add(L,R);
-    b.scale.setScalar(1.15+(i%3)*.3);
+    b.scale.setScalar(.5+(i%3)*.12);
     scene.add(b);
     const dir=i%3===2?-1:1; // a couple circle the other way
     birds.push({b,L,R,dir,ph:i*1.9,rad:44+i*6+(i%2)*9,h:8+((i*5)%9)*1.7,sp:(.035+(i%4)*.007)*dir,off:i*.83}); } }
