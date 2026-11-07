@@ -1945,6 +1945,26 @@ function runCountdown(hr){ // the words stay still; only the number changes, one
     el.querySelector('.hc-n').textContent='🙏'; setTimeout(tick,1200); };
   tick();
 }
+/* 21:00 Taiwan on the event night: one opening show for everyone on the mountain — a 10-second countdown, then fireworks */
+let openDone=false;
+setInterval(()=>{
+  if(openDone||me.phase==='intro'||fwBusy) return; let st; try{ st=EVENT.start; }catch{ return; }
+  const n=Date.now(); if(n>st+3*60000){ openDone=true; return; }       // arriving later than 21:03: no late show
+  if(store.get('fwOpen',0)===st){ openDone=true; return; }
+  if(n>=st-12000){ openDone=true; store.set('fwOpen',st); if(n<st-1500) runOpening(st); else celebrateOpening(); }
+},500);
+function runOpening(st){
+  fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent='第一場線上共修，即將開始';
+  const tick=()=>{ const left=Math.ceil((st-Date.now())/1000);
+    if(left>0){ el.querySelector('.hc-n').textContent=Math.min(10,left); if(left<=10) el.classList.add('on'); setTimeout(tick,250); }
+    else { el.classList.remove('on'); celebrateOpening(); } }; tick();
+}
+function celebrateOpening(){
+  fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg');
+  msg.innerHTML=`<div class="hm-k">🪷 21:00</div><div class="hm-t">第一場線上共修 <b>正式開始</b></div><div class="hm-s">歡迎來自世界各地的你，一起安靜坐下</div>`;
+  startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
+}
+if(QS.get('fwopen')) setTimeout(()=>{ runOpening(Date.now()+11000); },6000); // preview: ?fwopen=1
 function hideCountdown(){ $('hourCd').classList.remove('on'); }
 function celebrateHour(h){
   fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
