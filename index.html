@@ -1149,12 +1149,39 @@ const seasonMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,vert
   const pts=new THREE.Points(g,seasonMat); pts.frustumCulled=false; pts.renderOrder=2; scene.add(pts); }
 function applySeasonLight(){ seasonMat.uniforms.lit.value=PAL.lit; }
 
-/* a few birds gliding far out over the clouds */
+/* a few raptors soaring far out over the valley — long broad wings with fingered tips, mostly gliding, now and then a few slow beats */
 const birds=[];
-{ const mat=new THREE.MeshBasicMaterial({color:'#2b2a33',side:THREE.DoubleSide,fog:true});
-  for(let i=0;i<5;i++){ const b=new THREE.Group(); const wing=()=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,-.25, 0,0,.3, 1.3,0,0],3)); return new THREE.Mesh(g,mat); };
-    const L=new THREE.Group(), R=new THREE.Group(); L.add(wing()); const rw=wing(); rw.scale.x=-1; R.add(rw); b.add(L,R); b.scale.setScalar(1.1);
-    scene.add(b); birds.push({b,L,R,ph:i*1.7,rad:46+i*7,h:9+i*2.2,sp:.05+i*.008,off:i*1.3}); } }
+{ const mat=new THREE.MeshLambertMaterial({color:'#4a3f36',side:THREE.DoubleSide,fog:true});
+  const flat=(pts)=>{ const s=new THREE.Shape(); s.moveTo(pts[0][0],pts[0][1]); pts.slice(1).forEach(p=>s.lineTo(p[0],p[1])); const g=new THREE.ShapeGeometry(s); g.rotateX(Math.PI/2); return g; };
+  // outline in (span, forward): inner arm and the outer hand with five spread primaries
+  const innerG=flat([[0,.16],[.3,.21],[.6,.2],[.72,.17],[.72,-.27],[.5,-.32],[.25,-.33],[0,-.26]]);
+  const outerG=flat([[0,.17],[.18,.14],[.34,.08],[.44,.02],[.66,-.02],[.68,-.05],[.44,-.06],[.66,-.1],[.66,-.13],[.42,-.12],[.6,-.18],[.58,-.21],[.38,-.17],[.5,-.25],[.47,-.28],[.32,-.22],[.36,-.3],[.32,-.32],[.2,-.27],[.08,-.29],[0,-.27]]);
+  const tailG=flat([[-.07,-.32],[.07,-.32],[.15,-.62],[.05,-.66],[0,-.64],[-.05,-.66],[-.15,-.62]]);
+  const bodyG=new THREE.SphereGeometry(1,12,8); const headG=new THREE.SphereGeometry(1,10,8); const beakG=new THREE.ConeGeometry(.025,.08,6); beakG.rotateX(Math.PI/2);
+  const wing=(side)=>{ const root=new THREE.Group(); root.scale.x=side; root.position.x=.05*side;
+    root.add(new THREE.Mesh(innerG,mat)); const hand=new THREE.Group(); hand.position.x=.72; root.add(hand); hand.add(new THREE.Mesh(outerG,mat)); root.hand=hand; return root; };
+  const N=8;
+  for(let i=0;i<N;i++){ const b=new THREE.Group(); b.rotation.order='YXZ';
+    const body=new THREE.Mesh(bodyG,mat); body.scale.set(.1,.085,.36); b.add(body);
+    const head=new THREE.Mesh(headG,mat); head.scale.set(.075,.07,.09); head.position.set(0,.03,.36); b.add(head);
+    const beak=new THREE.Mesh(beakG,mat); beak.position.set(0,.01,.46); b.add(beak);
+    b.add(new THREE.Mesh(tailG,mat));
+    const L=wing(1), R=wing(-1); b.add(L,R);
+    b.scale.setScalar(1.15+(i%3)*.3);
+    scene.add(b);
+    const dir=i%3===2?-1:1; // a couple circle the other way
+    birds.push({b,L,R,dir,ph:i*1.9,rad:44+i*6+(i%2)*9,h:8+((i*5)%9)*1.7,sp:(.035+(i%4)*.007)*dir,off:i*.83}); } }
+function animateBirds(t){
+  birds.forEach(o=>{ if(!o.b.visible) return; const a=t*o.sp+o.off, r=o.rad+Math.sin(t*.05+o.ph)*6;
+    o.b.position.set(Math.cos(a)*r,o.h+Math.sin(t*.25+o.ph)*1.5,Math.sin(a)*r);
+    o.b.rotation.y=o.dir>0?-a:Math.PI-a;
+    o.b.rotation.z=.22*o.dir+Math.sin(t*.3+o.ph)*.06;     // banked into the turn
+    o.b.rotation.x=-.04+Math.sin(t*.25+o.ph)*.05;
+    // mostly a held glide; every so often a short run of slow, deep beats
+    const gate=Math.max(0,Math.min(1,(Math.sin(t*.17+o.ph*2.3)-.72)*6)), beat=Math.sin(t*4.2+o.ph);
+    const inner=.1+gate*beat*.5, outer=-.08+gate*(Math.sin(t*4.2+o.ph-.6)*.45);
+    o.L.rotation.z=inner; o.R.rotation.z=-inner; o.L.hand.rotation.z=outer; o.R.hand.rotation.z=outer; });
+}
 
 function applyPalette(){
   const su=skyMat.uniforms; su.top.value.set(PAL.top); su.hor.value.set(PAL.hor); su.bot.value.set(PAL.bot); su.sunCol.value.set(PAL.sun); su.cLit.value.set(PAL.cLit); su.night.value=PAL.nw;
@@ -1183,8 +1210,7 @@ function animateWorld(t,dt){
   U.time.value=t;
   cloudGroup.rotation.y+=dt*.0035;
   swayers.forEach(s=>{ s.o.rotation.z=Math.sin(t*.8+s.ph)*.012; s.o.rotation.x=Math.sin(t*.6+s.ph*1.3)*.01; });
-  birds.forEach(o=>{ if(!o.b.visible) return; const a=t*o.sp+o.off; o.b.position.set(Math.cos(a)*o.rad,o.h+Math.sin(t*.4+o.ph)*1.2,Math.sin(a)*o.rad);
-    o.b.rotation.y=-a; const f=Math.sin(t*5+o.ph)*.55; o.L.rotation.z=f; o.R.rotation.z=-f; });
+  animateBirds(t);
   if(PAL.fire) fireLight.intensity=PAL.fire*(5.5+Math.sin(t*9)*.8+Math.sin(t*23)*.5);
 }
 
