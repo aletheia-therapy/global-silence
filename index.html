@@ -1192,37 +1192,98 @@ function animateWorld(t,dt){
 const SKIN='#f2cba8';
 /* the old man by the fire — an NPC who tells people about this place */
 const elder=(()=>{
-  const M=(c,r=.85)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
-  const robe='#7a5a42', robe2='#5e4433', grey='#e4e1da', skin='#e2b48f';
+  const M=(c,r=.85,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...o});
+  const robe='#6e4f37', robeDk='#563d2b', cloak='#7a5638', lining='#b08a5e', white='#f1eee8', whiteSh='#dcd7ce', skin='#f2c9a0';
   const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
-  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.22,.26,4,12),M(robe)); torso.position.y=.24; body.add(torso);
-  const shawl=new THREE.Mesh(new THREE.TorusGeometry(.2,.06,8,18),M(robe2)); shawl.rotation.x=Math.PI/2; shawl.position.y=.44; body.add(shawl);
-  const head=new THREE.Group(); head.position.y=.7; body.add(head);
-  head.add(new THREE.Mesh(new THREE.SphereGeometry(.26,24,18),M(skin,.6)));
-  const hair=new THREE.Mesh(new THREE.SphereGeometry(.27,20,12,0,Math.PI*2,Math.PI*.3,Math.PI*.42),M(grey,.9)); hair.rotation.x=.25; head.add(hair);
-  const bun=new THREE.Mesh(new THREE.SphereGeometry(.09,12,10),M(grey,.9)); bun.position.set(0,.27,-.06); head.add(bun);
-  const beard=new THREE.Mesh(new THREE.ConeGeometry(.15,.32,12),M(grey,.95)); beard.rotation.x=Math.PI; beard.position.set(0,-.24,.15); head.add(beard);
-  const brow=M(grey,.9); [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.BoxGeometry(.05,.012,.02),M('#3a2c24',.4)); e.position.set(sx*.09,.02,.25); head.add(e);
-    const b=new THREE.Mesh(new THREE.BoxGeometry(.08,.025,.02),brow); b.position.set(sx*.095,.075,.245); b.rotation.z=-sx*.25; head.add(b); });
-  const limb=(r,l,c,parent,x,y,z=0)=>{ const p=new THREE.Group(); p.position.set(x,y,z); parent.add(p); const m=new THREE.Mesh(new THREE.CapsuleGeometry(r,l,4,8),M(c)); m.position.y=-(l/2+r*.6); p.add(m); return p; };
-  const armL=limb(.07,.2,robe,body,.27,.4), armR=limb(.07,.2,robe,body,-.27,.4);
-  [armL,armR].forEach(a=>{ const h=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),M(skin,.6)); h.position.y=-.34; a.add(h); });
-  const legs=[.11,-.11].map(x=>{ const hip=limb(.085,.12,robe2,body,x,.02); const knee=new THREE.Group(); knee.position.y=-.22; hip.add(knee);
-    const sh=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.16,4,8),M(robe2)); sh.position.y=-.14; knee.add(sh);
-    const f=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),M('#3b302a',.7)); f.scale.set(1,.7,1.4); f.position.set(0,-.27,.05); knee.add(f);
-    hip.rotation.x=-1.5; knee.rotation.x=1.45; return hip; });
-  armL.rotation.set(-1.05,0,.18); armR.rotation.set(-1.05,0,-.18); // hands held out toward the warmth
-  // a walking staff leaning on the log
-  const staff=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,1.5,6),M('#6b4a2e',.9)); staff.position.set(.45,.55,.1); staff.rotation.z=-.22; g.add(staff);
-  g.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
-  return {g,body,torso,head,armL,armR};
+  // tattered edge: push the bottom ring of an open cylinder up and down in little rags
+  const ragged=(geo,amp,seed)=>{ const p=geo.attributes.position, h=geo.parameters.height/2;
+    for(let i=0;i<p.count;i++){ if(p.getY(i)<-h+.001){ const a=Math.atan2(p.getZ(i),p.getX(i)); p.setY(i,p.getY(i)+amp*(.5+.5*Math.sin(a*11+seed))*(.6+.4*Math.sin(a*5+seed*2))); } }
+    geo.computeVertexNormals(); return geo; };
+
+  // the robe: a plump seated body
+  const torso=new THREE.Mesh(new THREE.SphereGeometry(.3,24,18),M(robe)); torso.scale.set(1,1.12,.86); torso.position.y=.27; body.add(torso);
+  const belly=new THREE.Mesh(new THREE.SphereGeometry(.27,20,14),M(robe)); belly.scale.set(1,.7,.9); belly.position.set(0,.06,.04); body.add(belly);
+
+  // legs folded forward over the log, the robe draped over the lap
+  const legs=[.13,-.13].map(x=>{ const hip=new THREE.Group(); hip.position.set(x,.04,.02); body.add(hip);
+    const th=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.2,4,12),M(robe)); th.rotation.x=Math.PI/2; th.position.z=.16; hip.add(th);
+    const knee=new THREE.Group(); knee.position.z=.3; hip.add(knee);
+    const sh=new THREE.Mesh(ragged(new THREE.CylinderGeometry(.12,.17,.32,16,1,true),.05,x*20),M(robe,.9,{side:THREE.DoubleSide})); sh.position.y=-.15; knee.add(sh);
+    const f=new THREE.Mesh(new THREE.SphereGeometry(.09,12,10),M('#4a3426',.75)); f.scale.set(1.05,.62,1.45); f.position.set(0,-.38,.06); knee.add(f);
+    return hip; });
+
+  // hooded cloak over the shoulders: lighter lining inside, ragged hem, open at the front
+  const cGeo=ragged(new THREE.CylinderGeometry(.24,.44,.62,28,1,true,Math.PI*.62,Math.PI*1.76),.12,1.3);
+  const cl=new THREE.Mesh(cGeo,M(cloak,.95,{side:THREE.FrontSide})); cl.position.y=.25; body.add(cl);
+  const cIn=new THREE.Mesh(cGeo,M(lining,.95,{side:THREE.BackSide})); cIn.position.y=.25; body.add(cIn);
+  // the cloak's front edges fold back to show the lining
+  [-1,1].forEach(sx=>{ const lapel=new THREE.Mesh(new THREE.CapsuleGeometry(.04,.4,4,8),M(lining,.95)); lapel.scale.set(1.4,1,.5); lapel.position.set(sx*.21,.26,.25); lapel.rotation.set(.15,sx*.4,sx*.25); body.add(lapel); });
+  const collar=new THREE.Mesh(new THREE.TorusGeometry(.22,.06,10,24,Math.PI*1.4),M(cloak,.95)); collar.rotation.set(Math.PI/2,0,Math.PI*.3+Math.PI/2); collar.position.set(0,.53,-.02); body.add(collar);
+
+  // head
+  const head=new THREE.Group(); head.position.set(0,.84,.02); body.add(head);
+  const face=new THREE.Mesh(new THREE.SphereGeometry(.3,32,24),M(skin,.55)); face.scale.set(1,.97,.95); head.add(face);
+  // ears peeking out
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.SphereGeometry(.06,12,10),M(skin,.55)); e.scale.set(.6,1,.8); e.position.set(sx*.29,-.02,0); head.add(e); });
+  // the hood, fallen back and bunched behind the neck
+  const hood=new THREE.Mesh(new THREE.SphereGeometry(.28,24,16),M(cloak,.95)); hood.scale.set(1.15,.72,.78); hood.position.set(0,.6,-.17); body.add(hood);
+  const hoodIn=new THREE.Mesh(new THREE.SphereGeometry(.2,20,12),M(lining,.95)); hoodIn.scale.set(1.1,.5,.5); hoodIn.position.set(0,.7,-.14); body.add(hoodIn);
+  // white hair swept back into a topknot, loose wisps at the temples
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(.31,28,16,0,Math.PI*2,0,Math.PI*.5),M(white,.9)); hair.rotation.x=-.72; hair.position.set(0,.02,-.03); head.add(hair);
+  const knot=new THREE.Mesh(new THREE.SphereGeometry(.11,16,12),M(white,.9)); knot.scale.set(1,1.08,1); knot.position.set(0,.33,-.08); head.add(knot);
+  const tie=new THREE.Mesh(new THREE.TorusGeometry(.07,.018,6,16),M('#6b5a48',.8)); tie.rotation.x=Math.PI/2-.35; tie.position.set(0,.26,-.06); head.add(tie);
+  [-1,1].forEach(sx=>{ for(let i=0;i<2;i++){ const w=new THREE.Mesh(new THREE.ConeGeometry(.035,.24,6),M(white,.9));
+    w.position.set(sx*(.27-i*.02),-.04-i*.04,-.05+i*.06); w.rotation.set(0,0,Math.PI+sx*(.12+i*.12)); head.add(w); } });
+  // closed, smiling eyes
+  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.TorusGeometry(.045,.011,6,14,Math.PI),M('#3b2a22',.4));
+    e.rotation.z=Math.PI; e.position.set(sx*.105,.035,.282); e.rotation.y=sx*.32; head.add(e); });
+  // big soft eyebrows drooping outward
+  [-1,1].forEach(sx=>{ const b=new THREE.Mesh(new THREE.SphereGeometry(.07,14,10),M(white,.9)); b.scale.set(1.35,.55,.6);
+    b.position.set(sx*.12,.105,.262); b.rotation.set(0,sx*.35,-sx*.32); head.add(b); });
+  // rosy cheeks and a round nose
+  [-1,1].forEach(sx=>{ const c=new THREE.Mesh(new THREE.CircleGeometry(.045,16),new THREE.MeshBasicMaterial({color:'#f0948a',transparent:true,opacity:.3})); c.position.set(sx*.18,-.035,.245); c.rotation.y=sx*.62; head.add(c); });
+  const nose=new THREE.Mesh(new THREE.SphereGeometry(.05,14,10),M('#eab48e',.5)); nose.scale.set(1.1,.9,.9); nose.position.set(0,-.035,.3); head.add(nose);
+  // moustache sweeping into the beard
+  [-1,1].forEach(sx=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(.07,14,10),M(white,.9)); m.scale.set(1.6,.62,.75); m.position.set(sx*.075,-.1,.285); m.rotation.z=sx*.42; head.add(m); });
+  // a long, flowing beard: soft lobes that taper to a point on the chest
+  const lobe=(w,len,col)=>{ const pr=[]; for(let i=0;i<=16;i++){ const t=i/16; pr.push(new THREE.Vector2(.001+w*Math.sin(Math.PI*(.5+.5*t))**.85*(1+.12*Math.sin(t*Math.PI)),-t*len)); }
+    return new THREE.Mesh(new THREE.LatheGeometry(pr,24),M(col,.92,{side:THREE.DoubleSide})); };
+  [[0,0,.21,.6,0,white],[-.09,.015,.13,.5,.22,whiteSh],[.09,.015,.13,.52,-.2,whiteSh],[-.035,.03,.1,.6,.08,white],[.05,.03,.09,.58,-.1,white]].forEach(([x,z,w,len,rz,c])=>{
+    const l=lobe(w,len,c); l.scale.set(1,1,.48); l.position.set(x,-.13,.21+z); l.rotation.set(-.36,0,rz); head.add(l); });
+  // arms resting on the knees
+  const limb=(x)=>{ const p=new THREE.Group(); p.position.set(x,.43,.02); body.add(p);
+    const sl=new THREE.Mesh(new THREE.CylinderGeometry(.075,.11,.36,12),M(robe)); sl.position.y=-.18; p.add(sl);
+    const cuff=new THREE.Mesh(new THREE.TorusGeometry(.085,.02,6,14),M(lining,.95)); cuff.rotation.x=Math.PI/2; cuff.position.y=-.35; p.add(cuff);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),M(skin,.55)); h.scale.set(1,.85,1.15); h.position.y=-.42; p.add(h); return p; };
+  const armL=limb(.27), armR=limb(-.27);
+  armL.rotation.set(-.95,.25,.02); armR.rotation.set(-.95,-.25,-.02);
+
+  // a gnarled walking staff with a hooked top, leaning by his side
+  const staff=new THREE.Group(); staff.position.set(-.48,-.38,.18); staff.rotation.set(-.05,0,.12); g.add(staff);
+  const wood=M('#6b4a2e',.9);
+  const pts=[[0,0,0],[.01,.5,0],[-.015,1.0,0],[.01,1.4,0],[0,1.58,0],[.08,1.68,0],[.17,1.65,0],[.2,1.56,0],[.17,1.49,0]].map(p=>new THREE.Vector3(...p));
+  staff.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),40,.03,8),wood));
+  for(let i=0;i<4;i++){ const r=new THREE.Mesh(new THREE.TorusGeometry(.037,.008,5,12),M('#c8a876',.9)); r.rotation.x=Math.PI/2; r.position.y=1.22+i*.025; staff.add(r); }
+  const cord=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,.16,4),M('#c8a876',.9)); cord.position.set(.035,1.13,0); staff.add(cord);
+  const bead=new THREE.Mesh(new THREE.SphereGeometry(.022,10,8),M('#4f8a6e',.35)); bead.position.set(.035,1.04,0); staff.add(bead);
+  const tassel=new THREE.Mesh(new THREE.ConeGeometry(.014,.05,6),M('#c8a876',.9)); tassel.rotation.x=Math.PI; tassel.position.set(.035,1.0,0); staff.add(tassel);
+
+  // a firefly that drifts around him
+  const fly=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),new THREE.MeshBasicMaterial({color:new THREE.Color('#ffd36a').multiplyScalar(3.2)}));
+  g.add(fly);
+
+  g.traverse(o=>{ if(o.isMesh&&o!==fly) o.castShadow=true; });
+  return {g,body,torso,head,armL,armR,fly};
 })();
 function placeElder(){ elder.g.position.set(ELDER_SEAT.x,ELDER_SEAT.y-.02,ELDER_SEAT.z); elder.g.rotation.y=ELDER_SEAT.face; scene.add(elder.g); }
 function animateElder(t){
-  elder.torso.scale.set(1,1+.02*Math.sin(t*1.05),1);
-  elder.head.rotation.x=.18+.05*Math.sin(t*.35);                // a slow, contemplative nod
-  elder.head.rotation.y=.12*Math.sin(t*.13);
-  const warm=Math.sin(t*.5)*.06; elder.armL.rotation.x=-1.05+warm; elder.armR.rotation.x=-1.05-warm;
+  const br=Math.sin(t*1.05); elder.torso.scale.set(1+.012*br,1.12+.025*br,.86);
+  elder.head.position.y=.84+.008*br;
+  elder.head.rotation.x=.06+.04*Math.sin(t*.35);                // a slow, contemplative nod
+  elder.head.rotation.y=.1*Math.sin(t*.13);
+  elder.head.rotation.z=.03*Math.sin(t*.21);
+  elder.fly.position.set(-.25+.32*Math.sin(t*.45),1.15+.18*Math.sin(t*.7+1),.35+.2*Math.cos(t*.38));
+  elder.fly.visible=Math.sin(t*2.3)>-.92;
 }
 function makeKid({gender='boy',robe='saffron'}){
   const M=(c,r=.8)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
@@ -2363,7 +2424,7 @@ function renderRank(){
 /* ===================== the elder: tag + approach ===================== */
 const elderTag=document.createElement('div'); elderTag.id='elderTag'; elderTag.textContent='關於靜默'; tagsEl.appendChild(elderTag);
 function drawElderTag(W,H){
-  const v=new THREE.Vector3(ELDER_SEAT.x,ELDER_SEAT.y+1.35,ELDER_SEAT.z), d=v.distanceTo(camera.position); v.project(camera);
+  const v=new THREE.Vector3(ELDER_SEAT.x,ELDER_SEAT.y+1.6,ELDER_SEAT.z), d=v.distanceTo(camera.position); v.project(camera);
   if(v.z>1||d>150){ elderTag.style.display='none'; return; } elderTag.style.display='';
   const sc=clamp(9/d,.6,1.15); elderTag.style.transform=`translate(${(v.x+1)/2*W}px,${(1-v.y)/2*H}px) translate(-50%,-100%) scale(${sc})`;
   elderTag.style.zIndex=String(1000-Math.round(d*10));
