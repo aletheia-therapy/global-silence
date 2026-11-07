@@ -948,7 +948,7 @@ function rock(x,z,s,sy=.7,rot=0){
   m.scale.set(1,sy,1.1); m.rotation.set(.15,rot,.08);
   m.position.set(x,hAt(x,z)+s*sy*.3,z); m.castShadow=m.receiveShadow=true; scene.add(m); OBST.push({x,z,r:s*.95,kind:'rock'});
 }
-[[-1.2,.78,1.3,.6],[2.4,.62,.9,.8],[-.3,.35,.7,.6],[1.2,.85,1.1,.55],[3.6,.7,.6,.9],[-2.7,.55,.55,.8]].forEach(([a,f,s,sy],i)=>{ const [x,z]=polar(a,f); rock(x,z,s,sy,i); });
+[[-1.2,.78,1.3,.6],[2.4,.62,.9,.8],[-.3,.35,.7,.6],[1.2,.85,1.1,.55],[1.95,.82,.6,.9],[-1.73,.66,.55,.8]].forEach(([a,f,s,sy],i)=>{ const [x,z]=polar(a,f); rock(x,z,s,sy,i); });
 const CAIRNS=[];
 function makeCairn(x,z,sizes,seed=0){ const y=hAt(x,z);
   sizes.reduce((h,rr,i)=>{ const m=new THREE.Mesh(new THREE.DodecahedronGeometry(rr,1),rockMats[(i+seed)%3]);
@@ -2565,7 +2565,7 @@ const HEART=['向內看，會在心中找到比這裡更好的風景。','看到
   '一顆石頭疊上一顆石頭，一個呼吸接著一個呼吸。','你走過的路，都在帶你回到這裡。','溫柔地對待此刻的自己。','煩惱來了，就讓它坐在旁邊。','山不催促雲，你也不必催促自己。',
   '把肩膀放下來，把心也放下來。','每一個安靜的片刻，都在默默照顧你。'];
 const heartCard=document.createElement('div'); heartCard.className='heart-card'; document.body.appendChild(heartCard);
-let heartAt=-1, lastHeart=-1, HSPOTS=null;
+let heartAt=-1, lastHeart=-1, HSPOTS=null, heartDeck=[];
 /* every stone on the summit speaks a line: the stacks, the big and middle rocks, the carved stones (their carved words stay too) and the ring round the pond */
 function heartSpots(){ return HSPOTS||(HSPOTS=[...CAIRNS.map(c=>({x:c.x,z:c.z,reach:2.6})),...OBST.filter(o=>o.kind==='rock').map(o=>({x:o.x,z:o.z,reach:o.r+1.7})),...steles.map(t=>({x:t.x,z:t.z,reach:2.4}))]); }
 function heartNear(){
@@ -2573,7 +2573,8 @@ function heartNear(){
   if(near<0&&self&&me.phase==='walk'){ const d=Math.hypot(self.x-POND.x,self.z-POND.z); if(d>POND.r-.6&&d<POND.r+1.3) near=999; } // the ring of stones round the pond counts as one, so walking along it keeps one line
   if(near===heartAt) return; heartAt=near;
   if(near<0){ heartCard.classList.remove('on'); return; }
-  let i; do{ i=Math.floor(Math.random()*HEART.length); }while(i===lastHeart); lastHeart=i;
+  if(!heartDeck.length){ heartDeck=HEART.map((_,k)=>k).sort(()=>Math.random()-.5); if(heartDeck[heartDeck.length-1]===lastHeart) heartDeck.unshift(heartDeck.pop()); }
+  const i=heartDeck.pop(); lastHeart=i; // a shuffled deck: no line comes back until every line has been read
   heartCard.innerHTML=`<div class="hk">心之語</div><div class="ht">${HEART[i].replace(/，/g,'，<br>').replace(/([。；])(?=.)/g,'$1<br>')}</div>`; // lines are our own text, safe to break at commas
   heartCard.classList.add('on');
 }
@@ -2833,7 +2834,7 @@ function stepTentAnim(){
 function leaveTent(){ const t=inTent; if(!t) return; inTent=null; t.open=1; t.openT=1; setTimeout(()=>{ if(inTent!==t) t.openT=0; },1400);
   self.x=t.ex; self.z=t.ez; self.r=t.rot; }
 if(QS.get('debug')) window.__comp={ skip:(n)=>self?.comp?.list.forEach(c=>c.age+=n), list:()=>(self?.comp?.list||[]).map(c=>({kind:c.kind,x:+c.g.position.x.toFixed(2),z:+c.g.position.z.toFixed(2),mode:c.st?.mode})) };
-if(QS.get('debug')) window.__gs={reach:(m)=>{ srv.minSecs=m*60; srvApply({code:"GS-TEST",seconds:m*60}); },note:(t)=>{ $("sitNote").textContent=t; $("sitNote").classList.remove("hidden"); },cairns:()=>CAIRNS.map(c=>[+c.x.toFixed(1),+c.z.toFixed(1)]),obst:()=>OBST.map(o=>[o.kind,+o.x.toFixed(1),+o.z.toFixed(1)]),tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r,sitP:self.sitP,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,lot:lotuses.map(l=>[+l.x.toFixed(2),+l.z.toFixed(2),!!l.drift,+(l.open||0).toFixed(2)])})};
+if(QS.get('debug')) window.__gs={polar:(a,f)=>polar(a,f),reach:(m)=>{ srv.minSecs=m*60; srvApply({code:"GS-TEST",seconds:m*60}); },note:(t)=>{ $("sitNote").textContent=t; $("sitNote").classList.remove("hidden"); },cairns:()=>CAIRNS.map(c=>[+c.x.toFixed(1),+c.z.toFixed(1)]),obst:()=>OBST.map(o=>[o.kind,+o.x.toFixed(1),+o.z.toFixed(1)]),tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r,sitP:self.sitP,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,lot:lotuses.map(l=>[+l.x.toFixed(2),+l.z.toFixed(2),!!l.drift,+(l.open||0).toFixed(2)])})};
 function animateTents(dt){ stepTentAnim();
   TENTS.forEach(t=>{ t.open+=(t.openT-t.open)*Math.min(1,dt*3.2); t.door.rotation.y=t.open*1.2; }); }
 
