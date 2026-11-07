@@ -2566,11 +2566,11 @@ const HEART=['向內看，會在心中找到比這裡更好的風景。','看到
   '把肩膀放下來，把心也放下來。','每一個安靜的片刻，都在默默照顧你。'];
 const heartCard=document.createElement('div'); heartCard.className='heart-card'; document.body.appendChild(heartCard);
 let heartAt=-1, lastHeart=-1, HSPOTS=null;
-/* every stack of stones and every big or middle-sized rock speaks a line (the carved stones keep their own words) */
-function heartSpots(){ return HSPOTS||(HSPOTS=[...CAIRNS.map(c=>({x:c.x,z:c.z,reach:2.6})),...OBST.filter(o=>o.kind==='rock').map(o=>({x:o.x,z:o.z,reach:o.r+1.7}))]); }
+/* every stone on the summit speaks a line: the stacks, the big and middle rocks, the carved stones (their carved words stay too) and the ring round the pond */
+function heartSpots(){ return HSPOTS||(HSPOTS=[...CAIRNS.map(c=>({x:c.x,z:c.z,reach:2.6})),...OBST.filter(o=>o.kind==='rock').map(o=>({x:o.x,z:o.z,reach:o.r+1.7})),...steles.map(t=>({x:t.x,z:t.z,reach:2.4}))]); }
 function heartNear(){
   let near=-1; if(self&&me.phase==='walk') heartSpots().forEach((c,i)=>{ if(Math.hypot(self.x-c.x,self.z-c.z)<c.reach) near=i; });
-  if(near>=0&&steles.some(t=>Math.hypot(self.x-t.x,self.z-t.z)<2.4)) near=-1; // right by a carved stone, let its own words speak
+  if(near<0&&self&&me.phase==='walk'){ const d=Math.hypot(self.x-POND.x,self.z-POND.z); if(d>POND.r-.6&&d<POND.r+1.3) near=999; } // the ring of stones round the pond counts as one, so walking along it keeps one line
   if(near===heartAt) return; heartAt=near;
   if(near<0){ heartCard.classList.remove('on'); return; }
   let i; do{ i=Math.floor(Math.random()*HEART.length); }while(i===lastHeart); lastHeart=i;
