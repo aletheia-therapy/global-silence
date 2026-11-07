@@ -100,6 +100,8 @@ body.on-intro #mtTotal{top:calc(16px + var(--safe-t))}
 body.on-intro #evPill{display:none}
 #mus{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(122px + var(--safe-t));z-index:7;display:flex;flex-direction:column;align-items:flex-end}
 body.on-intro #mus{display:none}
+#btnCert{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));top:calc(160px + var(--safe-t));z-index:6;padding:7px 12px;border-radius:999px;font-size:13px;color:var(--gold);background:rgba(14,20,30,.55);border:1px solid rgba(232,195,122,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+body.on-intro #btnCert{display:none}
 #btnMusic{display:flex;align-items:center;gap:6px;background:rgba(14,20,30,.5);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border-radius:999px;padding:5px 11px;font-size:12px;color:var(--ink-dim)}
 #btnMusic .eq{display:inline-flex;align-items:flex-end;gap:2px;height:11px}
@@ -386,6 +388,7 @@ body.on-intro #lb{display:none}
 <div id="loading">山正在成形…</div>
 
 <button id="evPill" class="hidden"></button>
+<button id="btnCert" class="hidden">🎫 我的完成碼</button>
 <div id="mus"><button id="btnMusic" aria-label="背景音樂"><span class="eq"><b></b><b></b><b></b></span><span id="musLbl">音樂</span></button>
   <div id="musPanel" class="hidden">
     <div class="mp-row"><span>背景音樂</span><button class="sw-t" id="musToggle" aria-label="開關背景音樂"></button></div>
@@ -606,6 +609,11 @@ body.on-intro #lb{display:none}
   <p class="g-fine">24:00（台灣時間）前開始坐都算數</p>
   <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:0">加入 LINE 群</a>
   <button class="btn-main" id="guideOk" style="margin-top:10px">好，去坐下</button>
+</div></div>
+<div class="modal hidden" id="mCert"><div class="modal-in" style="text-align:center">
+  <h2 class="m-title" style="font-size:20px">🎫 我的完成碼</h2>
+  <div id="certList" style="display:flex;flex-direction:column;gap:12px;margin-top:8px;max-height:62vh;overflow-y:auto"></div>
+  <button class="btn-main" id="certClose" style="margin-top:14px">回到山上</button>
 </div></div>
 <div class="modal hidden" id="mBadges"><div class="modal-in">
   <h2 class="m-title" style="font-size:20px;text-align:center">靜坐里程碑</h2>
@@ -2249,12 +2257,21 @@ function alertBox(html){ const d=document.createElement('div'); d.style.cssText=
 const twTime=t=>new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(t);
 function certHTML(startedAt){
   if(!srv.code) return '';
-  const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const test=srv.event==='rehearsal';
-  return `<div class="cert"><div class="ck">${test?'彩排測試・完成證明':'第一場線上共修活動・完成證明'}</div><div class="cc">${esc(srv.code)}</div>
-    <div class="cn">${esc(me.name)}・${esc(me.country)}</div><div class="ct">${twTime(startedAt)} – ${twTime(Date.now()).slice(-5)}（台灣時間）・伺服器確認 ${srv.secs<60?srv.secs+' 秒':Math.floor(srv.secs/60)+' 分鐘'}</div>
-    <div class="cs">${test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div></div>`;
+  const d={code:srv.code, test:srv.event==='rehearsal'||/^TEST/.test(srv.code), name:me.name, country:me.country, when:`${twTime(startedAt)} – ${twTime(Date.now()).slice(-5)}`, secs:srv.secs};
+  saveCert(d); return certFromData(d,true);
 }
+function certFromData(d,live){
+  const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  return `<div class="cert"><div class="ck">${d.test?'彩排測試・完成證明':'第一場線上共修活動・完成證明'}</div><div class="cc">${esc(d.code)}</div>
+    <div class="cn">${esc(d.name)}・${esc(d.country)}</div><div class="ct">${esc(d.when)}（台灣時間）・伺服器確認 ${d.secs<60?d.secs+' 秒':Math.floor(d.secs/60)+' 分鐘'}</div>
+    <div class="cs">${d.test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div>${live?'<div class="cs" style="opacity:.75;margin-top:4px">之後也可以按右上角「🎫 我的完成碼」再打開</div>':''}</div>`;
+}
+/* your completion codes stay on this phone, so closing the end screen too fast never loses one */
+function saveCert(d){ const l=store.get('certs',[]); const i=l.findIndex(x=>x.code===d.code); if(i>=0) l[i]=d; else l.push(d); store.set('certs',l.slice(-10)); certBtn(); }
+function certBtn(){ $('btnCert').classList.toggle('hidden',!store.get('certs',[]).length); }
+$('btnCert').onclick=()=>{ const l=store.get('certs',[]).slice().reverse(); $('certList').innerHTML=l.map(d=>certFromData(d,false)).join(''); $('mCert').classList.remove('hidden'); };
+$('certClose').onclick=()=>$('mCert').classList.add('hidden');
+certBtn();
 
 let actx;
 /* background music: starts with the tap on 上山, remembers on/off and volume per phone.
