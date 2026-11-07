@@ -1234,14 +1234,13 @@ const elder=(()=>{
   const tie=new THREE.Mesh(new THREE.TorusGeometry(.07,.018,6,16),M('#6b5a48',.8)); tie.rotation.x=Math.PI/2-.35; tie.position.set(0,.26,-.06); head.add(tie);
   [-1,1].forEach(sx=>{ for(let i=0;i<2;i++){ const w=new THREE.Mesh(new THREE.ConeGeometry(.035,.24,6),M(white,.9));
     w.position.set(sx*(.27-i*.02),-.04-i*.04,-.05+i*.06); w.rotation.set(0,0,Math.PI+sx*(.12+i*.12)); head.add(w); } });
-  // closed, smiling eyes
-  [-1,1].forEach(sx=>{ const e=new THREE.Mesh(new THREE.TorusGeometry(.045,.011,6,14,Math.PI),M('#3b2a22',.4));
-    e.rotation.z=Math.PI; e.position.set(sx*.105,.035,.282); e.rotation.y=sx*.32; head.add(e); });
+  // eyes gently closed and lowered, like a sitting Buddha: a long, nearly flat lid line, outer corners a touch lower
+  [-1,1].forEach(sx=>{ const R=.16, arc=.5, p=new THREE.Group(); p.position.set(sx*.105,.02,.284); p.rotation.set(0,sx*.32,-sx*.08); head.add(p);
+    const e=new THREE.Mesh(new THREE.TorusGeometry(R,.008,6,16,arc),M('#3b2a22',.45)); e.rotation.z=-Math.PI/2-arc/2; e.position.y=R; p.add(e); });
   // big soft eyebrows drooping outward
   [-1,1].forEach(sx=>{ const b=new THREE.Mesh(new THREE.SphereGeometry(.07,14,10),M(white,.9)); b.scale.set(1.35,.55,.6);
     b.position.set(sx*.12,.105,.262); b.rotation.set(0,sx*.35,-sx*.32); head.add(b); });
-  // rosy cheeks and a round nose
-  [-1,1].forEach(sx=>{ const c=new THREE.Mesh(new THREE.CircleGeometry(.045,16),new THREE.MeshBasicMaterial({color:'#f0948a',transparent:true,opacity:.3})); c.position.set(sx*.18,-.035,.245); c.rotation.y=sx*.62; head.add(c); });
+  // a round nose
   const nose=new THREE.Mesh(new THREE.SphereGeometry(.05,14,10),M('#eab48e',.5)); nose.scale.set(1.1,.9,.9); nose.position.set(0,-.035,.3); head.add(nose);
   // moustache sweeping into the beard
   [-1,1].forEach(sx=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(.07,14,10),M(white,.9)); m.scale.set(1.6,.62,.75); m.position.set(sx*.075,-.1,.285); m.rotation.z=sx*.42; head.add(m); });
