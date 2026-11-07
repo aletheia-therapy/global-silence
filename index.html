@@ -2567,7 +2567,7 @@ const HEART=['向內看，會在心中找到比這裡更好的風景。','看到
 const heartCard=document.createElement('div'); heartCard.className='heart-card'; document.body.appendChild(heartCard);
 let heartAt=-1, lastHeart=-1, HSPOTS=null, heartDeck=[];
 /* every stone on the summit speaks a line: the stacks, the big and middle rocks, the carved stones (their carved words stay too) and the ring round the pond */
-function heartSpots(){ return HSPOTS||(HSPOTS=[...CAIRNS.map(c=>({x:c.x,z:c.z,reach:2.6})),...OBST.filter(o=>o.kind==='rock').map(o=>({x:o.x,z:o.z,reach:o.r+1.7})),...steles.map(t=>({x:t.x,z:t.z,reach:2.4}))]); }
+function heartSpots(){ return HSPOTS||(HSPOTS=[...CAIRNS.map(c=>({x:c.x,z:c.z,reach:2.6})),...OBST.filter(o=>o.kind==='rock').map(o=>({x:o.x,z:o.z,reach:o.r+1.7})),...steles.filter((t,i)=>STELES[i][0]!=='聽，安靜也有聲音').map(t=>({x:t.x,z:t.z,reach:2.4}))]); } // the stone by the arrival spot keeps only its own carved words
 function heartNear(){
   let near=-1; if(self&&me.phase==='walk') heartSpots().forEach((c,i)=>{ if(Math.hypot(self.x-c.x,self.z-c.z)<c.reach) near=i; });
   if(near<0&&self&&me.phase==='walk'){ const d=Math.hypot(self.x-POND.x,self.z-POND.z); if(d>POND.r-.6&&d<POND.r+1.3) near=999; } // the ring of stones round the pond counts as one, so walking along it keeps one line
