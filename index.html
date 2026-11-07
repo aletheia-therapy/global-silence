@@ -1916,29 +1916,41 @@ function worldTotal(){ const v=mountainTotalAll(); if(isFinite(v)) worldPeak=Mat
 function updateTotal(){ $('mtVal').textContent=longFmt(worldTotal()); }
 setInterval(updateTotal,1000);
 
-/* 全球靜默時刻: every time the whole mountain passes another full hour — a quiet 10-second countdown, then silent fireworks */
+/* 全球靜默時刻: every time the whole mountain passes another full hour — a quiet 10-second countdown, then silent fireworks.
+   Only while someone is actually sitting, and the fireworks wait until the total has really reached the hour:
+   if everyone stands up during the countdown it stops quietly and waits for the next real crossing. */
 let hourSeen=null, lastTot=0, fwBusy=false;
+function sittingNow(){ const freeOn=!!(srv.board&&'free' in srv.board);
+  return [...peers.values()].filter(p=>(p.info.phase==='sit'&&!p.info.paused)||(freeOn&&p.info.phase==='free')).length+((me.phase==='sit'&&!me.paused)||(freeOn&&me.phase==='free')?1:0); }
 setInterval(()=>{
-  if(me.phase==='intro'||fwBusy) return; const t=worldTotal(); if(!isFinite(t)||t<=0) return;
+  if(me.phase==='intro'||fwBusy) return; if(!srv.board&&srv.ok!==false) return; // wait for the real world total before judging hours
+  const t=worldTotal(); if(!isFinite(t)||t<=0) return;
   const h=Math.floor(t/3600), rising=t>lastTot+.05; lastTot=t;
-  if(hourSeen===null){ hourSeen=Math.max(h,store.get('fwHour',0)); return; }
+  if(hourSeen===null){ hourSeen=h; store.set('fwHour',h); return; } // start from the hour we are really in (never from a remembered one that was celebrated too early)
   const step=fwEvery(), M=Math.floor(h/step)*step, N=M+step, cool=Date.now()-store.get('fwAt',0)>10*60000;
-  if(M>hourSeen){ const near=M-hourSeen<=step; hourSeen=M; store.set('fwHour',M); if(near&&cool) celebrateHour(M); return; } // jumped past without a countdown (a far jump, e.g. when the group-sit window ends, passes quietly)
+  if(M>hourSeen){ const near=M-hourSeen<=step; hourSeen=M; store.set('fwHour',M); if(near&&cool&&sittingNow()>0) celebrateHour(M); return; } // a far jump passes quietly
   const left=N*3600-t;
-  if(N>hourSeen&&rising&&left<=12&&left>0){ hourSeen=N; store.set('fwHour',N); if(cool) runCountdown(N); } // each milestone only once, ever; one inside the 10-minute rest passes quietly
+  if(N>hourSeen&&rising&&sittingNow()>0&&left<=12&&left>0){ hourSeen=N; store.set('fwHour',N); if(cool) runCountdown(N); } // one inside the 10-minute rest passes quietly
 },250);
 /* during the Sunday group sit (20:50–24:00 Taiwan time) the mountain fills fast, so only every 10 hours; otherwise every hour */
 function fwEvery(){ const tw=new Date(Date.now()+8*3600000), m=tw.getUTCHours()*60+tw.getUTCMinutes(); return tw.getUTCDay()===0&&m>=20*60+50?10:1; }
+function cancelCountdown(hr){ $('hourCd').classList.remove('on'); hourSeen=hr-fwEvery(); store.set('fwHour',hourSeen); fwBusy=false; }
 function runCountdown(hr){ // the words stay still; only the number changes, one step every 1.2 s
   fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent=`全球累積靜默，即將滿 ${hr} 小時`;
-  let n=10; const tick=()=>{ if(n>0){ el.querySelector('.hc-n').textContent=n--; el.classList.add('on'); setTimeout(tick,1200); } else { el.classList.remove('on'); celebrateHour(hr); } }; tick();
+  let n=10, wait=0; const tick=()=>{
+    if(me.phase==='intro'||sittingNow()===0){ cancelCountdown(hr); return; } // everyone stood up: the hour isn't reached, so no fireworks
+    if(n>0){ el.querySelector('.hc-n').textContent=n--; el.classList.add('on'); setTimeout(tick,1200); return; }
+    if(worldTotal()>=hr*3600-1){ el.classList.remove('on'); celebrateHour(hr); return; }
+    if(++wait>25){ cancelCountdown(hr); return; } // still short after ~30 s more: let it pass and try again at the real crossing
+    el.querySelector('.hc-n').textContent='🙏'; setTimeout(tick,1200); };
+  tick();
 }
 function hideCountdown(){ $('hourCd').classList.remove('on'); }
 function celebrateHour(h){
   fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
   startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
-if(QS.get('fwtest')) setTimeout(()=>{ const t=mountainTotalAll(); runCountdown(isFinite(t)?Math.floor(t/3600)+1:1); },6000); // preview
+if(QS.get('fwtest')) setTimeout(()=>{ const t=mountainTotalAll(); celebrateHour(isFinite(t)?Math.floor(t/3600)+1:1); },6000); // preview
 
 /* left-side leaderboard: top 10 by lifetime silence, plus your own place if you're further down */
 function shortFmt(sec){ sec=Math.floor(sec); if(sec<60) return `${sec}秒`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
