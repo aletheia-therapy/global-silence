@@ -1669,7 +1669,10 @@ class Person{
   }
   setSnap(url){ this.imgEl.src=url; this.hasImg=true; }
   get phase(){ return this.remote?this.info.phase:me.phase; }
-  get stale(){ return this.remote&&!!this.halfSince&&Date.now()-this.halfSince>10*60000; } // someone left half-seated (old page, walked away): stop showing them
+  get stale(){ if(!this.remote) return false;
+    const ph=this.info.phase, seated=ph==='sit'||ph==='free';
+    if(this.info.away&&!seated) return true; // their screen is off / they switched to another app: don't leave a ghost standing on the mountain
+    return !!this.halfSince&&Date.now()-this.halfSince>(ph==='pose'?3:10)*60000; } // someone left half-seated (old page, walked away): stop showing them
   update(dt,t){
     // speed = how far we moved since the last frame (your own character is moved before this runs, so measure across frames)
     const px=this.lastX??this.x, pz=this.lastZ??this.z;
@@ -1767,12 +1770,15 @@ netReady.then(()=>{
   setTimeout(()=>{ myLedgerSync(); aLed.send(ledger); },1500);
   room.onPeerJoin=id=>{ myLedgerSync(); aLed.send(ledger,{target:id}); if(me.phase!=='intro'){ aSt.send(myState(),{target:id}); if(me.phase==='sit'&&lastSnap) aSnap.send(lastSnap,{target:id}); } };
   room.onPeerLeave=id=>{ peers.get(id)?.dispose(); peers.delete(id); updateHud(); };
+  const halfSeen=new Map();
   aSt.onMessage=(d,{peerId})=>{
     if(!d||typeof d!=='object') return; const s=sanitize(d); if(!s) return;
     let p=peers.get(peerId);
     if(!p){ p=new Person(s,true); p.peerId=peerId; p.x=p.tx=s.x; p.z=p.tz=s.z; peers.set(peerId,p); }
     else { const sitNow=s.phase==='sit'||s.phase==='free', sitBefore=p.info.phase==='sit'||p.info.phase==='free'; if(sitNow&&(!sitBefore||s.phase!==p.info.phase)) s.sitStartedAt=Date.now(); p.setInfo(s); p.tx=s.x; p.tz=s.z; p.tr=s.r; }
-    if(s.phase==='pose'||s.phase==='cam'){ if(!p.halfSince) p.halfSince=Date.now(); } else p.halfSince=0;
+    { const key=s.uid||peerId, hk=key+'|'+s.phase;
+      if(s.phase==='pose'||s.phase==='cam'){ if(!p.halfSince) p.halfSince=halfSeen.get(hk)||Date.now(); halfSeen.set(hk,p.halfSince); }
+      else { p.halfSince=0; halfSeen.delete(key+'|pose'); halfSeen.delete(key+'|cam'); } }
     p.info.recvAt=performance.now(); p.lastSeen=Date.now(); if(s.uid&&s.uid!==UID&&ledgerPut(s.uid,s.total,s.name,s.country)) ledgerSave(); updateHud();
   };
   aPos.onMessage=(d,{peerId})=>{ const p=peers.get(peerId); if(!p||!d) return;
@@ -1788,10 +1794,10 @@ function sanitize(d){
     gender:d.gender==='girl'?'girl':'boy', robe:ROBES[d.robe]?d.robe:'saffron',
     x:num(d.x,-40,40), z:num(d.z,-40,40,14), r:num(d.r,-20,20), lean:!!d.lean,
     phase:['walk','pose','cam','sit','free'].includes(d.phase)?d.phase:'walk',
-    sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'' };
+    sitSec:num(d.sitSec,0,86400), paused:s(d.paused,20), total:num(d.total,0,1e7), uid:/^[a-z0-9]{8,24}$/.test(d.uid)?d.uid:'', away:d.away===true };
 }
 function myState(){ return {name:me.name,country:me.country,method:me.method,gender:me.gender,robe:me.robe,
-  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:(me.phase==='enter'||me.phase==='plant')?'walk':me.phase,sitSec:me.phase==='free'?Math.floor(freeSec):me.sitSec,paused:me.paused,total:me.total,uid:UID}; }
+  x:self?.x??0,z:self?.z??14,r:self?.r??0,lean:me.lean,phase:(me.phase==='enter'||me.phase==='plant')?'walk':me.phase,sitSec:me.phase==='free'?Math.floor(freeSec):me.sitSec,paused:me.paused,total:me.total,uid:UID,away:document.hidden}; }
 function sendState(){ if(aSt&&me.phase!=='intro') aSt.send(myState()); }
 setInterval(sendState,STATE_MS);
 setInterval(()=>{ myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger); },30000);
@@ -2055,6 +2061,9 @@ function standUp(){ if(inTent) leaveTent(); stopFree(); freeSec=0; cameFromFree=
 let cineT=null;
 let lastAct=performance.now(); ['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{ lastAct=performance.now(); },{passive:true,capture:true}));
 let camPhaseSince=0;
+let posePhaseSince=0;
+setInterval(()=>{ if(me.phase!=='pose'){ posePhaseSince=0; return; } const n=performance.now(); if(!posePhaseSince) posePhaseSince=n;
+  if(n-Math.max(lastAct,posePhaseSince)>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏'); } },10000);
 setInterval(()=>{ if(me.phase!=='cam'){ camPhaseSince=0; return; } const n=performance.now(); if(!camPhaseSince) camPhaseSince=n;
   if(n-Math.max(lastAct,camPhaseSince)>10*60000){ standUp(); toast('停留太久沒有動作，先幫你起身了。想坐的時候，再坐下就好 🙏'); } },15000);
 /* pick an orbit angle near `base` with no tree crown between the camera and the sitter */
@@ -2242,7 +2251,9 @@ function tick(){
   updateHud();
 }
 document.addEventListener('visibilitychange',async()=>{
+  sendState();
   if(document.hidden){ hiddenAt=Date.now(); return; }
+  if(me.phase==='pose'&&Date.now()-hiddenAt>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏'); }
   if(me.phase==='sit'){
     if(Date.now()-hiddenAt>FACE_LIMIT*1000){ rise('離開畫面超過一分鐘，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
     lastFaceAt=performance.now();
