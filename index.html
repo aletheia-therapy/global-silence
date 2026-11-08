@@ -1933,7 +1933,7 @@ setInterval(()=>{
   if(N>hourSeen&&rising&&sittingNow()>0&&left<=12&&left>0){ hourSeen=N; store.set('fwHour',N); if(cool) runCountdown(N); } // one inside the 10-minute rest passes quietly
 },250);
 /* during the Sunday group sit (20:50–24:00 Taiwan time) the mountain fills fast, so only every 10 hours; otherwise every hour */
-function fwEvery(){ const tw=new Date(Date.now()+8*3600000), m=tw.getUTCHours()*60+tw.getUTCMinutes(); return tw.getUTCDay()===0&&m>=20*60+50?10:1; }
+function fwEvery(){ const tw=new Date(Date.now()+8*3600000), m=tw.getUTCHours()*60+tw.getUTCMinutes(); if(tw.getUTCDay()===0&&m>=20*60+50) return 10; const n=Date.now(); return EXTRA_SITS.some(t=>n>=t-10*60000&&n<t+3*36e5)?10:1; }
 function cancelCountdown(hr){ $('hourCd').classList.remove('on'); hourSeen=hr-fwEvery(); store.set('fwHour',hourSeen); fwBusy=false; }
 function runCountdown(hr){ // the words stay still; only the number changes, one step every 1.2 s
   fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent=`全球累積靜默，即將滿 ${hr} 小時`;
@@ -2595,7 +2595,7 @@ const WISDOM=["閉上眼睛，放下一切，不追求平靜，不追求開悟�
 let lastW=-1;
 function pickWisdom(){ let i; do{ i=Math.floor(Math.random()*WISDOM.length); }while(i===lastW&&WISDOM.length>1); lastW=i;
   const p=$('abWisdom'); p.textContent=WISDOM[i]; p.style.animation='none'; void p.offsetWidth; p.style.animation=''; }
-function openAbout(){ pickWisdom(); $('abNext').textContent=`${twDay(nextWeekly())} 晚上 9:00`; $('mAbout').classList.remove('hidden'); }
+function openAbout(){ pickWisdom(); { const n=nextSit(); $('abNext').textContent=`${sitWhen(n)}${n.extra?'（加開場次）':''}`; } $('mAbout').classList.remove('hidden'); }
 $('elderYes').onclick=()=>{ elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; openAbout(); bell(.25); };
 $('abClose').onclick=()=>$('mAbout').classList.add('hidden');
 
@@ -2605,15 +2605,21 @@ placeElder();
 const WEEKLY_LIVE=90*60*1000;
 function nextWeekly(after=Date.now()){ const d=new Date(after); let t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),13,0);
   for(let i=0;i<8;i++,t+=864e5){ if(new Date(t).getUTCDay()===0&&t>after) return t; } return t; }
-const twDay=t=>{ const p=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).formatToParts(t); const g=k=>p.find(x=>x.type===k)?.value; return `${g('month')} 月 ${g('day')} 日（日）`; };
-const weeklyLiveNow=()=>{ const last=nextWeekly(Date.now()-WEEKLY_LIVE); return Date.now()>=last&&Date.now()<last+WEEKLY_LIVE; };
+const twDay=t=>{ const p=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric',weekday:'narrow'}).formatToParts(t); const g=k=>p.find(x=>x.type===k)?.value; return `${g('month')} 月 ${g('day')} 日（${(g('weekday')||'').replace('週','').replace('星期','')}）`; };
+/* extra group sits added on top of the fixed Sunday one (Taiwan time). Add or remove dates here. */
+const EXTRA_SITS=[Date.UTC(2026,10,11,14,0)]; // Wed 11 Nov 2026, 22:00 Taiwan
+const twHour=t=>{ const h=+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Taipei',hour:'numeric',hour12:false}).format(t), m=new Date(t).getUTCMinutes(); return `${h<12?'早上':h<18?'下午':'晚上'} ${h>12?h-12:h}:${String(m).padStart(2,'0')}`; };
+/* the next group sit of any kind: the fixed Sunday one or an added one */
+function nextSit(after=Date.now()){ const w=nextWeekly(after), x=EXTRA_SITS.filter(t=>t>after).sort((a,b)=>a-b)[0]; return x&&x<w?{t:x,extra:true}:{t:w,extra:false}; }
+const sitWhen=n=>`${twDay(n.t)} ${twHour(n.t)}`;
+const weeklyLiveNow=()=>{ const n=nextSit(Date.now()-WEEKLY_LIVE); return Date.now()>=n.t&&Date.now()<n.t+WEEKLY_LIVE; };
 const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-15*6e4&&n<EVENT.start+9*36e5; }; // 11/8 20:45 → 11/9 06:00 (Taiwan)
 function nextSitHTML(free){
-  const nx=nextWeekly(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修活動！<br>今天是特別活動，所以有抽獎${free?'（抽獎需選「正式共修活動」打開鏡頭坐滿 45 分鐘，自由靜坐不列入）':''}。<br>從下週起，每週日晚上 9:00 固定共修活動，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
+  const nx=nextSit(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修活動！<br>今天是特別活動，所以有抽獎${free?'（抽獎需選「正式共修活動」打開鏡頭坐滿 45 分鐘，自由靜坐不列入）':''}。<br>從下週起，每週日晚上 9:00 固定共修活動，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
   return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。</div>
     <div class="ns-k">每週日晚上 9:00・全球固定線上共修活動</div>
     <div class="ns-p">不需要抽獎，不需要特別理由。<br>只要想安靜一下，隨時歡迎回來。</div>
-    <div class="ns-next"><span>下一次共修活動</span><b>${twDay(nx)} 晚上 9:00</b><small>（台灣時間）</small></div></div>`;
+    <div class="ns-next"><span>下一次共修活動${nx.extra?'・加開場次':''}</span><b>${sitWhen(nx)}</b><small>（台灣時間）</small></div></div>`;
 }
 const EVENT={start:Date.UTC(2026,10,8,13,0), live:180*60*1000}; // Sun 8 Nov 2026, 21:00 Taiwan (UTC+8); shown as live until midnight, when starting a sit stops counting
 function evText(){
@@ -2631,12 +2637,12 @@ function evText(){
 function updateEvent(){
   const e=evText();
   if(!e){ // after the first event: every Sunday 21:00
-    const live=weeklyLiveNow(), d=nextWeekly()-Date.now(), days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4);
+    const nx=nextSit(), live=weeklyLiveNow(), d=nx.t-Date.now(), days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4);
     const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分`;
     ['evCard','evPill'].forEach(id=>$(id).classList.remove('hidden'));
-    $('evPill').innerHTML=live?'<b>●</b> 每週共修活動進行中':`週日共修活動倒數 <b>${cd}</b>`; $('evPill').classList.toggle('live',live);
-    $('evCard').classList.toggle('live',live); $('evK').textContent=live?'每週日固定共修活動・進行中':'每週日固定共修活動';
-    $('evT').textContent='每週日晚上 9:00，全球一起上山靜坐'; $('evC').textContent=live?'共修活動進行中・現在上山一起坐':`下一次 ${twDay(nextWeekly())} 晚上 9:00（台灣時間）`;
+    $('evPill').innerHTML=live?'<b>●</b> 共修活動進行中':`共修活動倒數 <b>${cd}</b>`; $('evPill').classList.toggle('live',live);
+    $('evCard').classList.toggle('live',live); $('evK').textContent=live?'共修活動・進行中':nx.extra?'加開共修活動':'每週日固定共修活動';
+    $('evT').textContent=nx.extra?`${twDay(nx.t)} ${twHour(nx.t)}，全球一起上山靜坐`:'每週日晚上 9:00，全球一起上山靜坐'; $('evC').textContent=live?'共修活動進行中・現在上山一起坐':`下一次 ${sitWhen(nx)}（台灣時間）`;
     return; }
   ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e));
   $('evPill').innerHTML=e.live?'🪷 共修活動進行中・怎麼參加？':e.pill; $('evPill').classList.toggle('live',e.live);
