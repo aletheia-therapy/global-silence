@@ -1954,14 +1954,14 @@ setInterval(()=>{
   if(n>=st-12000){ openDone=true; store.set('fwOpen',st); if(n<st-1500) runOpening(st); else celebrateOpening(); }
 },500);
 function runOpening(st){
-  fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent='第一場線上共修，即將開始';
+  fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent='第一場線上共修活動，即將開始';
   const tick=()=>{ const left=Math.ceil((st-Date.now())/1000);
     if(left>0){ el.querySelector('.hc-n').textContent=Math.min(10,left); if(left<=10) el.classList.add('on'); setTimeout(tick,250); }
     else { el.classList.remove('on'); celebrateOpening(); } }; tick();
 }
 function celebrateOpening(){
   fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg');
-  msg.innerHTML=`<div class="hm-k">🪷 21:00</div><div class="hm-t">第一場線上共修 <b>正式開始</b></div><div class="hm-s">歡迎來自世界各地的你，一起安靜坐下</div>`;
+  msg.innerHTML=`<div class="hm-k">🪷 21:00</div><div class="hm-t">第一場線上共修活動 <b>正式開始</b></div><div class="hm-s">歡迎來自世界各地的你，一起安靜坐下</div>`;
   startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
 if(QS.get('fwopen')) setTimeout(()=>{ runOpening(Date.now()+11000); },6000); // preview: ?fwopen=1
@@ -1987,7 +1987,7 @@ function renderLB(){
   if(me.phase==='intro') return;
   if(srv.board){ // the shared board everyone sees
     const live=me.phase==='sit'&&!me.paused?srvLive():0;
-    const top=srv.board.top.map(r=>({k:r.me?UID:'', n:r.me?me.name:r.n, c:r.me?me.country:r.c, t:r.t+(r.me?live:0)}));
+    const top=(srv.board.top||[]).map(r=>({k:r.me?UID:'', n:r.me?me.name:r.n, c:r.me?me.country:r.c, t:r.t+(r.me?live:0)}));
     const ol=$('lbList'); ol.innerHTML='';
     top.slice(0,10).forEach((r,i)=>{ const li=document.createElement('li'); lbRow(li,i+1,r); ol.appendChild(li); }); lbPad(ol,Math.min(10,top.length));
     const m=srv.board.me, below=!!m&&m.rank>10;
