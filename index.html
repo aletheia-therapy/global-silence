@@ -1932,8 +1932,8 @@ setInterval(()=>{
   const left=N*3600-t;
   if(N>hourSeen&&rising&&sittingNow()>0&&left<=12&&left>0){ hourSeen=N; store.set('fwHour',N); if(cool) runCountdown(N); } // one inside the 10-minute rest passes quietly
 },250);
-/* during the Sunday group sit (20:50–24:00 Taiwan time) the mountain fills fast, so only every 10 hours; otherwise every hour */
-function fwEvery(){ const tw=new Date(Date.now()+8*3600000), m=tw.getUTCHours()*60+tw.getUTCMinutes(); if(tw.getUTCDay()===0&&m>=20*60+50) return 10; const n=Date.now(); return EXTRA_SITS.some(t=>n>=t-10*60000&&n<t+3*36e5)?10:1; }
+/* fireworks: every hour of world silence, group sit or not */
+function fwEvery(){ return 1; } // every hour of world silence, always (the 10-minute rest between shows still applies)
 function cancelCountdown(hr){ $('hourCd').classList.remove('on'); hourSeen=hr-fwEvery(); store.set('fwHour',hourSeen); fwBusy=false; }
 function runCountdown(hr){ // the words stay still; only the number changes, one step every 1.2 s
   fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent=`全球累積靜默，即將滿 ${hr} 小時`;
