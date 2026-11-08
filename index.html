@@ -2303,6 +2303,7 @@ function tick(){
 document.addEventListener('visibilitychange',async()=>{
   sendState();
   if(document.hidden){ hiddenAt=Date.now(); return; }
+  try{ if(stream){ camPrev.play().catch(()=>{}); sitPrev.play().catch(()=>{}); } }catch(e){} // phones pause the camera picture in the background: start it again on return
   if(me.phase==='pose'&&Date.now()-hiddenAt>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏'); }
   if(me.phase==='sit'){
     if(Date.now()-hiddenAt>FACE_LIMIT*1000){ rise('離開畫面超過一分鐘，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
