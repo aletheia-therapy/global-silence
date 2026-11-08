@@ -1882,7 +1882,7 @@ function srvApply(r){
   srv.secs=r.seconds||0; if(typeof r.total==='number'){ srv.total=r.total; me.total=r.total; store.set('total',me.total); }
   if(r.code&&!srv.code){ srv.code=r.code; const m=Math.round((srv.minSecs||2700)/60);
     [0,3800,7600].forEach(d=>setTimeout(()=>bell(.6),d)); // three slow, fading bells
-    $('sitNote').innerHTML=`<b style="color:var(--gold)">✓ 已滿 ${m} 分鐘，你完成了</b><br>可以繼續坐，也可以慢慢起座，不用擔心。<br>起座時會顯示你的專屬代碼。`; $('sitNote').classList.remove('hidden');
+    $('sitNote').innerHTML=`<b style="color:var(--gold)">✓ 已滿 ${m} 分鐘，你完成了</b><br>可以繼續坐，也可以慢慢起座，不用擔心。<br>起座時會顯示你的專屬代碼，記得截圖傳到 LINE 群。`; $('sitNote').classList.remove('hidden');
     toast(`🎉 已滿 ${m} 分鐘，你完成了！可以繼續坐，不用擔心`);
     try{ saveCert({code:srv.code, test:srv.event==='rehearsal'||/^TEST/.test(srv.code), name:me.name, country:me.country, when:`${twTime(srv.startedAt||Date.now())} – ${twTime(Date.now()).slice(-5)}`, secs:srv.secs}); }catch{} }
 }
@@ -2412,7 +2412,11 @@ function certFromData(d,live){
   const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   return `<div class="cert"><div class="ck">${d.test?'彩排測試・完成證明':'第一場線上共修活動・完成證明'}</div><div class="cc">${esc(d.code)}</div>
     <div class="cn">${esc(d.name)}・${esc(d.country)}</div><div class="ct">${esc(d.when)}（台灣時間）・伺服器確認 ${d.secs<60?d.secs+' 秒':Math.floor(d.secs/60)+' 分鐘'}</div>
-    <div class="cs">${d.test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div>${live?'<div class="cs" style="opacity:.75;margin-top:4px">之後也可以按右上角「🎫 我的完成碼」再打開</div>':''}</div>`;
+    <div class="cs">${d.test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div>${live?'<div class="cs" style="opacity:.75;margin-top:4px">之後也可以按右上角「🎫 我的完成碼」再打開</div>':''}</div>${live&&!d.test?`<div style="margin:12px 0 0;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(232,195,122,.35);text-align:left;font-size:13.5px;line-height:1.75">
+    <div style="color:var(--gold);font-weight:600;margin-bottom:4px">🎉 恭喜完成！接下來：</div>
+    ① 截圖上面的完成證明<br>② 加入 LINE 群，把截圖貼到群組<br>③ 幾天後在 LINE 群抽獎、公布得獎名單
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">🗓 下週起，<b style="color:var(--gold)">每週日晚上 9:00</b>（台灣時間）固定共修活動<br>⛰ 平常隨時都可以上山靜坐<br>🏆 時數排行榜頒獎與不定期活動，都會在 LINE 群公布</div>
+    <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:10px">加入 LINE 群，貼上截圖</a></div>`:''}`;
 }
 /* your completion codes stay on this phone, so closing the end screen too fast never loses one */
 function saveCert(d){ const l=store.get('certs',[]); const i=l.findIndex(x=>x.code===d.code); if(i>=0) l[i]=d; else l.push(d); store.set('certs',l.slice(-10)); certBtn(); }
