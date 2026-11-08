@@ -2640,9 +2640,10 @@ function updateEvent(){
     const nx=nextSit(), live=weeklyLiveNow(), d=nx.t-Date.now(), days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4);
     const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分`;
     ['evCard','evPill'].forEach(id=>$(id).classList.remove('hidden'));
-    $('evPill').innerHTML=live?'<b>●</b> 共修活動進行中':`共修活動倒數 <b>${cd}</b>`; $('evPill').classList.toggle('live',live);
+    { const md=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).format(nx.t), wd=twDay(nx.t).match(/（.）/)[0];
+      $('evPill').innerHTML=live?'<b>●</b> 共修活動進行中':`<span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.35"><span>下次共修活動 ${md}${wd}${twHour(nx.t)}${nx.extra?'<small style="opacity:.8">・加開場次</small>':''}</span><span>倒數 <b>${cd}</b></span></span>`; } $('evPill').classList.toggle('live',live);
     $('evCard').classList.toggle('live',live); $('evK').textContent=live?'共修活動・進行中':nx.extra?'加開共修活動':'每週日固定共修活動';
-    $('evT').textContent=nx.extra?`${twDay(nx.t)} ${twHour(nx.t)}，全球一起上山靜坐`:'每週日晚上 9:00，全球一起上山靜坐'; $('evC').textContent=live?'共修活動進行中・現在上山一起坐':`下一次 ${sitWhen(nx)}（台灣時間）`;
+    $('evT').textContent=`${sitWhen(nx)}（台灣時間），全球一起上山靜坐`; $('evC').textContent=live?'共修活動進行中・現在上山一起坐':''; $('evC').classList.toggle('hidden',!live); // one line with the date is enough
     return; }
   ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e));
   $('evPill').innerHTML=e.live?'🪷 共修活動進行中・怎麼參加？':e.pill; $('evPill').classList.toggle('live',e.live);
