@@ -2413,7 +2413,7 @@ function certFromData(d,live){
   const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   return `<div class="cert"><div class="ck">${d.test?'彩排測試・完成證明':'第一場線上共修活動・完成證明'}</div><div class="cc">${esc(d.code)}</div>
     <div class="cn">${esc(d.name)}・${esc(d.country)}</div><div class="ct">${esc(d.when)}（台灣時間）・伺服器確認 ${d.secs<60?d.secs+' 秒':Math.floor(d.secs/60)+' 分鐘'}</div>
-    <div class="cs">${d.test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div>${live?'<div class="cs" style="opacity:.75;margin-top:4px">之後也可以按右上角「🎫 我的完成碼」再打開</div>':''}</div>${live&&!d.test?`<div style="margin:12px 0 0;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(232,195,122,.35);text-align:left;font-size:13.5px;line-height:1.75">
+    <div class="cs">${d.test?'這是測試用的完成碼，不列入抽獎':'📸 請截圖這個畫面，貼到 LINE 社群參加抽獎'}</div></div>${live&&!d.test?`<div style="margin:12px 0 0;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(232,195,122,.35);text-align:left;font-size:13.5px;line-height:1.75">
     <div style="color:var(--gold);font-weight:600;margin-bottom:4px">🎉 恭喜完成！接下來：</div>
     ① 截圖上面的完成證明<br>② 加入 LINE 群，把截圖貼到群組<br>③ 幾天後在 LINE 群抽獎、公布得獎名單
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">🗓 下週起，<b style="color:var(--gold)">每週日晚上 9:00</b>（台灣時間）固定共修活動<br>⛰ 平常隨時都可以上山靜坐<br>🏆 時數排行榜頒獎與不定期活動，都會在 LINE 群公布</div>
@@ -2421,7 +2421,7 @@ function certFromData(d,live){
 }
 /* your completion codes stay on this phone, so closing the end screen too fast never loses one */
 function saveCert(d){ const l=store.get('certs',[]); const i=l.findIndex(x=>x.code===d.code); if(i>=0) l[i]=d; else l.push(d); store.set('certs',l.slice(-10)); certBtn(); }
-function certBtn(){ $('btnCert').classList.toggle('hidden',!store.get('certs',[]).length); }
+function certBtn(){ $('btnCert').classList.add('hidden'); } // the first sit's prizes are given: the button is retired (codes stay saved on the phone)
 $('btnCert').onclick=()=>{ const l=store.get('certs',[]).slice().reverse(); $('certList').innerHTML=l.map(d=>certFromData(d,false)).join(''); $('mCert').classList.remove('hidden'); };
 $('certClose').onclick=()=>$('mCert').classList.add('hidden');
 certBtn();
