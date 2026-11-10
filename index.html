@@ -231,6 +231,7 @@ body.on-intro #lb{display:none}
   background:var(--gold);color:#2a2214;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:askIn .5s ease}
 #byeAsk{position:fixed;left:50%;bottom:calc(222px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
   background:rgba(14,20,30,.72);color:var(--gold);border:1px solid rgba(232,195,122,.65);font-weight:600;font-size:14px;border-radius:999px;padding:9px 18px;box-shadow:0 8px 24px rgba(0,0,0,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:askIn .5s ease}
+#byeAsk.solo{bottom:calc(168px + var(--safe-b))}
 .bye-end{margin-top:8px;font-size:13.5px;line-height:1.7;color:var(--ink)}
 .bye-end b{color:var(--gold);font-weight:600}
 #likes{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));top:42%;z-index:46;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:62vw}
@@ -2550,7 +2551,10 @@ function likeNear(){
   let hi=false; if(!best&&self&&me.phase==='walk'){ bd=2.8; for(const p of peers.values()){ if(!canHi(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bd){ bd=d; best=p; hi=true; } } }
   if(best!==likeShown||hi!==likeHi){ likeShown=best; likeHi=hi; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.textContent=hi?`👋 和 ${best.info.name} 打招呼`:`🙏 為 ${best.info.name} 隨喜`; }
   if(best) $('elderAsk').classList.add('hidden');
-  { const b=$('byeAsk'), show=!!best&&!hi&&canBye(best); if(show!==!b.classList.contains('hidden')||(show&&b.dataset.pid!==best.peerId)){ b.classList.toggle('hidden',!show); if(show){ b.dataset.pid=best.peerId; b.textContent=`👋 跟 ${best.info.name} 說：先走囉`; } } }
+  { let bt=null, bb=2.8; // goodbye is its own thing: offered whether or not you already gave this person a 隨喜
+    if(self&&me.phase==='walk') for(const p of peers.values()){ if(!canBye(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bb){ bb=d; bt=p; } }
+    const b=$('byeAsk'), show=!!bt; if(show!==!b.classList.contains('hidden')||(show&&b.dataset.pid!==bt.peerId)){ b.classList.toggle('hidden',!show); if(show){ b.dataset.pid=bt.peerId; b.textContent=`👋 跟 ${bt.info.name} 說：先走囉`; } }
+    b.classList.toggle('solo',$('likeAsk').classList.contains('hidden')); if(show) $('elderAsk').classList.add('hidden'); }
 }
 /* leaving before a friend who is still sitting: a quiet goodbye that waits until they open their eyes */
 const byeSent=new Map(), byeFrom=new Map(), byesGot=[];
