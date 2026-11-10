@@ -2278,9 +2278,20 @@ $('camStart').onclick=async()=>{
     setTimeout(()=>{ if(me.phase!=='sit') return; $('sitNote').textContent='坐滿 45 分鐘時，會響三聲鐘聲。在那之前，安心閉上眼睛就好。'; $('sitNote').classList.remove('hidden'); },3000);
     setTimeout(()=>{ if(me.phase!=='sit'||srv.code) return; srv.minSecs=2700; srvApply({code:'TEST-DEMO',seconds:srv.secs||me.sitSec}); },10000); }
 };
+/* a phone lying sideways sends a sideways face: try the picture turned each quarter way and keep the turn where a face reads best,
+   so every head on the mountain stands upright (only the little picture is turned; nothing else changes) */
+let snapRot=0; const rotC=document.createElement('canvas'); rotC.width=rotC.height=128; const rctx=rotC.getContext('2d');
+function rotTo(k){ rctx.save(); rctx.clearRect(0,0,128,128); rctx.translate(64,64); rctx.rotate(k*Math.PI/2); rctx.drawImage(snapC,-64,-64); rctx.restore(); return rotC; }
+function faceScore(c){ try{ let ts=performance.now(); if(ts<=lastFdTs) ts=lastFdTs+1; lastFdTs=ts; return Math.max(0,...(faceDet.detectForVideo(c,ts).detections||[]).map(d=>d.categories?.[0]?.score??0)); }catch{ return 0; } }
+function pickRot(){
+  if(faceState!=='ready'||!faceDet) return;
+  const sc=[0,1,2,3].map(k=>faceScore(k?rotTo(k):snapC)); let best=snapRot; sc.forEach((v,k)=>{ if(v>sc[best]) best=k; });
+  if(sc[best]>=.55&&(sc[snapRot]<.45||sc[best]>sc[snapRot]+.15)) snapRot=best; // a clear winner only, so it never flickers
+}
 function snap(){
   if(!stream) return; const lum=grabFrame(); me.darkCam=lum<14;
-  lastSnap=snapC.toDataURL('image/jpeg',.62); self.setSnap(lastSnap);
+  if(!me.darkCam) pickRot();
+  lastSnap=(snapRot?rotTo(snapRot):snapC).toDataURL('image/jpeg',.62); self.setSnap(lastSnap);
   const now=performance.now();
   if(aSnap&&!document.hidden&&now-lastSnapSent>=snapEvery()){ lastSnapSent=now; aSnap.send(lastSnap); }
 }
