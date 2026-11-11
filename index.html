@@ -1977,6 +1977,11 @@ function celebrateHour(h){
   fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
   startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
+/* one-off fireworks demo, 11 Nov 2026: whoever reaches the mountain in this short window gets the show at once; it switches itself off */
+const FW_DEMO_UNTIL=Date.UTC(2026,10,11,16,1,30);
+if(Date.now()<FW_DEMO_UNTIL){ const demoT=setInterval(()=>{ if(Date.now()>=FW_DEMO_UNTIL){ clearInterval(demoT); return; }
+  if(me.phase==='intro'||fwBusy) return; clearInterval(demoT); const was=store.get('fwAt',0), t=mountainTotalAll();
+  celebrateHour(isFinite(t)?Math.max(1,Math.floor(t/3600)):1); store.set('fwAt',was); },1000); }
 if(QS.get('fwtest')) setTimeout(()=>{ const t=mountainTotalAll(); celebrateHour(isFinite(t)?Math.floor(t/3600)+1:1); },6000); // preview
 
 /* left-side leaderboard: top 10 by lifetime silence, plus your own place if you're further down */
