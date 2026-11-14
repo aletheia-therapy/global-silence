@@ -2545,7 +2545,7 @@ function drawElderTag(W,H){
 }
 /* ===================== 隨喜: a silent thumbs-up for someone sitting ===================== */
 const likedAt=new Map(); // peerId -> time I last 隨喜'd them (once per sit is enough)
-const canLike=p=>p&&p.peerId&&(p.info.phase==='sit'||p.info.phase==='free')&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
+const canLike=p=>p&&!p.stale&&p.peerId&&(p.info.phase==='sit'||p.info.phase==='free')&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
 function floatOver(p,text){
   const v=new THREE.Vector3(p.x,hAt(p.x,p.z)+1.9,p.z); v.project(camera); if(v.z>1||Math.abs(v.x)>.95||Math.abs(v.y)>.95) return false;
   const d=document.createElement('div'); d.className='float-like'; d.textContent=text;
@@ -2574,7 +2574,7 @@ function likeNear(){
 }
 /* leaving before a friend who is still sitting: a quiet goodbye that waits until they open their eyes */
 const byeSent=new Map(), byeFrom=new Map(), byesGot=[];
-const canBye=p=>p&&p.peerId&&['sit','free'].includes(p.info.phase)&&Date.now()-(byeSent.get(p.peerId)||0)>10*60000;
+const canBye=p=>p&&!p.stale&&p.peerId&&['sit','free'].includes(p.info.phase)&&Date.now()-(byeSent.get(p.peerId)||0)>10*60000;
 function sendBye(p){
   if(!canBye(p)) return; byeSent.set(p.peerId,Date.now());
   try{ aBye?.send({n:me.name,c:me.country},{target:p.peerId}); }catch{}
@@ -2594,7 +2594,7 @@ const byeEndHTML=list=>list.length?`<div class="bye-end">${list.map(b=>`👋 <b>
 $('likeAsk').onclick=()=>{ if(!likeShown) return; if(likeHi) sendHi(likeShown); else sendLike(likeShown); };
 /* 打招呼: two people walking near each other can just say 嗨 — nothing more */
 let likeHi=false; const hiAt=new Map(), hiFrom=new Map();
-const canHi=p=>p&&p.peerId&&p.info.phase==='walk'&&Date.now()-(hiAt.get(p.peerId)||0)>8000;
+const canHi=p=>p&&!p.stale&&p.peerId&&p.info.phase==='walk'&&Date.now()-(hiAt.get(p.peerId)||0)>8000;
 const SHH=['嘘～這裡不是聊天室哦<br>快去找個喜歡的位置靜坐吧','山上只說一次 Hi! 👋<br>剩下的話，留給靜坐吧 🪷','你們好像很有話聊 😄<br>不如一起坐下，靜靜陪著彼此','小聲一點～<br>山在聽，心也在聽，快去坐下吧'];
 let shhN=0, shhT=null;
 function shh(){ // a gentle, playful nudge back to sitting
