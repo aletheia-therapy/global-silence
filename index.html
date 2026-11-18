@@ -796,7 +796,23 @@ function mixPal(a,b,k){ if(k>=1) return {...b}; const o={n:b.n};
   for(const key in b){ if(key==='n') continue; const va=a[key], vb=b[key];
     o[key]= typeof vb==='string' ? '#'+new THREE.Color(va).lerp(new THREE.Color(vb),k).getHexString() : va+(vb-va)*k; }
   return o; }
-function palette(){
+/* 天氣: now and then it rains — a drizzle, a steady rain, once in a while a downpour with lightning.
+   Worked out from the clock, so everyone on the mountain has the same weather at the same moment. ?rain=drizzle|rain|storm|clear previews it. */
+const RAIN_KIND={drizzle:{amt:.45,dark:.32,speed:8,len:.45,wind:.15},rain:{amt:.62,dark:.55,speed:15,len:.9,wind:.35},storm:{amt:1,dark:.82,speed:22,len:1.5,wind:1.1}};
+function weatherNow(ms=Date.now()){
+  const q=QS.get('rain'); if(q==='clear') return {kind:null,f:0}; if(RAIN_KIND[q]) return {kind:q,f:1};
+  const SLOT=40*60000, i=Math.floor(ms/SLOT); let h=Math.imul(i^0x5bd1e995,0x27d4eb2d); h^=h>>>15; h=Math.imul(h,0x165667b1); const r=((h>>>0)%1000)/1000;
+  const kind=r<.09?'drizzle':r<.15?'rain':r<.18?'storm':null; // about one stretch in five or six is wet if(!kind) return {kind:null,f:0};
+  const into=ms-i*SLOT, F=4*60000, k=Math.min(1,into/F,(SLOT-into)/F); return {kind,f:k*k*(3-2*k)}; // eases in and out over four minutes
+}
+function wetPal(p){ const w=weatherNow(); if(!w.kind) return p; const k=RAIN_KIND[w.kind].dark*w.f, o={...p};
+  const grey=(c,g)=>'#'+new THREE.Color(c).lerp(new THREE.Color(g),k).getHexString();
+  const night=p.nw>.5; const g1=night?'#1b2128':'#7d858c', g2=night?'#232a31':'#9aa1a6', g3=night?'#15191d':'#5d6468';
+  o.top=grey(p.top,g3); o.hor=grey(p.hor,g2); o.bot=grey(p.bot,g1); o.cLit=grey(p.cLit,g2); o.cShade=grey(p.cShade,g3); o.sun=grey(p.sun,'#c8ccd0');
+  o.si=p.si*(1-.75*k); o.hi=p.hi*(1-.15*k); o.ex=p.ex*(1-.18*k); o.fN=p.fN*(1-.6*k); o.fF=p.fF*(1-.55*k); o.bl=p.bl*(1-.6*k); o.mo=p.mo*(1-k); o.birds=k>.4?0:p.birds; o.lit=(p.lit??1)*(1-.3*k);
+  return o; }
+function palette(){ return wetPal(paletteDry()); }
+function paletteDry(){
   const h=nowHour(), BL=.85; // blend hours after each change
   const seq=[[5,'night','dawn'],[7.5,'dawn','day'],[16.5,'day','dusk'],[19,'dusk','night']];
   let cur=seq[3]; for(const s of seq) if(h>=s[0]) cur=s;
@@ -1154,6 +1170,44 @@ const seasonMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,vert
   g.setAttribute('gy',new THREE.Float32BufferAttribute(gy,1)); g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
   const pts=new THREE.Points(g,seasonMat); pts.frustumCulled=false; pts.renderOrder=2; scene.add(pts); }
 function applySeasonLight(){ seasonMat.uniforms.lit.value=PAL.lit; }
+const seasonPts=scene.children[scene.children.length-1];
+
+/* rain: thin streaks that fall around wherever you are looking, slanting with the wind */
+const RAIN_N=isMobile?1600:3200, RAIN_W=46, RAIN_H=24;
+const rainMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fog:true,
+  uniforms:{time:U.time,amt:{value:0},speed:{value:12},len:{value:.8},wind:{value:.3},center:{value:new THREE.Vector3()},col:{value:new THREE.Color('#cfd8e0')},
+    fogColor:{value:new THREE.Color()},fogNear:{value:1},fogFar:{value:1000}},
+  vertexShader:`attribute vec3 seed; attribute float tip; uniform float time,speed,len,wind,amt; uniform vec3 center; varying float vA,vF; varying float vK;
+    void main(){ float W=${RAIN_W}.0, H=${RAIN_H}.0;
+      vK=step(seed.x,amt);                                                  // fewer drops in a drizzle, all of them in a storm
+      float fall=mod(seed.y*H+time*speed*(.85+seed.z*.3),H);
+      vec3 base=vec3(fract(seed.x*7.13+seed.z*3.1-center.x/W)-.5, 0., fract(seed.z*5.71+seed.y*2.3-center.z/W)-.5)*W;
+      vec3 p=vec3(center.x+base.x, center.y+H*.55-fall, center.z+base.z);
+      p.x+=wind*(H-fall)*.12;
+      p.y+=tip*len; p.x-=tip*len*wind*.12;
+      vA=smoothstep(0.,2.,fall)*smoothstep(H,H-3.,fall);
+      vec4 mv=modelViewMatrix*vec4(p,1.); vF=-mv.z; gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`uniform vec3 col,fogColor; uniform float fogNear,fogFar,amt; varying float vA,vF,vK;
+    void main(){ if(vK<.5) discard; float f=smoothstep(fogNear,fogFar,vF); gl_FragColor=vec4(mix(col,fogColor,f*.7),vA*(.32+.26*amt)*(1.-f*.6)); }`});
+{ const r=rng(311), pos=[], sd=[], tip=[];
+  for(let i=0;i<RAIN_N;i++){ const a=r(), b=r(), c=r(); for(let e=0;e<2;e++){ pos.push(0,0,0); sd.push(a,b,c); tip.push(e); } }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('seed',new THREE.Float32BufferAttribute(sd,3)); g.setAttribute('tip',new THREE.Float32BufferAttribute(tip,1));
+  var rainLines=new THREE.LineSegments(g,rainMat); rainLines.frustumCulled=false; rainLines.renderOrder=3; rainLines.visible=false; scene.add(rainLines); }
+let flashUntil=0, nextFlash=0;
+function animateRain(t){
+  const w=weatherNow(), K=w.kind?RAIN_KIND[w.kind]:null, amt=K?K.amt*w.f:0, ru=rainMat.uniforms;
+  rainLines.visible=amt>.01; seasonPts.visible=amt<.25||SEASON==='winter';
+  if(!rainLines.visible) return;
+  ru.amt.value=amt; ru.speed.value=K.speed; ru.len.value=K.len; ru.wind.value=K.wind;
+  ru.center.value.copy(camera.position).lerp(wantLook,.55);
+  if(scene.fog){ ru.fogColor.value.copy(scene.fog.color); ru.fogNear.value=scene.fog.near; ru.fogFar.value=scene.fog.far; }
+  ru.col.value.set(PAL.nw>.5?'#8b98a6':'#d4dce3');
+  // a storm now and then lights the whole sky for a moment (no thunder: the mountain stays quiet)
+  if(w.kind==='storm'&&w.f>.8){ const n=performance.now();
+    if(!nextFlash) nextFlash=n+8000+Math.random()*14000;
+    if(n>nextFlash){ flashUntil=n+(Math.random()<.5?140:320); nextFlash=n+9000+Math.random()*20000; }
+    const on=n<flashUntil; renderer.toneMappingExposure=PAL.ex*(on?2.3:1); hemi.intensity=PAL.hi*(on?2.6:1); }
+}
 
 /* a few raptors soaring far out over the valley — long broad wings with fingered tips, mostly gliding, now and then a few slow beats */
 const birds=[];
@@ -1210,13 +1264,13 @@ function applyPalette(){
   document.querySelector('meta[name=theme-color]').content=PAL.top;
 }
 applyPalette();
-setInterval(()=>{ const p=palette(); if(JSON.stringify(p)!==JSON.stringify(PAL)){ PAL=p; applyPalette(); } },60000);
+setInterval(()=>{ const p=palette(); if(JSON.stringify(p)!==JSON.stringify(PAL)){ PAL=p; applyPalette(); } },5000);
 
 function animateWorld(t,dt){
   U.time.value=t;
   cloudGroup.rotation.y+=dt*.0035;
   swayers.forEach(s=>{ s.o.rotation.z=Math.sin(t*.8+s.ph)*.012; s.o.rotation.x=Math.sin(t*.6+s.ph*1.3)*.01; });
-  animateBirds(t);
+  animateBirds(t); animateRain(t);
   if(PAL.fire) fireLight.intensity=PAL.fire*(5.5+Math.sin(t*9)*.8+Math.sin(t*23)*.5);
 }
 
