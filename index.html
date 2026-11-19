@@ -25,11 +25,11 @@
 }catch(e){} })();
 </script>
 <title>全球靜默空間 · Global Silence Space</title>
-<meta name="description" content="一座線上的山頂。世界各地的人打開鏡頭，在這裡一起安靜地坐下。不說話，只是同在。">
+<meta name="description" content="一座線上的山頂。世界各地的人打開鏡頭，在這裡一起安靜地坐下。不說話，只是同在。An online mountaintop where people around the world sit in silence together.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="全球靜默空間 Global Silence Space">
 <meta property="og:title" content="全球靜默空間｜Global Silence Space">
-<meta property="og:description" content="一座線上的山頂。世界各地的人打開鏡頭，在這裡一起安靜地坐下。不說話，只是同在。">
+<meta property="og:description" content="一座線上的山頂。世界各地的人打開鏡頭，在這裡一起安靜地坐下。不說話，只是同在。An online mountaintop where people around the world sit in silence together.">
 <meta property="og:url" content="https://global-silence.vercel.app/">
 <meta property="og:image" content="https://global-silence.vercel.app/og.jpg">
 <link rel="canonical" href="https://global-silence.vercel.app/">
@@ -48,6 +48,10 @@
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+/* 中英雙語: every Chinese line carries a quieter English line under it */
+.en{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;font-size:.76em;font-weight:400;font-style:normal;letter-spacing:.01em;line-height:1.32;opacity:.74;margin-top:1px;text-transform:none;white-space:normal}
+.en.i{display:inline;margin-left:.4em}
+button .en,a .en{opacity:.82}
 html,body{margin:0;height:100%;color:var(--ink);font-family:var(--sans);overflow:hidden;overscroll-behavior:none;
   background:linear-gradient(180deg,#3b4a7a,#f0b08e 70%,#fbe3d2)}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
@@ -134,6 +138,7 @@ body.on-intro #btnCert{display:none}
   font-size:11px;color:var(--ink)}
 body.on-intro #lb{display:none}
 #lb .lb-h{display:flex;align-items:center;justify-content:space-between;width:100%;font-family:var(--serif);font-size:12.5px;letter-spacing:.1em;color:var(--gold);padding:1px 2px 5px}
+#lb .lb-h>span{white-space:nowrap;text-align:left}
 #lb .lb-h i{font-style:normal;flex:0 0 auto;font-family:var(--sans,inherit);font-size:10.5px;font-weight:600;letter-spacing:.02em;color:#2a2111;background:var(--gold);border-radius:999px;padding:3px 8px 2px;box-shadow:0 0 0 2px rgba(232,195,122,.25)}
 #lb.closed .lb-h{padding-bottom:1px} #lb.closed ol,#lb.closed .lb-more,#lb.closed .lb-me{display:none}
 #lb ol{list-style:none;margin:0;padding:0}
@@ -204,6 +209,7 @@ body.on-intro #lb{display:none}
   background:linear-gradient(180deg,#d9efb0,#a9d46c);color:#24361a;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(120,170,70,.4);animation:askIn .5s ease}
 #lanAsk{position:fixed;left:50%;bottom:calc(168px + var(--safe-b));transform:translateX(-50%);z-index:8;white-space:nowrap;
   background:linear-gradient(180deg,#ffcf8a,#f0a14a);color:#3a2410;font-weight:600;font-size:15px;border-radius:999px;padding:11px 20px;box-shadow:0 8px 26px rgba(240,140,60,.4);animation:askIn .5s ease}
+.stele-tag .en{font-size:.62em;letter-spacing:.04em;margin-top:2px}
 .stele-tag{position:absolute;left:0;top:0;z-index:2000;pointer-events:none;text-align:center;white-space:nowrap;font-family:var(--serif);font-size:21px;letter-spacing:.18em;line-height:1.6;
   color:#fff6e2;text-shadow:0 0 16px rgba(232,195,122,.9),0 0 4px rgba(232,195,122,.6),0 1px 3px rgba(0,0,0,.7);transform-origin:50% 50%;display:none;
   background:radial-gradient(closest-side,rgba(14,20,30,.55),rgba(14,20,30,0));padding:22px 16px}
@@ -390,17 +396,17 @@ body.on-intro #lb{display:none}
 <body class="on-intro">
 <canvas id="gl"></canvas>
 <div id="tags"></div>
-<div id="loading">山正在成形…</div>
+<div id="loading">山正在成形…<span class="en">The mountain is taking shape…</span></div>
 
 <button id="evPill" class="hidden"></button>
 <button id="btnCert" class="hidden">🎫 我的完成碼</button>
-<div id="mus"><button id="btnMusic" aria-label="背景音樂"><span class="eq"><b></b><b></b><b></b></span><span id="musLbl">音樂</span></button>
+<div id="mus"><button id="btnMusic" aria-label="背景音樂 Music"><span class="eq"><b></b><b></b><b></b></span><span id="musLbl">音樂</span></button>
   <div id="musPanel" class="hidden">
-    <div class="mp-row"><span>背景音樂</span><button class="sw-t" id="musToggle" aria-label="開關背景音樂"></button></div>
-    <div class="mp-vol"><span>🔈</span><input type="range" id="musVol" min="0" max="100" aria-label="音量"><span>🔊</span></div>
+    <div class="mp-row"><span>背景音樂<span class="en">Music</span></span><button class="sw-t" id="musToggle" aria-label="開關背景音樂 Music on/off"></button></div>
+    <div class="mp-vol"><span>🔈</span><input type="range" id="musVol" min="0" max="100" aria-label="音量 Volume"><span>🔊</span></div>
   </div></div>
-<div id="lb"><button class="lb-h" id="lbHead"><span>靜默排行榜</span><i id="lbTog">收起 ▲</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div><div class="lb-note">數字會累積，覺察只在此刻。<br>排名留給數字，覺察留給自己。</div></div>
-<div id="mtTotal"><span class="mt-l">全球累積靜默</span><span class="mt-v" id="mtVal">—</span></div>
+<div id="lb"><button class="lb-h" id="lbHead"><span>靜默排行榜<span class="en">Ranking</span></span><i id="lbTog">▲</i></button><ol id="lbList"></ol><div class="lb-more hidden" id="lbMore">⋯</div><div class="lb-me hidden" id="lbMe"></div><div class="lb-note">數字會累積，覺察只在此刻。<br>排名留給數字，覺察留給自己。<span class="en">Numbers add up; awareness is now.</span></div></div>
+<div id="mtTotal"><span class="mt-l">全球累積靜默<span class="en">World silence</span></span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
     <div class="hud-title">全球靜默空間</div>
@@ -408,7 +414,7 @@ body.on-intro #lb{display:none}
     <div class="hud-stat" id="hudStat">連線中…</div>
     <div class="hud-stat" id="hudSum"></div>
   </div>
-  <div style="display:flex;gap:8px"><button class="hud-box hud-btn gold blink" id="btnView">全景</button><button class="hud-box hud-btn" id="btnRank">同修榜</button></div>
+  <div style="display:flex;gap:8px"><button class="hud-box hud-btn gold blink" id="btnView">全景<span class="en">Overview</span></button><button class="hud-box hud-btn" id="btnRank">同修榜<span class="en">People</span></button></div>
 </div>
 
 <!-- Intro -->
@@ -416,49 +422,49 @@ body.on-intro #lb{display:none}
   <div class="intro-card">
     <h1 class="intro-title">全球靜默空間</h1>
     <div class="en-script intro-en" lang="en">Global Silence Space</div>
-    <p class="intro-sub">一座山頂，俯瞰群山與遠方的城市。<br>世界各地的人，此刻在這裡一起閉上眼睛。</p>
+    <p class="intro-sub">一座山頂，俯瞰群山與遠方的城市。<br>世界各地的人，此刻在這裡一起閉上眼睛。<span class="en">A mountaintop above the hills and a distant city, where people from all over the world close their eyes together.</span></p>
     <button class="ev-card hidden" id="evCard"><div class="ev-k" id="evK">第一場線上共修活動</div><div class="ev-t" id="evT"></div><div class="ev-c" id="evC"></div></button>
     <div class="live-line hidden" id="introLiveLine"><span class="dot"></span><span id="introLive"></span></div>
-    <button class="btn-main" id="btnStart">我要上山</button>
-    <a class="line-mini" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">共修活動時段與公告 → 加入 LINE 社群</a>
-    <button class="home-link hidden" data-home style="margin-top:4px">📲 <u>放到手機桌面，下次一點就上山</u></button>
+    <button class="btn-main" id="btnStart">我要上山<span class="en">Go up the mountain</span></button>
+    <a class="line-mini" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener">共修活動時段與公告 → 加入 LINE 社群<span class="en">Group sits &amp; news → join our LINE group</span></a>
+    <button class="home-link hidden" data-home style="margin-top:4px">📲 <u>放到手機桌面，下次一點就上山</u><span class="en">Add to your home screen</span></button>
     <div id="introForm" class="hidden">
     <div class="row2">
       <div><label class="f" for="inName">暱稱&nbsp;&nbsp;Nickname</label><input class="t" id="inName" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
       <div><label class="f" for="inCountry">國家&nbsp;&nbsp;Country</label><input class="t" id="inCountry" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
     </div>
-    <p class="intro-heart">這裡沒有宗教，也沒有門派，<br>不需要任何信仰或法門。<br>只有你，和你的一顆心，<br>安安靜靜地，和自己待在一起。</p>
-    <button class="btn-main" id="btnEnter" disabled>上山</button>
-    <div class="note" id="enterHint" style="margin-top:8px;text-align:center">請填寫暱稱和國家</div>
+    <p class="intro-heart">這裡沒有宗教，也沒有門派，<br>不需要任何信仰或法門。<br>只有你，和你的一顆心，<br>安安靜靜地，和自己待在一起。<span class="en">No religion, no school, no belief needed. Just you and your heart, quietly with yourself.</span></p>
+    <button class="btn-main" id="btnEnter" disabled>上山<span class="en">Go up</span></button>
+    <div class="note" id="enterHint" style="margin-top:8px;text-align:center">請填寫暱稱和國家<span class="en">Enter a nickname and country</span></div>
     </div>
-    <p class="note">這裡不能聊天，只有靜默的同在。正式共修活動會開鏡頭，畫面只給此刻在山上的人看，不錄影、不存檔。</p>
+    <p class="note">這裡不聊天，只有靜默的同在。正式共修會開鏡頭，畫面只給此刻在山上的人看，不錄影、不存檔。<span class="en">No chat, only silent company. Formal sits use your camera, seen only by people on the mountain now. Nothing is recorded.</span></p>
   </div>
 </div>
 
 <!-- walking controls -->
 <div id="joy" class="hidden"><div id="knob"></div></div>
-<button id="btnDown" class="hidden">就這裡<small>選方向</small></button>
-<div id="walkHint" class="hidden">左下圓圈走動・拖曳畫面轉視角</div>
+<button id="btnDown" class="hidden">就這裡<small>Sit here</small></button>
+<div id="walkHint" class="hidden">左下圓圈走動・拖曳畫面轉視角<span class="en">Joystick to walk · drag to look around</span></div>
 
 <!-- step 1: direction -->
 <div class="sheet hidden" id="sheetPose"><div class="sheet-in">
-  <div class="s-title">選擇你的方向</div>
-  <p class="s-sub" id="poseSub">小人會轉向你選的方向。選好了，再坐下。</p>
+  <div class="s-title">選擇你的方向<span class="en">Choose where to face</span></div>
+  <p class="s-sub" id="poseSub">小人會轉向你選的方向。選好了，再坐下。<span class="en">Pick a direction, then sit down.</span></p>
   <div class="dir-row">
-    <button class="rot" id="rotL" aria-label="向左轉">⟲</button>
+    <button class="rot" id="rotL" aria-label="向左轉 Turn left">⟲</button>
     <div class="presets" id="presets"></div>
-    <button class="rot" id="rotR" aria-label="向右轉">⟳</button>
+    <button class="rot" id="rotR" aria-label="向右轉 Turn right">⟳</button>
   </div>
   <div class="acts">
-    <button class="btn-sec" id="poseUp">再走走</button>
-    <button class="btn-pri" id="poseOk">坐下</button>
+    <button class="btn-sec" id="poseUp">再走走<span class="en">Keep walking</span></button>
+    <button class="btn-pri" id="poseOk">坐下<span class="en">Sit down</span></button>
   </div>
 </div></div>
 
 <!-- step 2: camera check -->
 <div class="sheet hidden" id="sheetCam"><div class="sheet-in">
-  <div class="s-title">請打開鏡頭</div>
-  <p class="s-sub">這裡的同在是真實的。把手機架在面前，讓同修看見你靜坐的樣子。</p>
+  <div class="s-title">請打開鏡頭<span class="en">Turn on your camera</span></div>
+  <p class="s-sub">把手機架在面前，讓同修看見你靜坐的樣子。<span class="en">Set your phone in front of you so others can see you sitting.</span></p>
   <div class="cam-row">
     <video class="prev" id="camPrev" playsinline muted autoplay></video>
     <ul class="checks">
@@ -468,37 +474,37 @@ body.on-intro #lb{display:none}
       <li id="ck4">○ 架好手機、坐穩</li>
     </ul>
   </div>
-  <p class="s-sub" id="camHint" style="margin-top:12px">準備好了再按開始，不用急。</p>
-  <p class="s-sub hidden" id="camSound" style="margin-top:-4px;color:var(--gold)">🔔 請關閉靜音、把音量調大，才聽得到坐滿時的鐘聲</p>
+  <p class="s-sub" id="camHint" style="margin-top:12px">準備好了再按開始，不用急。<span class="en">Press start when you are ready. No rush.</span></p>
+  <p class="s-sub hidden" id="camSound" style="margin-top:-4px;color:var(--gold)">🔔 請關閉靜音、把音量調大，才聽得到坐滿時的鐘聲<span class="en">Turn off silent mode and turn the volume up to hear the bells.</span></p>
   <div id="camHelp" class="hidden" style="margin:0 0 12px;padding:10px 12px;border-radius:12px;border:1px solid var(--gold-soft);background:rgba(232,195,122,.08);font-size:13.5px;line-height:1.6">
-    <div id="camHelpTxt">鏡頭好像不太順？可以先自由靜坐，一樣計入全球累積。</div>
-    <button id="camToFree" style="margin-top:8px;padding:7px 14px;border-radius:999px;background:var(--gold);color:#2a2214;font-weight:600;font-size:13.5px">🪷 改用自由靜坐</button>
+    <div id="camHelpTxt">鏡頭好像不太順？可以先自由靜坐，一樣計入全球累積。<span class="en">Camera trouble? Sit freely instead. It still counts for the world.</span></div>
+    <button id="camToFree" style="margin-top:8px;padding:7px 14px;border-radius:999px;background:var(--gold);color:#2a2214;font-weight:600;font-size:13.5px">🪷 改用自由靜坐<span class="en">Sit freely instead</span></button>
   </div>
-  <p class="s-sub" style="margin:-6px 0 10px;font-size:12px;color:var(--ink-faint)">靜坐中若超過一分鐘偵測不到你，會自動起座，時數只算到你離開為止。</p>
+  <p class="s-sub" style="margin:-6px 0 10px;font-size:12px;color:var(--ink-faint)">靜坐中若超過一分鐘偵測不到你，會自動起座，時數只算到你離開為止。<span class="en">If you are not seen for over a minute, the sit ends. Time counts until you left.</span></p>
   <div class="acts">
-    <button class="btn-sec" id="camBack">返回</button>
-    <button class="btn-pri" id="camOpen">開啟鏡頭</button>
-    <button class="btn-pri hidden" id="camStart" disabled>開始靜坐</button>
+    <button class="btn-sec" id="camBack">返回<span class="en">Back</span></button>
+    <button class="btn-pri" id="camOpen">開啟鏡頭<span class="en">Camera on</span></button>
+    <button class="btn-pri hidden" id="camStart" disabled>開始靜坐<span class="en">Start</span></button>
   </div>
 </div></div>
 
 <!-- step 2a: choose how to sit -->
 <div class="sheet hidden" id="sheetMode"><div class="sheet-in">
-  <div class="s-title" style="text-align:center">這一座，想怎麼坐？</div>
-  <p class="s-sub" style="text-align:center;margin-bottom:12px">兩種都可以安靜地坐在山上，隨時都能改變心意。</p>
+  <div class="s-title" style="text-align:center">這一座，想怎麼坐？<span class="en">How would you like to sit?</span></div>
+  <p class="s-sub" style="text-align:center;margin-bottom:12px">兩種都能安靜地坐在山上，隨時可以改變心意。<span class="en">Both are quiet sits. You can change your mind anytime.</span></p>
   <div class="modes">
     <button class="mode-card" id="modeFree">
-      <div class="mc-ico">🪷</div><div class="mc-name">自由靜坐</div>
-      <div class="mc-lead">不開鏡頭，<br>安安靜靜地坐著</div>
-      <ul><li>計入全球累積時數</li><li>不計個人時數・排行榜・抽獎</li></ul>
+      <div class="mc-ico">🪷</div><div class="mc-name">自由靜坐<span class="en">Free sit</span></div>
+      <div class="mc-lead">不開鏡頭，<br>安安靜靜地坐著<span class="en">No camera, just sit</span></div>
+      <ul><li>計入全球累積時數<span class="en">Counts for the world</span></li><li>不計個人時數・排行榜・抽獎<span class="en">Not for your hours, ranking or draws</span></li></ul>
     </button>
     <button class="mode-card formal" id="modeFormal">
-      <div class="mc-ico">🌏</div><div class="mc-name">正式共修活動</div>
-      <div class="mc-lead">打開鏡頭，<br>與大家真實同在</div>
-      <ul><li>累積個人與全球時數</li><li>列入排行榜・活動抽獎</li></ul>
+      <div class="mc-ico">🌏</div><div class="mc-name">正式共修活動<span class="en">Formal sit</span></div>
+      <div class="mc-lead">打開鏡頭，<br>與大家真實同在<span class="en">Camera on, truly together</span></div>
+      <ul><li>累積個人與全球時數<span class="en">Your hours and the world's</span></li><li>列入排行榜・活動抽獎<span class="en">Ranking and event draws</span></li></ul>
     </button>
   </div>
-  <div class="acts" style="margin-top:12px"><button class="btn-sec" id="modeBack" style="flex:1">再走走</button></div>
+  <div class="acts" style="margin-top:12px"><button class="btn-sec" id="modeBack" style="flex:1">再走走<span class="en">Keep walking</span></button></div>
 </div></div>
 
 <!-- step 3b: free sitting (no camera, not counted) -->
@@ -507,11 +513,11 @@ body.on-intro #lb{display:none}
     <div class="free-ico">🪷</div>
     <div style="flex:1;min-width:0">
       <div class="sit-time" id="freeTime">0:00</div>
-      <div class="sit-status">自由靜坐・計入全球，不計個人</div>
+      <div class="sit-status">自由靜坐・計入全球，不計個人<span class="en">Free sit · counts for the world, not for you</span></div>
     </div>
-    <button class="btn-sec" id="btnFreeRise">起座</button>
+    <button class="btn-sec" id="btnFreeRise">起座<span class="en">Stand up</span></button>
   </div>
-  <button class="free-up" id="btnFreeToFormal">🌏 切換正式共修活動，累積個人時數</button>
+  <button class="free-up" id="btnFreeToFormal">🌏 切換正式共修活動，累積個人時數<span class="en">Switch to a formal sit to keep your own hours</span></button>
 </div></div>
 
 <!-- step 3: sitting -->
@@ -522,7 +528,7 @@ body.on-intro #lb{display:none}
       <div class="sit-time" id="sitTime">0:00</div>
       <div class="sit-status" id="sitStatus">靜坐中</div>
     </div>
-    <button class="btn-sec" id="btnRise">起座</button>
+    <button class="btn-sec" id="btnRise">起座<span class="en">Stand up</span></button>
   </div>
   <div id="sitNote" class="hidden" style="margin-top:10px;font-size:13.5px;line-height:1.6;color:var(--ink-dim);text-align:center"></div>
 </div></div>
@@ -531,58 +537,58 @@ body.on-intro #lb{display:none}
 <div class="modal hidden" id="mRank"><div class="modal-in" id="mRankIn"></div></div>
 <button id="likeAsk" class="hidden"></button>
 <button id="byeAsk" class="hidden"></button>
-<button id="lanAsk" class="hidden">🏮 點一盞祈願燈</button>
-<button id="tentAsk" class="hidden">🦟 給怕蚊蟲的你・進帳篷坐嗎？</button>
-<button id="lotusAsk" class="hidden">🪷 種一朵祝福蓮花</button>
+<button id="lanAsk" class="hidden">🏮 點一盞祈願燈<span class="en">Light a wish lantern</span></button>
+<button id="tentAsk" class="hidden">🦟 給怕蚊蟲的你・進帳篷坐嗎？<span class="en">Afraid of bugs? Sit in a tent</span></button>
+<button id="lotusAsk" class="hidden">🪷 種一朵祝福蓮花<span class="en">Plant a lotus of blessing</span></button>
 <div class="modal hidden" id="mLotus"><div class="modal-in">
-  <div class="hud-title" style="font-size:12px;color:#f290b2">山頂的蓮花池</div>
-  <h2 class="m-title" style="font-size:20px;margin-top:4px">種一朵祝福蓮花 🪷</h2>
-  <p class="s-sub" style="margin:6px 0 0">寫下你的祝福。這些字<b>只有你看得到</b>，會隨著花開慢慢淡去，留下一朵蓮花，大家都看得見。</p>
-  <div class="lan-chips chips" id="lotusChips"><button class="chip">願世界和平</button><button class="chip">願家人平安</button><button class="chip">願病者康復</button><button class="chip">願逝者安息</button><button class="chip">願眾生離苦</button><button class="chip">願自己安好</button></div>
-  <textarea id="lotusWish" maxlength="60" placeholder="把祝福送給誰，或想對自己說的話……"></textarea>
-  <div class="acts"><button class="btn-sec" id="lotusCancel">取消</button><button class="btn-pri" id="lotusGo" disabled style="background:linear-gradient(180deg,#ffd6e4,#f290b2);color:#4a1f2e">種下・祝福</button></div>
+  <div class="hud-title" style="font-size:12px;color:#f290b2">山頂的蓮花池<span class="en">The lotus pond</span></div>
+  <h2 class="m-title" style="font-size:20px;margin-top:4px">種一朵祝福蓮花 🪷<span class="en">Plant a lotus of blessing</span></h2>
+  <p class="s-sub" style="margin:6px 0 0">寫下你的祝福。字<b>只有你看得到</b>，花開時慢慢淡去，留下的蓮花大家都看得見。<span class="en">Write a blessing. <b>Only you</b> see the words; they fade as the lotus opens for everyone to see.</span></p>
+  <div class="lan-chips chips" id="lotusChips"><button class="chip" data-w="願世界和平" data-we="Peace in the world">願世界和平<span class="en">Peace in the world</span></button><button class="chip" data-w="願家人平安" data-we="Safety for my family">願家人平安<span class="en">Safety for my family</span></button><button class="chip" data-w="願病者康復" data-we="Healing for the sick">願病者康復<span class="en">Healing for the sick</span></button><button class="chip" data-w="願逝者安息" data-we="Rest for those who passed">願逝者安息<span class="en">Rest for those who passed</span></button><button class="chip" data-w="願眾生離苦" data-we="Freedom from suffering for all">願眾生離苦<span class="en">Freedom from suffering for all</span></button><button class="chip" data-w="願自己安好" data-we="Well-being for myself">願自己安好<span class="en">Well-being for myself</span></button></div>
+  <textarea id="lotusWish" maxlength="60" placeholder="把祝福送給誰…… / A blessing for…"></textarea>
+  <div class="acts"><button class="btn-sec" id="lotusCancel">取消<span class="en">Cancel</span></button><button class="btn-pri" id="lotusGo" disabled style="background:linear-gradient(180deg,#ffd6e4,#f290b2);color:#4a1f2e">種下・祝福<span class="en">Plant</span></button></div>
 </div></div>
 <div class="modal hidden" id="mLan"><div class="modal-in">
-  <div class="hud-title" style="font-size:12px;color:#f0a14a">懸崖邊的孔明燈</div>
-  <h2 class="m-title" style="font-size:20px;margin-top:4px">點一盞祈願燈 🏮</h2>
-  <p class="s-sub" style="margin:6px 0 0">寫下你的祈願。這些字<b>只有你看得到</b>，燈會帶著它，慢慢飄向遠方。</p>
-  <div class="lan-chips chips" id="lanChips"><button class="chip">願世界和平</button><button class="chip">願家人平安</button><button class="chip">願病者康復</button><button class="chip">願逝者安息</button><button class="chip">願眾生離苦</button><button class="chip">願自己安好</button></div>
-  <textarea id="lanWish" maxlength="60" placeholder="為誰祈願，或想對遠方說的話……"></textarea>
+  <div class="hud-title" style="font-size:12px;color:#f0a14a">懸崖邊的孔明燈<span class="en">Lanterns at the cliff</span></div>
+  <h2 class="m-title" style="font-size:20px;margin-top:4px">點一盞祈願燈 🏮<span class="en">Light a wish lantern</span></h2>
+  <p class="s-sub" style="margin:6px 0 0">寫下你的祈願。字<b>只有你看得到</b>，燈會帶著它飄向遠方。<span class="en">Write a wish. <b>Only you</b> see it; the lantern carries it far away.</span></p>
+  <div class="lan-chips chips" id="lanChips"><button class="chip" data-w="願世界和平" data-we="Peace in the world">願世界和平<span class="en">Peace in the world</span></button><button class="chip" data-w="願家人平安" data-we="Safety for my family">願家人平安<span class="en">Safety for my family</span></button><button class="chip" data-w="願病者康復" data-we="Healing for the sick">願病者康復<span class="en">Healing for the sick</span></button><button class="chip" data-w="願逝者安息" data-we="Rest for those who passed">願逝者安息<span class="en">Rest for those who passed</span></button><button class="chip" data-w="願眾生離苦" data-we="Freedom from suffering for all">願眾生離苦<span class="en">Freedom from suffering for all</span></button><button class="chip" data-w="願自己安好" data-we="Well-being for myself">願自己安好<span class="en">Well-being for myself</span></button></div>
+  <textarea id="lanWish" maxlength="60" placeholder="為誰祈願…… / A wish for…"></textarea>
   <div class="note" id="lanCount" style="margin-top:6px"></div>
-  <div class="acts"><button class="btn-sec" id="lanCancel">取消</button><button class="btn-pri" id="lanGo" disabled style="background:linear-gradient(180deg,#ffcf8a,#f0a14a)">點亮・放飛</button></div>
+  <div class="acts"><button class="btn-sec" id="lanCancel">取消<span class="en">Cancel</span></button><button class="btn-pri" id="lanGo" disabled style="background:linear-gradient(180deg,#ffcf8a,#f0a14a)">點亮・放飛<span class="en">Light it</span></button></div>
 </div></div>
 <div id="likes" class="hidden"></div>
-<div id="elderAsk" class="hidden"><span>想多了解這個地方嗎？</span><button id="elderYes">好</button></div>
+<div id="elderAsk" class="hidden"><span>想多了解這個地方嗎？<span class="en">About this place?</span></span><button id="elderYes">好<span class="en">OK</span></button></div>
 <div class="modal hidden" id="mAbout"><div class="modal-in">
-  <img src="elder.png" alt="營火旁的老人" style="float:right;width:116px;height:auto;margin:-4px -2px 4px 10px;filter:drop-shadow(0 4px 14px rgba(255,170,80,.25))">
-  <div class="hud-title" style="font-size:12px;color:var(--ink-faint)">營火旁的老人</div>
-  <h2 class="m-title" style="font-size:20px;margin-top:4px">關於靜默</h2>
-  <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。去找個喜歡的地方坐下吧。」</p>
-  <div class="ab-wisdom"><div class="ab-wk">老人輕聲對你說</div><p id="abWisdom"></p></div>
+  <img src="elder.png" alt="營火旁的老人 The old man by the fire" style="float:right;width:116px;height:auto;margin:-4px -2px 4px 10px;filter:drop-shadow(0 4px 14px rgba(255,170,80,.25))">
+  <div class="hud-title" style="font-size:12px;color:var(--ink-faint)">營火旁的老人<span class="en">The old man by the fire</span></div>
+  <h2 class="m-title" style="font-size:20px;margin-top:4px">關於靜默<span class="en">About silence</span></h2>
+  <p class="ab-quote">「坐下來，不用做什麼。<br>山在，火在，你也在。」<span class="en">"Sit down. Nothing to do. The mountain is here, the fire is here, and so are you."</span></p>
+  <div class="ab-wisdom"><div class="ab-wk">老人輕聲對你說<span class="en">He says softly</span></div><p id="abWisdom"></p></div>
   <div class="ab-sec">
-    <h3>每週固定共修活動</h3>
-    <p>每週日晚上 10:00（台灣時間），全球一起上山靜坐。不需要抽獎，不需要特別理由。<br>下一次：<b style="color:var(--gold)" id="abNext"></b></p>
+    <h3>每週固定共修活動<span class="en">Weekly group sit</span></h3>
+    <p>每週日晚上 10:00（台灣時間），全球一起上山靜坐。<span class="en">Every Sunday at 10 PM Taiwan time (UTC+8), we sit together.</span>下一次 Next：<b style="color:var(--gold)" id="abNext"></b></p>
   </div>
   <div class="ab-sec">
-    <h3>最新消息與聯絡</h3>
-    <p>活動公告、抽獎名單、共修活動時段提醒，或想和創辦人聯絡，都在 LINE 社群。</p>
-    <a class="line-btn" id="abNews" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群</a>
-    <button class="home-link hidden" data-home>📲 <u>把靜默空間放到手機桌面</u></button>
+    <h3>最新消息與聯絡<span class="en">News &amp; contact</span></h3>
+    <p>活動公告、共修提醒，或想和創辦人聯絡，都在 LINE 社群。<span class="en">Events, reminders and a word with the founder: all in our LINE group.</span></p>
+    <a class="line-btn" id="abNews" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群・Join</a>
+    <button class="home-link hidden" data-home>📲 <u>把靜默空間放到手機桌面</u><span class="en">Add to your home screen</span></button>
   </div>
   <div class="ab-sec">
     <h3>隨喜贊助 <span class="en-script" style="font-size:20px;margin-left:4px">Buy me a coffee</span></h3>
-    <p>如果這座山陪伴過你，歡迎請創辦人喝杯咖啡 ☕，讓這座山繼續為更多人亮著。</p>
-    <a class="ab-link" id="abGive" aria-disabled="true">☕ Buy me a coffee・即將開放</a>
+    <p>如果這座山陪伴過你，歡迎請創辦人喝杯咖啡 ☕，讓山繼續為更多人亮著。<span class="en">If the mountain has kept you company, buy the founder a coffee to keep its lights on.</span></p>
+    <a class="ab-link" id="abGive" aria-disabled="true">☕ Buy me a coffee・即將開放 coming soon</a>
   </div>
-  <button class="btn-main" id="abClose" style="margin-top:16px">回到山上</button>
+  <button class="btn-main" id="abClose" style="margin-top:16px">回到山上<span class="en">Back to the mountain</span></button>
 </div></div>
 <div class="modal hidden" id="mEnd"><div class="modal-in">
-  <div class="end-sub">這一座</div>
+  <div class="end-sub">這一座<span class="en">This sit</span></div>
   <div class="end-big" id="endTime">0 分</div>
   <div class="end-sub" id="endSub"></div>
-  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群，接收活動提醒與最新消息</a>
-  <button class="home-link hidden" data-home>📲 <u>放到手機桌面，下次一點就上山</u></button>
-  <button class="btn-main" id="btnEndOk" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">回到山上</button>
+  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群，接收活動提醒・Join for news</a>
+  <button class="home-link hidden" data-home>📲 <u>放到手機桌面，下次一點就上山</u><span class="en">Add to your home screen</span></button>
+  <button class="btn-main" id="btnEndOk" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">回到山上<span class="en">Back to the mountain</span></button>
 </div></div>
 <div class="modal ev-modal hidden" id="mEvent"><div class="ev-sheet">
   <button class="ev-x" id="evX" aria-label="關閉">×</button>
@@ -623,22 +629,22 @@ body.on-intro #lb{display:none}
   <button class="btn-main" id="certClose" style="margin-top:14px">回到山上</button>
 </div></div>
 <div class="modal hidden" id="mBadges"><div class="modal-in">
-  <h2 class="m-title" style="font-size:20px;text-align:center">靜坐里程碑</h2>
+  <h2 class="m-title" style="font-size:20px;text-align:center">靜坐里程碑<span class="en">Sitting milestones</span></h2>
   <div class="home-note" style="text-align:center;margin-top:2px;font-size:13px" id="bdgSum"></div>
   <div class="bdg-grid" id="bdgGrid"></div>
-  <p class="home-note" style="text-align:center">累積「正式共修活動」的個人時數解鎖，時數永遠累積，徽章也永遠是你的。</p>
-  <button class="btn-main" id="bdgClose" style="margin-top:14px">回到山上</button>
+  <p class="home-note" style="text-align:center">累積正式共修的個人時數解鎖，時數不歸零，徽章永遠是你的。<span class="en">Unlocked by your formal-sit hours. Hours never reset; badges are yours to keep.</span></p>
+  <button class="btn-main" id="bdgClose" style="margin-top:14px">回到山上<span class="en">Back to the mountain</span></button>
 </div></div>
 <div class="modal hidden" id="mHome"><div class="modal-in" style="text-align:center">
   <img class="home-ic" src="apple-touch-icon.png" alt="">
-  <h2 class="m-title" style="font-size:20px">放到手機桌面</h2>
-  <div class="home-note" style="margin-top:2px;font-size:13px">像 App 一樣，下次一點就上山</div>
+  <h2 class="m-title" style="font-size:20px">放到手機桌面<span class="en">Add to home screen</span></h2>
+  <div class="home-note" style="margin-top:2px;font-size:13px">像 App 一樣，下次一點就上山<span class="en">Open it like an app next time</span></div>
   <div id="homeBody"></div>
-  <button class="btn-main" id="homeClose" style="margin-top:16px">好</button>
+  <button class="btn-main" id="homeClose" style="margin-top:16px">好<span class="en">OK</span></button>
 </div></div>
 <div id="hourCd"><div class="hc-k"></div><div class="hc-n"></div></div>
 <div id="hourMsg"></div>
-<div id="dim"><div class="dd"></div><div class="dt" id="dimTime">0:00</div><div class="dh" id="dimHint">省電模式・輕觸畫面恢復亮度</div></div>
+<div id="dim"><div class="dd"></div><div class="dt" id="dimTime">0:00</div><div class="dh" id="dimHint">省電模式・輕觸畫面恢復亮度<span class="en">Power saving · tap to brighten</span></div></div>
 <div id="toast"></div>
 <canvas id="snapC" width="128" height="128" class="hidden"></canvas>
 
@@ -676,16 +682,16 @@ function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imu
 
 /* 靜坐里程碑: badges earned by personal (formal) hours — they never go away, because hours never reset */
 const BADGES=[
-  {m:10,   i:'🌱', t:'初次相遇',   d:'第一次和自己坐在一起'},
-  {m:30,   i:'🍃', t:'安住此刻',   d:'開始坐得住了'},
-  {m:45,   i:'🪷', t:'一座圓滿',   d:'一座 45 分鐘的份量'},
-  {m:60,   i:'🌿', t:'靜心旅人',   d:'成為山上的旅人'},
-  {m:180,  i:'🌳', t:'山中常客',   d:'常常回到這座山'},
-  {m:360,  i:'🏔️', t:'山的守護者', d:'這座山有你守著'},
-  {m:720,  i:'🌙', t:'月下同行',   d:'半日的靜默'},
-  {m:1440, i:'☀️', t:'一日之光',   d:'累積滿一整天'},
-  {m:3000, i:'⭐', t:'寂靜同行者', d:'長長久久的同伴'},
-  {m:6000, i:'🌌', t:'星空之心',   d:'山上最深的靜默'}];
+  {m:10,   i:'🌱', t:'初次相遇',   d:'第一次和自己坐在一起', te:'First meeting', de:'First time sitting with yourself'},
+  {m:30,   i:'🍃', t:'安住此刻',   d:'開始坐得住了', te:'Resting in now', de:'You can sit still now'},
+  {m:45,   i:'🪷', t:'一座圓滿',   d:'一座 45 分鐘的份量', te:'A full sit', de:'The weight of a 45-minute sit'},
+  {m:60,   i:'🌿', t:'靜心旅人',   d:'成為山上的旅人', te:'Quiet traveller', de:'A traveller of the mountain'},
+  {m:180,  i:'🌳', t:'山中常客',   d:'常常回到這座山', te:'Regular', de:'Often back on the mountain'},
+  {m:360,  i:'🏔️', t:'山的守護者', d:'這座山有你守著', te:'Mountain keeper', de:'The mountain is in your care'},
+  {m:720,  i:'🌙', t:'月下同行',   d:'半日的靜默', te:'Moonlit companion', de:'Half a day of silence'},
+  {m:1440, i:'☀️', t:'一日之光',   d:'累積滿一整天', te:'Light of a day', de:'A whole day of silence'},
+  {m:3000, i:'⭐', t:'寂靜同行者', d:'長長久久的同伴', te:'Silent companion', de:'A companion for the long road'},
+  {m:6000, i:'🌌', t:'星空之心',   d:'山上最深的靜默', te:'Heart of the stars', de:'The deepest silence here'}];
 const badgeIdx=sec=>{ let k=-1; BADGES.forEach((b,i)=>{ if(sec>=b.m*60) k=i; }); return k; };
 const badgeIcon=sec=>{ const k=badgeIdx(sec); return k<0?'':BADGES[k].i; };
 const METHODS=['安般念・觀呼吸','數息','內觀','慈心觀','默照・參話頭','念佛・持咒','其他・隨意'];
@@ -1797,8 +1803,8 @@ class Companions{
   }
 }
 function compLine(){ const tr=me.compTier??-1; if(tr<0) return '';
-  const names=[(me.compNight?'✨ 螢火蟲':'🦋 蝴蝶'),'🐦 小鳥','🦌 小鹿','🕊️ 白鶴'].slice(0,tr+1);
-  return `<div class="comp-line">今天陪你坐的有：${names.join('・')}</div>`; }
+  const names=[(me.compNight?'✨ 螢火蟲':'🦋 蝴蝶'),'🐦 小鳥','🦌 小鹿','🕊️ 白鶴'].slice(0,tr+1), namesEn=[(me.compNight?'fireflies':'butterflies'),'a little bird','a fawn','a crane'].slice(0,tr+1);
+  return `<div class="comp-line">今天陪你坐的有：${names.join('・')}<span class="en">Keeping you company today: ${namesEn.join(', ')}</span></div>`; }
 
 class Person{
   constructor(info,remote){
@@ -1856,9 +1862,9 @@ class Person{
     this.tagEl.style.zIndex=String(1000-Math.round(dist*10));
     const ph=this.phase, showImg=ph==='sit'&&this.hasImg;
     this.imgEl.style.display=showImg?'':'none';
-    if(ph==='sit'){ const p=this.remote?this.info.paused:me.paused; this.timeEl.textContent=p?'暫離':fmt(this.remote?peerSec(this.info):me.sitSec); this.timeEl.classList.toggle('warn',!!p); }
-    else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?'選位置中':'入座中…'; this.timeEl.classList.remove('warn'); }
-    else if(ph==='free'){ this.timeEl.textContent='自由靜坐'; this.timeEl.classList.remove('warn'); }
+    if(ph==='sit'){ const p=this.remote?this.info.paused:me.paused; this.timeEl.textContent=p?'暫離 away':fmt(this.remote?peerSec(this.info):me.sitSec); this.timeEl.classList.toggle('warn',!!p); }
+    else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?'選位置中 choosing':'入座中… sitting down'; this.timeEl.classList.remove('warn'); }
+    else if(ph==='free'){ this.timeEl.textContent='自由靜坐 free sit'; this.timeEl.classList.remove('warn'); }
     else this.timeEl.textContent='';
   }
   dispose(){ scene.remove(this.k.g); this.tagEl.remove(); }
@@ -1912,7 +1918,7 @@ $('btnEnter').onclick=()=>{ setTimeout(()=>{ const e=evText(); if(e&&!e.live&&me
 
 /* ===================== networking ===================== */
 netReady.then(()=>{
-  if(!joinRoom){ $('introLive').textContent='連線元件載入失敗，請檢查網路後重新整理'; $('introLiveLine').classList.remove('hidden'); $('hudStat').textContent='離線'; return; }
+  if(!joinRoom){ $('introLive').innerHTML=EN('連線元件載入失敗，請檢查網路後重新整理','Could not connect. Check your network and reload.'); $('introLiveLine').classList.remove('hidden'); $('hudStat').innerHTML=EN('離線','Offline'); return; }
   me.id=selfId;
   room=joinRoom({appId:'global-silence-space-v2'},'summit-1');
   aSt=room.makeAction('st'); aPos=room.makeAction('pos'); aSnap=room.makeAction('snap'); aLed=room.makeAction('ledger'); aLike=room.makeAction('like'); aHi=room.makeAction('hi'); aBye=room.makeAction('bye'); aLan=room.makeAction('lan'); aLotus=room.makeAction('lotus');
@@ -1970,6 +1976,8 @@ function maybeSendPos(now){
 function peerSec(info){ if(info.phase!=='sit') return 0; return info.sitSec+(info.paused?0:(performance.now()-(info.recvAt||performance.now()))/1000); }
 function fmt(sec){ sec=Math.floor(sec); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60;
   return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`; }
+/* numbers in lists read the same in both languages: 3h 12m */
+function durU(sec){ sec=Math.floor(sec); if(sec<60) return `${sec}s`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return h?`${h}h ${m}m`:`${m}m ${s}s`; }
 function hrs(sec){ const h=sec/3600; return h<1?(sec<60?`${Math.floor(sec)} 秒`:`${Math.round(sec/60)} 分鐘`):`${h.toFixed(1)} 小時`; }
 function everyone(){
   const arr=[...peers.values()].filter(p=>!p.stale).map(p=>({person:p,name:p.info.name,country:p.info.country,phase:p.info.phase,total:p.info.total,live:peerSec(p.info),self:false}));
@@ -2018,7 +2026,7 @@ async function srvStart(keep){
   if(!srv.id){ await srvJoin(); } if(!srv.id){ srv.netFail=true; return; }
   if(!keep) $('sitNote').classList.add('hidden');
   try{ const r=await rpc('gs_start',auth()); if(!(r&&r.session)) srv.netFail=true; if(r&&r.session){ srv.session=r.session; srv.event=r.event; srv.eventTitle=r.event_title||''; srv.minSecs=r.min_seconds||0; srv.lastBeat=performance.now();
-    if(srv.event&&srv.minSecs){ $('sitNote').textContent=`坐滿 ${Math.round(srv.minSecs/60)} 分鐘時，會響三聲鐘聲。在那之前，安心閉上眼睛就好。`; $('sitNote').classList.remove('hidden'); } } }catch(e){ srv.netFail=true; }
+    if(srv.event&&srv.minSecs){ $('sitNote').innerHTML=EN(`坐滿 ${Math.round(srv.minSecs/60)} 分鐘時，會響三聲鐘聲。安心閉上眼睛就好。`,`Three bells will ring at ${Math.round(srv.minSecs/60)} minutes. Just close your eyes.`); $('sitNote').classList.remove('hidden'); } } }catch(e){ srv.netFail=true; }
   } finally { srv.starting=false; }
 }
 /* keep the formal sit connected to the server, so nobody sits 45 minutes for nothing:
@@ -2070,7 +2078,7 @@ function mountainTotalAll(){
 }
 let worldPeak=0; // the shown world total never steps backwards (the live estimate can run a little ahead of the server between refreshes)
 function worldTotal(){ const v=mountainTotalAll(); if(isFinite(v)) worldPeak=Math.max(worldPeak,v); return worldPeak; }
-function updateTotal(){ $('mtVal').textContent=longFmt(worldTotal()); }
+function updateTotal(){ $('mtVal').textContent=durU(worldTotal()); }
 setInterval(updateTotal,1000);
 
 /* 全球靜默時刻: every time the whole mountain passes another full hour — a quiet 10-second countdown, then silent fireworks.
@@ -2093,7 +2101,7 @@ setInterval(()=>{
 function fwEvery(){ return 1; } // every hour of world silence, always (the 10-minute rest between shows still applies)
 function cancelCountdown(hr){ $('hourCd').classList.remove('on'); hourSeen=hr-fwEvery(); store.set('fwHour',hourSeen); fwBusy=false; }
 function runCountdown(hr){ // the words stay still; only the number changes, one step every 1.2 s
-  fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').textContent=`全球累積靜默，即將滿 ${hr} 小時`;
+  fwBusy=true; const el=$('hourCd'); el.querySelector('.hc-k').innerHTML=EN(`全球累積靜默，即將滿 ${hr} 小時`,`World silence is about to reach ${hr} hours`);
   let n=10, wait=0; const tick=()=>{
     if(me.phase==='intro'||sittingNow()===0){ cancelCountdown(hr); return; } // everyone stood up: the hour isn't reached, so no fireworks
     if(n>0){ el.querySelector('.hc-n').textContent=n--; el.classList.add('on'); setTimeout(tick,1200); return; }
@@ -2124,7 +2132,7 @@ function celebrateOpening(){
 if(QS.get('fwopen')) setTimeout(()=>{ runOpening(Date.now()+11000); },6000); // preview: ?fwopen=1
 function hideCountdown(){ $('hourCd').classList.remove('on'); }
 function celebrateHour(h){
-  fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時</div><div class="hm-s">謝謝每一位在山上安靜坐著的你</div>`;
+  fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜 Congratulations</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時<span class="en">${h} hours of silence, together</span></div><div class="hm-s">${EN('謝謝每一位在山上安靜坐著的你','Thank you to everyone sitting quietly here')}</div>`;
   startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
 /* one-off fireworks demo, 11 Nov 2026: whoever reaches the mountain in this short window gets the show at once; it switches itself off */
@@ -2141,7 +2149,7 @@ function lbRow(el,rank,r){ el.className=r.k===UID?'me':''; el.innerHTML='';
   const a=document.createElement('span'); a.className='r'; a.textContent=rank;
   const w=document.createElement('span'); w.className='w'; const bi=badgeIcon(r.t); const nm=document.createElement('span'); nm.className='nm'; nm.textContent=(bi?bi+' ':'')+r.n; w.appendChild(nm);
   if(r.c){ const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm); } // where they sit from, under the name
-  const t=document.createElement('span'); t.className='t'; t.textContent=shortFmt(r.t); el.append(a,w,t); }
+  const t=document.createElement('span'); t.className='t'; t.textContent=durU(r.t); el.append(a,w,t); }
 function lbPad(ol,n){ // 5 places while the mountain is young, 10 once more than 5 people are on the board; unfilled places wait empty
   const slots=n<=5?5:10;
   for(let i=n;i<slots;i++){ const li=document.createElement('li'); li.className='lb-slot'; li.innerHTML=`<span class="r">${i+1}</span><span class="w">—</span><span class="t"></span>`; ol.appendChild(li); } }
@@ -2167,7 +2175,7 @@ function renderLB(){
 }
 setInterval(renderLB,2000);
 try{ if(store.get('lbClosed',false)) $('lb').classList.add('closed'); }catch{}
-const lbTogText=()=>{ $('lbTog').textContent=$('lb').classList.contains('closed')?'展開 ▼':'收起 ▲'; };
+const lbTogText=()=>{ $('lbTog').textContent=$('lb').classList.contains('closed')?'▼':'▲'; };
 $('lbHead').onclick=()=>{ const c=$('lb').classList.toggle('closed'); store.set('lbClosed',c); lbTogText(); };
 lbTogText();
 function updateHud(){
@@ -2175,12 +2183,18 @@ function updateHud(){
   const all=everyone(), sitting=all.filter(p=>p.phase==='sit'||p.phase==='free'), sum=0;
   const ps=[...peers.values()].filter(p=>!p.stale), ns=ps.filter(p=>p.info.phase==='sit'||p.info.phase==='free').length;
   { const on=!!room&&ps.length>0; $('introLiveLine').classList.toggle('hidden',!on); // only say something when there are people; an empty mountain stays a quiet surprise
-    if(on) $('introLive').textContent=`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`; }
+    if(on) $('introLive').innerHTML=EN(`此刻山上有 ${ps.length} 人，其中 ${ns} 人正在靜坐`,`${ps.length} on the mountain now, ${ns} sitting`); }
   if(me.phase==='intro') return;
-  $('hudStat').textContent=!room?'連線中…':all.length<=1?'此刻，山陪著你':`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`;
+  $('hudStat').innerHTML=!room?EN('連線中…','Connecting…'):all.length<=1?EN('此刻，山陪著你','The mountain is with you'):EN(`山上 ${all.length} 人・靜坐中 ${sitting.length} 人`,`${all.length} here · ${sitting.length} sitting`);
   $('hudSum').textContent='';
 }
-let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
+/* 中英雙語 helpers. The page always shows both languages; only the spoken voice and the wish chips follow the phone's own language. */
+const ZH=/^zh/i.test(navigator.language||'');
+function escT(x){ return String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function EN(zh,en){ return `${zh}<span class="en">${en}</span>`; }   // our own strings only; escape anything a person typed first
+const enDur=sec=>{ sec=Math.floor(sec); if(sec<60) return `${sec}s`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return h?`${h}h ${m}m`:(s?`${m}m ${s}s`:`${m} min`); };
+const enHrs=sec=>{ const h=sec/3600; return h<1?(sec<60?`${Math.floor(sec)} s`:`${Math.round(sec/60)} min`):`${h.toFixed(1)} h`; };
+let toastT; function toast(t,en){ const el=$('toast'); el.innerHTML=escT(t)+(en?`<span class="en">${escT(en)}</span>`:''); el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
 let sheetOn=false;
 function sheet(id){ sheetOn=!!id; ['sheetPose','sheetMode','sheetCam','sheetFree','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
@@ -2189,7 +2203,7 @@ function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hid
 /* ===================== camera rig + input ===================== */
 const cam={yaw:0,pitch:.42,dist:7,tx:0,ty:1,tz:14};
 const ov={on:true,yaw:.6,pitch:innerWidth>innerHeight?.2:.62}; let lastDrag=0; // wide screens get a lower, more cinematic angle
-function setOverview(on){ ov.on=on; camK=2.2; $('btnView').textContent=on?'回到我':'全景';
+function setOverview(on){ ov.on=on; camK=2.2; $('btnView').innerHTML=on?EN('回到我','Back to me'):EN('全景','Overview');
   showWalkUI(me.phase==='walk'); } // the joystick stays in both views whenever you're walking
 $('btnView').onclick=()=>{ if(self) setOverview(!ov.on); };
 const joy={x:0,y:0,id:null,reset(){ this.x=this.y=0; this.id=null; $('knob').style.transform=''; }};
@@ -2248,11 +2262,11 @@ $('btnDown').onclick=()=>{
 };
 function buildPresets(){
   const el=$('presets'); el.innerHTML='';
-  const t=nearTree(), opts=[['out','面向山谷'],['in','背對懸崖'],['left','左邊看山'],['right','右邊看山']];
-  if(t&&t.d<3.2) opts.push(['tree','靠著樹坐']);
-  opts.forEach(([k,l])=>{ const b=document.createElement('button'); b.className='pre'; b.textContent=l; b.dataset.k=k; b.onclick=()=>applyPreset(k); el.appendChild(b); });
+  const t=nearTree(), opts=[['out','面向山谷','Face the valley'],['in','背對懸崖','Back to the cliff'],['left','左邊看山','Hills on the left'],['right','右邊看山','Hills on the right']];
+  if(t&&t.d<3.2) opts.push(['tree','靠著樹坐','Lean on the tree']);
+  opts.forEach(([k,l,le])=>{ const b=document.createElement('button'); b.className='pre'; b.innerHTML=EN(l,le); b.dataset.k=k; b.onclick=()=>applyPreset(k); el.appendChild(b); });
   if(opts.length%2) el.lastChild.style.gridColumn='span 2';
-  $('poseSub').textContent=t&&t.d<3.2?'旁邊有一棵樹，可以靠著它坐。選好方向，再坐下。':'小人會轉向你選的方向。選好了，再坐下。';
+  $('poseSub').innerHTML=t&&t.d<3.2?EN('旁邊有一棵樹，可以靠著它坐。選好方向，再坐下。','There is a tree here to lean on. Pick a direction, then sit.'):EN('小人會轉向你選的方向。選好了，再坐下。','Pick a direction, then sit down.');
 }
 function applyPreset(k){
   [...$('presets').children].forEach(b=>b.classList.toggle('on',b.dataset.k===k));
@@ -2274,9 +2288,9 @@ let lastAct=performance.now(); ['pointerdown','keydown','touchstart'].forEach(ev
 let camPhaseSince=0;
 let posePhaseSince=0;
 setInterval(()=>{ if(me.phase!=='pose'){ posePhaseSince=0; return; } const n=performance.now(); if(!posePhaseSince) posePhaseSince=n;
-  if(n-Math.max(lastAct,posePhaseSince)>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏'); } },10000);
+  if(n-Math.max(lastAct,posePhaseSince)>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏','You were choosing for a while, so you stood up. Tap “Sit here” when ready.'); } },10000);
 setInterval(()=>{ if(me.phase!=='cam'){ camPhaseSince=0; return; } const n=performance.now(); if(!camPhaseSince) camPhaseSince=n;
-  if(n-Math.max(lastAct,camPhaseSince)>10*60000){ standUp(); toast('停留太久沒有動作，先幫你起身了。想坐的時候，再坐下就好 🙏'); } },15000);
+  if(n-Math.max(lastAct,camPhaseSince)>10*60000){ standUp(); toast('停留太久沒有動作，先幫你起身了。想坐的時候，再坐下就好 🙏','No movement for a while, so you stood up. Sit again whenever you like.'); } },15000);
 /* pick an orbit angle near `base` with no tree crown between the camera and the sitter */
 function clearYaw(base,dist=12,pitch=.6){
   const blocked=y=>{ let n=0; for(let k=.15;k<=1;k+=.12){ const px=self.x+Math.sin(y)*Math.cos(pitch)*dist*k, pz=self.z+Math.cos(y)*Math.cos(pitch)*dist*k, py=1+Math.sin(pitch)*dist*k;
@@ -2297,7 +2311,7 @@ async function startFree(){
   try{ wakeLock=wakeLock||await navigator.wakeLock?.request('screen'); }catch{}
   $('freeTime').textContent=fmt(Math.floor(freeSec)); clearInterval(freeTimer); freeStart();
   let freeLast=performance.now();
-  freeTimer=setInterval(()=>{ const now=performance.now(), d=(now-freeLast)/1000; freeLast=now; if(me.phase!=='free') return; if(d<=45) freeSec+=d; /* real elapsed time, the same rule the server counts by (a gap over 45 s counts nothing) */ if(performance.now()-fs.lastBeat>=20000) freeBeat(); $('freeTime').textContent=fmt(Math.floor(freeSec)); $('dimTime').textContent=fmt(Math.floor(freeSec)); $('dimHint').textContent='自由靜坐・輕觸畫面恢復亮度'; },1000);
+  freeTimer=setInterval(()=>{ const now=performance.now(), d=(now-freeLast)/1000; freeLast=now; if(me.phase!=='free') return; if(d<=45) freeSec+=d; /* real elapsed time, the same rule the server counts by (a gap over 45 s counts nothing) */ if(performance.now()-fs.lastBeat>=20000) freeBeat(); $('freeTime').textContent=fmt(Math.floor(freeSec)); $('dimTime').textContent=fmt(Math.floor(freeSec)); $('dimHint').innerHTML=EN('自由靜坐・輕觸畫面恢復亮度','Free sit · tap to brighten'); },1000);
 }
 function stopFree(){ clearInterval(freeTimer); freeTimer=null; if(fs.session) freeEnd(); }
 $('btnFreeToFormal').onclick=()=>{ // switch to formal: camera check first; counting starts only after it passes
@@ -2309,10 +2323,10 @@ $('btnFreeRise').onclick=async()=>{
   clearInterval(freeTimer); freeTimer=null; const ending=freeEnd();
   try{ wakeLock?.release(); }catch{} wakeLock=null; standUp(); bell(.6);
   const paint=()=>{ const g=fs.secs>0?fs.secs:sec; // once the server answers, both lines show the server's number, so they always agree
-    $('endTime').textContent=g<60?`${g} 秒`:`${Math.floor(g/60)} 分 ${g%60} 秒`;
-    $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><br><span style="font-size:12.5px;color:var(--ink-faint)">自由靜坐計入全球累積，不計入個人時數</span><br>`
-      +(nLikes?`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏<br>`:'隨喜 🙏<br>')+byeEndHTML(byes)+compLine()
-      +nextSitHTML(true)+`<div class="end-all"><span>全山一起注入的靜默</span><b>${longFmt(mountainTotalAll())}</b><small>想累積個人時數、參加抽獎？下次選「正式共修活動」🌏</small></div>`; };
+    $('endTime').innerHTML=EN(g<60?`${g} 秒`:`${Math.floor(g/60)} 分 ${g%60} 秒`,enDur(g));
+    $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><span class="en">Thank you for adding ${enDur(g)} to the world's silence.</span><span style="font-size:12.5px;color:var(--ink-faint)">${EN('自由靜坐計入全球累積，不計入個人時數','A free sit counts for the world, not your own hours')}</span>`
+      +(nLikes?EN(`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`,`${nLikes} ${nLikes>1?'people':'person'} cheered you on`):EN('隨喜 🙏','Well sat 🙏'))+byeEndHTML(byes)+compLine()
+      +nextSitHTML(true)+`<div class="end-all"><span>${EN('全山一起注入的靜默','Silence shared by the whole mountain')}</span><b>${durU(mountainTotalAll())}</b><small>${EN('想累積個人時數？下次選「正式共修活動」🌏','To keep your own hours, choose a formal sit next time')}</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
 };
@@ -2346,16 +2360,16 @@ function softTick(){ softTones([392],.07,0,.35); }
 let zhVoice=null;
 function pickVoice(){ try{ const v=speechSynthesis.getVoices(); zhVoice=v.find(x=>/zh[-_]TW/i.test(x.lang))||v.find(x=>/zh[-_](HK|Hant)/i.test(x.lang))||v.find(x=>/^zh/i.test(x.lang))||null; }catch{} }
 try{ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }catch{}
-function sayGently(text,delay=900){ setTimeout(()=>{ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text); u.lang=zhVoice?.lang||'zh-TW'; if(zhVoice) u.voice=zhVoice; u.rate=.88; u.pitch=1; u.volume=.75; speechSynthesis.speak(u); }catch{} },delay); }
+function sayGently(text,delay=900,en){ setTimeout(()=>{ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+  const useEn=!ZH&&en; const u=new SpeechSynthesisUtterance(useEn?en:text); u.lang=useEn?'en-US':(zhVoice?.lang||'zh-TW'); if(zhVoice&&!useEn) u.voice=zhVoice; u.rate=.88; u.pitch=1; u.volume=.75; speechSynthesis.speak(u); }catch{} },delay); }
 function primeVoice(){ try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch{} } // phones only allow speech after a tap
 function faceAlerts(gone,found){
-  if(found&&faceAlert){ faceAlert=0; softTones([523.3,784],.09,.32,1.4); sayGently('已恢復計時',700); return; }
+  if(found&&faceAlert){ faceAlert=0; softTones([523.3,784],.09,.32,1.4); sayGently('已恢復計時',700,'Timer resumed.'); return; }
   if(found||faceState!=='ready'||document.hidden) return;
   const left=FACE_LIMIT-gone;
-  if(faceAlert<1&&gone>FACE_GRACE){ faceAlert=1; softTones([659.3,523.3]); sayGently('鏡頭暫時看不到你，計時已暫停。請稍微調整位置或燈光。'); }
-  else if(faceAlert<2&&gone>=30){ faceAlert=2; softTones([659.3,523.3]); sayGently('提醒你，鏡頭還是看不到你。'); }
-  else if(faceAlert<3&&left<=5.5){ faceAlert=3; softTones([784,659.3,523.3],.15,.38); sayGently('還有五秒，就會自動起座。請調整鏡頭角度或燈光。',1300); }
+  if(faceAlert<1&&gone>FACE_GRACE){ faceAlert=1; softTones([659.3,523.3]); sayGently('鏡頭暫時看不到你，計時已暫停。請稍微調整位置或燈光。',900,'The camera cannot see you, so the timer is paused. Please adjust your position or the light.'); }
+  else if(faceAlert<2&&gone>=30){ faceAlert=2; softTones([659.3,523.3]); sayGently('提醒你，鏡頭還是看不到你。',900,'Just a reminder, the camera still cannot see you.'); }
+  else if(faceAlert<3&&left<=5.5){ faceAlert=3; softTones([784,659.3,523.3],.15,.38); sayGently('還有五秒，就會自動起座。請調整鏡頭角度或燈光。',1300,'Five seconds before the sit ends. Please adjust the camera or the light.'); }
   else if(faceAlert===3&&left>0&&left<=4.5) softTick();
 }
 let faceDet=null, objDet=null, faceState='idle', faceLoadT=0, lastFaceAt=0, lastFdTs=0, lastOdTs=0, seenStreak=0;  // idle | loading | ready | failed
@@ -2384,33 +2398,33 @@ function faceSeen(v){ // is a person there? a confident face, or a person's shap
 /* camera check */
 let stream=null, wakeLock=null, snapTimer=null, tickTimer=null, checkTimer=null, hiddenAt=0, lastSnap=null;
 const camPrev=$('camPrev'), sitPrev=$('sitPrev'), snapC=$('snapC'), sctx=snapC.getContext('2d',{willReadFrequently:true});
-function setCk(id,state,text){ const li=$(id); li.className=state; li.textContent=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text; }
+function setCk(id,state,text,en){ const li=$(id); li.className=state; li.innerHTML=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text+(en?`<span class="en i">${en}</span>`:''); }
 let camCheckT0=0;
-function camHelp(txt){ $('camHelpTxt').textContent=txt; $('camHelp').classList.remove('hidden'); }
-function resetCamCheck(){ camCheckT0=performance.now(); { const e=evText(); $('camSound').classList.toggle('hidden',!(e&&e.live)&&!QS.get('bellsim')); } $('camHelp').classList.add('hidden'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。'); setCk('ck1','','鏡頭開啟'); setCk('ck2','','畫面亮度'); setCk('ck3','','偵測到你'); setCk('ck4','','架好手機、坐穩'); loadFace();
+function camHelp(txt,en){ $('camHelpTxt').innerHTML=EN(txt,en||''); $('camHelp').classList.remove('hidden'); }
+function resetCamCheck(){ camCheckT0=performance.now(); { const e=evText(); $('camSound').classList.toggle('hidden',!(e&&e.live)&&!QS.get('bellsim')); } $('camHelp').classList.add('hidden'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。','Opened inside LINE/FB/IG, where the camera often fails. Open this site in Chrome or Safari, or sit freely for now.'); setCk('ck1','','鏡頭開啟','Camera'); setCk('ck2','','畫面亮度','Light'); setCk('ck3','','偵測到你','Sees you'); setCk('ck4','','架好手機、坐穩','Phone steady'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
-  $('camHint').textContent='準備好了再按開始，不用急。'; }
+  $('camHint').innerHTML=EN('準備好了再按開始，不用急。','Press start when you are ready. No rush.'); }
 $('camBack').onclick=()=>{ stopCamera(); if(cameFromFree){ startFree(); } else { me.phase='cam'; sheet('sheetMode'); sendState(); } };
 $('camOpen').onclick=async()=>{
   try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:320},height:{ideal:320}},audio:false}); }
-  catch(e){ setCk('ck1','bad','鏡頭沒有開啟'); $('camHint').textContent='請允許瀏覽器使用鏡頭，再試一次。這裡需要真實的同在。'; camHelp(IN_APP?'你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。':'鏡頭打不開嗎？可以先自由靜坐，一樣計入全球累積。'); return; }
+  catch(e){ setCk('ck1','bad','鏡頭沒有開啟','Camera off'); $('camHint').innerHTML=EN('請允許瀏覽器使用鏡頭，再試一次。','Please allow camera access and try again.'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。','Opened inside LINE/FB/IG, where the camera often fails. Open this site in Chrome or Safari, or sit freely for now.'); else camHelp('鏡頭打不開嗎？可以先自由靜坐，一樣計入全球累積。','Camera won’t open? Sit freely instead. It still counts for the world.'); return; }
   camPrev.srcObject=stream; sitPrev.srcObject=stream; camPrev.play().catch(()=>{}); sitPrev.play().catch(()=>{});
-  stream.getVideoTracks()[0].addEventListener('ended',()=>{ if(me.phase==='sit') rise('鏡頭已關閉'); else resetCamCheck(); });
-  setCk('ck1','ok','鏡頭已開啟'); $('camOpen').classList.add('hidden'); $('camStart').classList.remove('hidden');
+  stream.getVideoTracks()[0].addEventListener('ended',()=>{ if(me.phase==='sit') rise(EN('鏡頭已關閉','The camera turned off')); else resetCamCheck(); });
+  setCk('ck1','ok','鏡頭已開啟','Camera on'); $('camOpen').classList.add('hidden'); $('camStart').classList.remove('hidden');
   const t0=performance.now();
   clearInterval(checkTimer); checkTimer=setInterval(()=>{
     if(camPrev.readyState<2) return;
     const lum=grabFrame(); const bright=lum>=14;
-    setCk('ck2',bright?'ok':'bad',bright?'畫面亮度正常':'畫面太暗或鏡頭被遮住');
+    setCk('ck2',bright?'ok':'bad',bright?'畫面亮度正常':'畫面太暗或鏡頭被遮住',bright?'Light OK':'Too dark or covered');
     const settled=performance.now()-t0>3000;
     if(faceState==='loading'&&performance.now()-faceLoadT>15000) faceState='failed'; // never block anyone on a slow download
     const f=faceSeen(camPrev); if(f) lastFaceAt=performance.now();
     const faceOk=f===true||faceState==='failed';
-    setCk('ck3',faceOk?'ok':faceState==='loading'?'':'bad', faceState==='failed'?'臉部偵測無法使用（不影響靜坐）':faceState==='loading'?'臉部偵測準備中…':f?'偵測到你':'看不到你（臉或身形）');
-    setCk('ck4',settled?'ok':'','架好手機、坐穩'+(settled?'':'…'));
+    setCk('ck3',faceOk?'ok':faceState==='loading'?'':'bad', faceState==='failed'?'臉部偵測無法使用（不影響靜坐）':faceState==='loading'?'臉部偵測準備中…':f?'偵測到你':'看不到你（臉或身形）', faceState==='failed'?'Detection unavailable (you can still sit)':faceState==='loading'?'Getting ready…':f?'Sees you':'Can’t see you');
+    setCk('ck4',settled?'ok':'','架好手機、坐穩'+(settled?'':'…'),'Phone steady');
     $('camStart').disabled=!(bright&&settled&&faceOk);
-    if($('camStart').disabled&&performance.now()-camCheckT0>60000&&$('camHelp').classList.contains('hidden')) camHelp('檢查好像一直過不了？可以先自由靜坐，一樣計入全球累積。');
-    $('camHint').textContent=!bright?'換個角度或開燈，讓同修看得見你。':!faceOk&&faceState==='ready'?'讓臉出現在畫面裡，鏡頭放在面前一兩公尺內。':settled?'看起來都好了。準備好就開始吧。':'把手機架穩，調整一下坐姿。';
+    if($('camStart').disabled&&performance.now()-camCheckT0>60000&&$('camHelp').classList.contains('hidden')) camHelp('檢查好像一直過不了？可以先自由靜坐，一樣計入全球累積。','Check not passing? Sit freely instead. It still counts for the world.');
+    $('camHint').innerHTML=!bright?EN('換個角度或開燈，讓同修看得見你。','Try another angle or turn on a light.'):!faceOk&&faceState==='ready'?EN('讓臉出現在畫面裡，鏡頭放在面前一兩公尺內。','Keep your face in view, the phone 1–2 m in front of you.'):settled?EN('看起來都好了。準備好就開始吧。','All good. Start when you are ready.'):EN('把手機架穩，調整一下坐姿。','Set the phone steady and settle in.');
   },500);
 };
 function stopCamera(){ clearInterval(checkTimer); stream?.getTracks().forEach(t=>t.stop()); stream=null; camPrev.srcObject=null; sitPrev.srcObject=null; }
@@ -2430,7 +2444,7 @@ $('camStart').onclick=async()=>{
   snap(); snapTimer=setInterval(snap,SNAP_MS); tickTimer=setInterval(tick,1000);
   $('sitTime').textContent='0:00'; sendState(); updateHud();
   if(QS.get('bellsim')){ // ?bellsim=1 — preview: the start note at once, then 10 s later act as if 45 minutes were reached
-    setTimeout(()=>{ if(me.phase!=='sit') return; $('sitNote').textContent='坐滿 45 分鐘時，會響三聲鐘聲。在那之前，安心閉上眼睛就好。'; $('sitNote').classList.remove('hidden'); },3000);
+    setTimeout(()=>{ if(me.phase!=='sit') return; $('sitNote').innerHTML=EN('坐滿 45 分鐘時，會響三聲鐘聲。安心閉上眼睛就好。','Three bells will ring at 45 minutes. Just close your eyes.'); $('sitNote').classList.remove('hidden'); },3000);
     setTimeout(()=>{ if(me.phase!=='sit'||srv.code) return; srv.minSecs=2700; srvApply({code:'TEST-DEMO',seconds:srv.secs||me.sitSec}); },10000); }
 };
 /* a phone lying sideways sends a sideways face: try the picture turned each quarter way and keep the turn where a face reads best,
@@ -2460,29 +2474,29 @@ function tick(){
   if(f&&(!pausedNow||seenStreak>=RESUME_STREAK)) lastFaceAt=performance.now(); // counting: one sighting keeps it going · paused: needs a steady 3 s
   const gone=faceState==='ready'&&!document.hidden?(performance.now()-lastFaceAt)/1000:0;
   faceAlerts(gone,gone<1&&!!f);
-  if(gone>=FACE_LIMIT){ faceAlert=0; softTones([523.3,392],.1,.5,2); sayGently('已自動起座。這一座的時數，算到剛才為止。',1200); rise('一分鐘沒有偵測到你，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
-  let reason=''; if(document.hidden) reason='畫面離開'; else if(me.darkCam) reason='鏡頭被遮住'; else if(gone>FACE_GRACE) reason='沒有偵測到人';
+  if(gone>=FACE_LIMIT){ faceAlert=0; softTones([523.3,392],.1,.5,2); sayGently('已自動起座。這一座的時數，算到剛才為止。',1200,'The sit has ended. Your time counts up to now.'); rise(EN('一分鐘沒有偵測到你，已自動起座。<br>時數算到你離開為止。','You were out of view for a minute, so the sit ended. Time counts until you left.')); return; }
+  let reason='', reasonEn=''; if(document.hidden){ reason='畫面離開'; reasonEn='app in background'; } else if(me.darkCam){ reason='鏡頭被遮住'; reasonEn='camera covered'; } else if(gone>FACE_GRACE){ reason='沒有偵測到人'; reasonEn='no one in view'; }
   if(reason!==me.paused){ me.paused=reason; sendState(); }
   if(!reason) me.sitSec++;
   if(!reason&&srv.session&&performance.now()-srv.lastBeat>=20000) srvBeat(); // tell the server we're still here
   if(me.sitSec%5===0) srvGuard();
   $('sitTime').textContent=fmt(me.sitSec); $('dimTime').textContent=fmt(me.sitSec);
   const st=$('sitStatus'), n=[...peers.values()].filter(p=>p.info.phase==='sit').length;
-  if(reason){ st.textContent=`暫停計時：${reason}`+(reason==='沒有偵測到人'?`，${Math.max(0,Math.ceil(FACE_LIMIT-gone))} 秒後自動起座`:''); st.classList.add('warn'); }
-  else { st.textContent=n?`與 ${n} 位同修一起靜坐`:'靜坐中・山陪著你'; st.classList.remove('warn'); }
-  $('dimHint').textContent=reason?st.textContent:srv.code?'✓ 已完成・可以繼續坐，也可以慢慢起座':'省電模式・輕觸畫面恢復亮度';
+  if(reason){ const left=Math.max(0,Math.ceil(FACE_LIMIT-gone)), auto=reason==='沒有偵測到人'; st.innerHTML=EN(`暫停計時：${reason}`+(auto?`，${left} 秒後自動起座`:''),`Paused: ${reasonEn}`+(auto?`, ends in ${left}s`:'')); st.classList.add('warn'); }
+  else { st.innerHTML=n?EN(`與 ${n} 位同修一起靜坐`,`Sitting with ${n} ${n>1?'others':'other'}`):EN('靜坐中・山陪著你','Sitting · the mountain is with you'); st.classList.remove('warn'); }
+  $('dimHint').innerHTML=reason?st.innerHTML:srv.code?EN('✓ 已完成・可以繼續坐，也可以慢慢起座','✓ Done. Keep sitting, or rise slowly'):EN('省電模式・輕觸畫面恢復亮度','Power saving · tap to brighten');
   updateHud();
 }
 document.addEventListener('visibilitychange',async()=>{
   sendState();
   if(document.hidden){ hiddenAt=Date.now(); return; }
   try{ if(stream){ camPrev.play().catch(()=>{}); sitPrev.play().catch(()=>{}); } }catch(e){} // phones pause the camera picture in the background: start it again on return
-  if(me.phase==='pose'&&Date.now()-hiddenAt>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏'); }
+  if(me.phase==='pose'&&Date.now()-hiddenAt>3*60000){ standUp(); toast('選方向停留太久，先幫你起身了。想坐的時候，再按「就這裡」就好 🙏','You were choosing for a while, so you stood up. Tap “Sit here” when ready.'); }
   if(me.phase==='sit'){
-    if(Date.now()-hiddenAt>FACE_LIMIT*1000){ rise('離開畫面超過一分鐘，已自動起座。<br>這一座的時數算到你離開為止。'); return; }
+    if(Date.now()-hiddenAt>FACE_LIMIT*1000){ rise(EN('離開畫面超過一分鐘，已自動起座。<br>時數算到你離開為止。','You left for over a minute, so the sit ended. Time counts until you left.')); return; }
     lastFaceAt=performance.now();
     try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch{}
-    if(!stream||stream.getVideoTracks()[0]?.readyState!=='live') rise('鏡頭中斷');
+    if(!stream||stream.getVideoTracks()[0]?.readyState!=='live') rise(EN('鏡頭中斷','The camera stopped'));
   }
 });
 $('btnRise').onclick=()=>rise();
@@ -2494,14 +2508,14 @@ function rise(msg){
   me.sitSec=0; myLedgerSync(); ledgerSave(); if(aLed) aLed.send(ledger);
   self.hasImg=false; lastSnap=null; me.sitSec=0; me.paused='';
   standUp(); bell(.6); updateHud();
-  $('endTime').textContent=sec<60?`${Math.floor(sec)} 秒`:`${Math.floor(sec/60)} 分 ${Math.floor(sec%60)} 秒`;
+  $('endTime').innerHTML=EN(sec<60?`${Math.floor(sec)} 秒`:`${Math.floor(sec/60)} 分 ${Math.floor(sec%60)} 秒`,enDur(sec));
   const startedAt=srv.startedAt||Date.now()-sec*1000;
   const nLikes=likesGot.length, byes=byesGot.slice(); clearLikes();
   const bStart=srv.badgeStart??badgeIdx(me.total-sec);
-  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}<br>`+(nLikes?`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`:'隨喜 🙏')+byeEndHTML(byes)+compLine()+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
-    +`<div class="end-all"><span>注入愛與和平的靜默</span><b>目前累積 ${longFmt(mountainTotalAll())}</b><small>這座山上所有人一起坐下的時間</small></div>`; };
+  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+EN(`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}`,`Well done. Your time on this mountain: ${enHrs(tot)}`)+(nLikes?EN(`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`,`${nLikes} ${nLikes>1?'people':'person'} cheered you on`):EN('隨喜 🙏','Well sat 🙏'))+byeEndHTML(byes)+compLine()+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
+    +`<div class="end-all"><span>${EN('注入愛與和平的靜默','Silence for love and peace')}</span><b>${durU(mountainTotalAll())}</b><small>${EN('這座山上所有人一起坐下的時間','Time everyone here has sat together')}</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
-  if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…</div>'); srvEnd(false).then(()=>paint()); }
+  if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…<span class="en">Confirming with the server…</span></div>'); srvEnd(false).then(()=>paint()); }
 }
 $('btnEndOk').onclick=()=>$('mEnd').classList.add('hidden');
 
@@ -2509,18 +2523,18 @@ $('btnEndOk').onclick=()=>$('mEnd').classList.add('hidden');
 function badgeEndHTML(before,tot){
   const now=badgeIdx(tot); let h='';
   if(now>before&&now>=0){ const b=BADGES[now]; store.set('badgeSeen',now);
-    h+=`<div class="bdg-new"><div class="bk">🎉 恭喜獲得新徽章</div><div class="bi">${b.i}</div><div class="bt">${b.t}</div><div class="home-note" style="margin-top:2px">${b.d}</div></div>`; }
+    h+=`<div class="bdg-new"><div class="bk">🎉 恭喜獲得新徽章<span class="en">New badge</span></div><div class="bi">${b.i}</div><div class="bt">${EN(b.t,b.te)}</div><div class="home-note" style="margin-top:2px">${EN(b.d,b.de)}</div></div>`; }
   const nx=BADGES[now+1];
-  h+= nx ? `<div class="bdg-next">下一個徽章 ${nx.i} <b>${nx.t}</b>，還差 <b>${shortFmt(nx.m*60-tot)}</b><br>有空就上山坐一坐 🌿<br><button data-badges>看我的徽章</button></div>`
-         : `<div class="bdg-next">你已集滿所有徽章 🌌 謝謝你一直在這座山上<br><button data-badges>看我的徽章</button></div>`;
+  h+= nx ? `<div class="bdg-next">下一個徽章 ${nx.i} <b>${nx.t}</b>，還差 <b>${shortFmt(nx.m*60-tot)}</b><span class="en">Next: ${nx.te}, ${enDur(nx.m*60-tot)} to go</span><button data-badges>${EN('看我的徽章','My badges')}</button></div>`
+         : `<div class="bdg-next">你已集滿所有徽章 🌌<span class="en">You have every badge. Thank you for being here.</span><button data-badges>${EN('看我的徽章','My badges')}</button></div>`;
   return h;
 }
 function openBadges(){
   const tot=me.total, now=badgeIdx(tot), g=$('bdgGrid'); g.innerHTML='';
   BADGES.forEach((b,i)=>{ const c=document.createElement('div'); c.className='bdg-c '+(i<=now?'on':'off')+(i===now+1?' next':'');
-    const need=b.m*60-tot, mm=b.m>=60?`${b.m/60} 小時`:`${b.m} 分鐘`;
-    c.innerHTML=`<div class="bi">${b.i}</div><div class="bt">${b.t}</div><div class="bm">${i<=now?'✓ 累積 '+mm:(i===now+1?'還差 '+shortFmt(need):'累積 '+mm)}</div>`; g.appendChild(c); });
-  $('bdgSum').textContent=now>=0?`已解鎖 ${now+1} / ${BADGES.length}・你累積了 ${shortFmt(tot)}`:`坐滿 10 分鐘，就會得到第一個徽章 🌱`;
+    const need=b.m*60-tot, mm=b.m>=60?`${b.m/60}h`:`${b.m} min`;
+    c.innerHTML=`<div class="bi">${b.i}</div><div class="bt">${EN(b.t,b.te)}</div><div class="bm">${i<=now?'✓ '+mm:(i===now+1?EN('還差 '+shortFmt(need),enDur(need)+' to go'):mm)}</div>`; g.appendChild(c); });
+  $('bdgSum').innerHTML=now>=0?EN(`已解鎖 ${now+1} / ${BADGES.length}・你累積了 ${shortFmt(tot)}`,`${now+1} of ${BADGES.length} unlocked · ${enDur(tot)} in total`):EN('坐滿 10 分鐘，就會得到第一個徽章 🌱','Sit 10 minutes for your first badge 🌱');
   $('mBadges').classList.remove('hidden');
 }
 $('bdgClose').onclick=()=>$('mBadges').classList.add('hidden');
@@ -2528,10 +2542,10 @@ document.addEventListener('click',e=>{ if(e.target.closest('[data-badges]')) ope
 let badgeLive=null, badgeTold=false;
 function checkBadges(){ // quiet note while sitting; a one-time welcome for badges earned before this feature existed
   const k=badgeIdx(me.total);
-  if(badgeLive!==null&&k>badgeLive&&me.phase==='sit'){ const el=document.createElement('div'); el.className='float-bdg'; el.textContent=`${BADGES[k].i} 獲得新徽章・${BADGES[k].t}`; document.body.appendChild(el);
+  if(badgeLive!==null&&k>badgeLive&&me.phase==='sit'){ const el=document.createElement('div'); el.className='float-bdg'; el.innerHTML=EN(`${BADGES[k].i} 獲得新徽章・${BADGES[k].t}`,`New badge: ${BADGES[k].te}`); document.body.appendChild(el);
     requestAnimationFrame(()=>el.classList.add('on')); setTimeout(()=>el.classList.remove('on'),4200); setTimeout(()=>el.remove(),6000); }
   badgeLive=k; self?.setInfo({});
-  if(!badgeTold&&me.phase==='walk'&&srv.board&&k>=0&&store.get('badgeSeen',-1)<k){ badgeTold=true; store.set('badgeSeen',k); toast(`你已解鎖 ${k+1} 個靜坐徽章 ${BADGES[k].i}，點排行榜上自己的名字看看`); }
+  if(!badgeTold&&me.phase==='walk'&&srv.board&&k>=0&&store.get('badgeSeen',-1)<k){ badgeTold=true; store.set('badgeSeen',k); toast(`你已解鎖 ${k+1} 個靜坐徽章 ${BADGES[k].i}，點排行榜上自己的名字看看`,`You have ${k+1} badge${k?'s':''}. Tap your name in the ranking to see them.`); }
 }
 setInterval(checkBadges,5000);
 
@@ -2540,33 +2554,33 @@ let installEvt=null, homeUrlBack=null;
 const SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 function homeLinks(){ const show=!STANDALONE&&(isMobile||/Android|iPhone|iPad|iPod/i.test(UA)); /* hidden only when opened from the home-screen icon itself */ document.querySelectorAll('[data-home]').forEach(b=>b.classList.toggle('hidden',!show)); }
 addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; });
-addEventListener('appinstalled',()=>{ store.set('installed',true); installEvt=null; homeLinks(); $('mHome').classList.add('hidden'); toast('已放到手機桌面，下次一點就上山 🙏'); });
+addEventListener('appinstalled',()=>{ store.set('installed',true); installEvt=null; homeLinks(); $('mHome').classList.add('hidden'); toast('已放到手機桌面，下次一點就上山 🙏','Added to your home screen 🙏'); });
 function openHome(){
   const body=$('homeBody'), url='https://global-silence.vercel.app/?openExternalBrowser=1';
   if(IN_APP){
     const line=/\bLine\//i.test(UA);
-    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">目前是在 ${line?'LINE':'App'} 裡面開啟的，<br>請先用 ${IS_IOS?'Safari':'Chrome'} 打開，才能放到桌面。</p>`
-      +(line?`<button class="ev-share" id="homeOut">用 ${IS_IOS?'Safari':'瀏覽器'} 打開</button>`:`<button class="ev-share" id="homeOut">複製網址</button>`);
-    $('homeOut').onclick=()=>{ if(line) location.href=url; else navigator.clipboard?.writeText(url).then(()=>toast('已複製，貼到瀏覽器打開'),()=>toast(url)); };
+    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">目前是在 ${line?'LINE':'App'} 裡面開啟的，<br>請先用 ${IS_IOS?'Safari':'Chrome'} 打開，才能放到桌面。<span class="en">Open this page in ${IS_IOS?'Safari':'Chrome'} first.</span></p>`
+      +(line?`<button class="ev-share" id="homeOut">${EN(`用 ${IS_IOS?'Safari':'瀏覽器'} 打開`,`Open in ${IS_IOS?'Safari':'browser'}`)}</button>`:`<button class="ev-share" id="homeOut">${EN('複製網址','Copy link')}</button>`);
+    $('homeOut').onclick=()=>{ if(line) location.href=url; else navigator.clipboard?.writeText(url).then(()=>toast('已複製，貼到瀏覽器打開','Copied. Paste it into your browser.'),()=>toast(url)); };
   } else if(IS_IOS){
     const chrome=/CriOS/.test(UA);
     body.innerHTML=`<ol class="home-steps">
-      <li>點${chrome?'網址列右邊':'畫面下方'}的「分享」${SHARE_SVG}</li>
-      <li>往下滑，選「<b>加入主畫面</b>」</li>
-      <li>按右上角「<b>加入</b>」，就完成了</li></ol>
-      <p class="home-note">從桌面打開時，你的名字和累積時數會跟著過去。</p>`;
+      <li>點${chrome?'網址列右邊':'畫面下方'}的「分享」${SHARE_SVG}<span class="en">Tap Share</span></li>
+      <li>往下滑，選「<b>加入主畫面</b>」<span class="en">Choose “Add to Home Screen”</span></li>
+      <li>按右上角「<b>加入</b>」，就完成了<span class="en">Tap “Add”</span></li></ol>
+      <p class="home-note">從桌面打開時，你的名字和累積時數會跟著過去。<span class="en">Your name and hours come with you.</span></p>`;
     // carry this phone's account in the address the icon will remember (removed again when this closes)
     try{ if(srv.id&&srv.secret){ const d={sid:srv.id,sk:srv.secret,n:me.name,c:me.country,m:me.method,g:me.gender,r:me.robe,t:me.total};
       const k=btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
       const u=new URL(location.href); homeUrlBack=u.toString(); u.searchParams.set('k',k); history.replaceState(null,'',u.toString()); } }catch{}
   } else if(installEvt){
-    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">按下面的按鈕，桌面就會出現「靜默空間」。</p><button class="ev-share" id="homeInstall">安裝到桌面</button>`;
+    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">按下面的按鈕，桌面就會出現「靜默空間」。<span class="en">Tap below to add it to your home screen.</span></p><button class="ev-share" id="homeInstall">${EN('安裝到桌面','Install')}</button>`;
     $('homeInstall').onclick=async()=>{ const e=installEvt; installEvt=null; e.prompt(); try{ const r=await e.userChoice; if(r.outcome==='accepted'){ store.set('installed',true); homeLinks(); $('mHome').classList.add('hidden'); } }catch{} };
   } else {
     body.innerHTML=`<ol class="home-steps">
-      <li>點瀏覽器右上角的「<b>⋮</b>」</li>
-      <li>選「<b>加到主畫面</b>」或「<b>安裝應用程式</b>」</li>
-      <li>按「<b>新增</b>」，就完成了</li></ol>`;
+      <li>點瀏覽器右上角的「<b>⋮</b>」<span class="en">Tap ⋮ at the top right</span></li>
+      <li>選「<b>加到主畫面</b>」或「<b>安裝應用程式</b>」<span class="en">Choose “Add to Home screen” or “Install app”</span></li>
+      <li>按「<b>新增</b>」，就完成了<span class="en">Tap “Add”</span></li></ol>`;
   }
   $('mHome').classList.remove('hidden');
 }
@@ -2612,7 +2626,7 @@ function musGraph(){
 function musFade(to,sec){ if(musGain){ const t=actx.currentTime; musGain.gain.cancelScheduledValues(t); musGain.gain.setValueAtTime(musGain.gain.value,t); musGain.gain.linearRampToValueAtTime(to*to,t+sec); } else bgm.volume=to; }
 function musPlay(){ if(!musOn||me.phase==='intro') return; clearTimeout(musStopT); musGraph(); bgm.play().then(()=>musFade(musVol,2.5)).catch(()=>{}); musUI(); }
 function musStop(){ musFade(0,1); clearTimeout(musStopT); musStopT=setTimeout(()=>bgm.pause(),1100); musUI(); }
-function musUI(){ $('btnMusic').classList.toggle('on',musOn); $('musToggle').classList.toggle('on',musOn); $('musLbl').textContent=musOn?'音樂':'音樂 關'; $('musVol').value=Math.round(musVol*100); }
+function musUI(){ $('btnMusic').classList.toggle('on',musOn); $('musToggle').classList.toggle('on',musOn); $('musLbl').textContent=musOn?'音樂 Music':'音樂 關 Off'; $('musVol').value=Math.round(musVol*100); }
 musUI();
 $('btnMusic').onclick=e=>{ e.stopPropagation(); $('musPanel').classList.toggle('hidden'); };
 $('musPanel').onclick=e=>e.stopPropagation();
@@ -2632,23 +2646,23 @@ function personCard(p){
   const top=document.createElement('div'); top.className='p-top';
   const img=document.createElement(p.hasImg?'img':'div'); img.className='p-img'; if(p.hasImg) img.src=p.imgEl.src;
   const box=document.createElement('div');
-  const nm=document.createElement('div'); nm.className='p-name'; nm.textContent=info.name+(isSelf?'（你）':'');
-  const bk=badgeIdx(isSelf?me.total:(info.total||0)); const mt=document.createElement('div'); mt.className='p-meta'; mt.textContent=`來自 ${info.country}`+(bk>=0?`\n${BADGES[bk].i} ${BADGES[bk].t}`:'');
+  const nm=document.createElement('div'); nm.className='p-name'; nm.textContent=info.name+(isSelf?'（你 you）':'');
+  const bk=badgeIdx(isSelf?me.total:(info.total||0)); const mt=document.createElement('div'); mt.className='p-meta'; mt.textContent=`${info.country}`+(bk>=0?`\n${BADGES[bk].i} ${BADGES[bk].t} ${BADGES[bk].te}`:'');
   box.append(nm,mt); top.append(img,box);
   const grid=document.createElement('div'); grid.className='p-grid';
-  const c1=document.createElement('div'); c1.className='p-cell'; const b1=document.createElement('b'); const s1=document.createElement('span'); s1.textContent='這一座'; c1.append(b1,s1);
-  const c2=document.createElement('div'); c2.className='p-cell'; const b2=document.createElement('b'); b2.textContent=hrs(info.total); const s2=document.createElement('span'); s2.textContent='山上累積'; c2.append(b2,s2);
+  const c1=document.createElement('div'); c1.className='p-cell'; const b1=document.createElement('b'); const s1=document.createElement('span'); s1.innerHTML=EN('這一座','This sit'); c1.append(b1,s1);
+  const c2=document.createElement('div'); c2.className='p-cell'; const b2=document.createElement('b'); b2.textContent=durU(info.total); const s2=document.createElement('span'); s2.innerHTML=EN('山上累積','Total'); c2.append(b2,s2);
   grid.append(c1,c2);
-  const q=document.createElement('div'); q.className='quiet'; q.textContent=isSelf?'這是你。':(p.info.phase==='walk'?'靜默空間不交談，打個招呼就好 👋':'靜默空間不交談。以心隨喜就好 🙏');
+  const q=document.createElement('div'); q.className='quiet'; q.innerHTML=isSelf?EN('這是你。','This is you.'):(p.info.phase==='walk'?EN('靜默空間不交談，打個招呼就好 👋','No talking here. A wave is enough 👋'):EN('靜默空間不交談。以心隨喜就好 🙏','No talking here. Cheer them on in silence 🙏'));
   el.append(top,grid);
   if(!isSelf&&p.info.phase==='sit'){ const lb=document.createElement('button'); lb.className='p-like';
-    const done=!canLike(p); lb.textContent=done?'已為他隨喜 🙏':'🙏 為他隨喜'; lb.disabled=done;
-    lb.onclick=()=>{ sendLike(p); lb.textContent='已為他隨喜 🙏'; lb.disabled=true; }; el.appendChild(lb); }
+    const done=!canLike(p); lb.innerHTML=done?EN('已為他隨喜 🙏','Cheered 🙏'):EN('🙏 為他隨喜','🙏 Cheer them on'); lb.disabled=done;
+    lb.onclick=()=>{ sendLike(p); lb.innerHTML=EN('已為他隨喜 🙏','Cheered 🙏'); lb.disabled=true; }; el.appendChild(lb); }
   if(!isSelf&&p.info.phase==='walk'&&me.phase==='walk'){ const hb=document.createElement('button'); hb.className='p-like';
-    const done=()=>{ hb.textContent='👋 已打過招呼'; hb.disabled=true; }; hb.textContent='👋 打招呼'; if(!canHi(p)) done();
+    const done=()=>{ hb.innerHTML=EN('👋 已打過招呼','👋 Waved'); hb.disabled=true; }; hb.innerHTML=EN('👋 打招呼','👋 Wave'); if(!canHi(p)) done();
     hb.onclick=()=>{ sendHi(p); done(); }; el.appendChild(hb); }
   el.append(q);
-  const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.textContent=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):ph==='free'?'自由靜坐':(ph==='walk'?'走動中':'入座中…'); };
+  const upd=()=>{ const ph=isSelf?me.phase:p.info.phase; b1.innerHTML=ph==='sit'?fmt(isSelf?me.sitSec:peerSec(p.info)):ph==='free'?EN('自由靜坐','Free sit'):(ph==='walk'?EN('走動中','Walking'):EN('入座中','Sitting down')); };
   upd(); clearInterval(personCard.t); personCard.t=setInterval(upd,1000);
   $('mPerson').classList.remove('hidden');
 }
@@ -2656,37 +2670,37 @@ let rankTab='now';
 $('btnRank').onclick=()=>{ renderRank(); $('mRank').classList.remove('hidden'); };
 function renderRank(){
   const el=$('mRankIn'); el.innerHTML='';
-  const h=document.createElement('h2'); h.className='m-title'; h.textContent='同修榜';
-  const sub=document.createElement('div'); sub.className='hud-stat'; sub.textContent='此刻在山上的人';
+  const h=document.createElement('h2'); h.className='m-title'; h.innerHTML=EN('同修榜','People');
+  const sub=document.createElement('div'); sub.className='hud-stat'; sub.innerHTML=EN('此刻在山上的人','On the mountain now');
   const tabs=document.createElement('div'); tabs.className='tabs';
-  [['now','這一座'],['total','累積時數']].forEach(([k,t])=>{ const b=document.createElement('button'); b.className='chip'+(rankTab===k?' on':''); b.textContent=t; b.onclick=()=>{rankTab=k;renderRank();}; tabs.appendChild(b); });
+  [['now','這一座 This sit'],['total','累積時數 All time']].forEach(([k,t])=>{ const b=document.createElement('button'); b.className='chip'+(rankTab===k?' on':''); b.textContent=t; b.onclick=()=>{rankTab=k;renderRank();}; tabs.appendChild(b); });
   const ul=document.createElement('ul'); ul.className='rank';
   if(rankTab==='total'){ // everyone who has ever sat here, as far as this phone has heard
-    sub.textContent='所有來過這座山的同修';
+    sub.innerHTML=EN('所有來過這座山的同修','Everyone who has sat here');
     let rows=Object.entries(ledger).map(([k,v])=>({k,n:v.n,c:v.c,t:v.t+liveOf(k)})).sort((a,b)=>b.t-a.t);
     let myRank=rows.findIndex(r=>r.k===UID)+1;
     if(srv.board){ rows=srv.board.top.map(r=>({k:r.me?UID:'',n:r.me?me.name:r.n,c:r.me?me.country:r.c,t:r.t})); myRank=srv.board.me?.rank||0;
       if(myRank>rows.length) rows.length=Math.min(rows.length,50); }
     const mine=document.createElement('div'); mine.className='quiet'; mine.style.textAlign='left'; mine.style.color='var(--gold)';
-    mine.textContent=`你目前第 ${myRank||'—'} 名・共 ${srv.board?srv.board.people:rows.length} 位同修・你累積 ${longFmt(srv.board?.me?.t??rows[myRank-1]?.t??0)}`;
+    { const ppl=srv.board?srv.board.people:rows.length, myT=srv.board?.me?.t??rows[myRank-1]?.t??0; mine.innerHTML=EN(`你目前第 ${myRank||'—'} 名・共 ${ppl} 位同修・你累積 ${longFmt(myT)}`,`You are #${myRank||'—'} of ${ppl} · ${enDur(myT)}`); }
     rows.slice(0,50).forEach((r,i)=>{ const li=document.createElement('li'); if(r.k===UID) li.style.color='var(--gold)';
       const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
-      const w=document.createElement('span'); w.className='who'; w.textContent=r.n+(r.k===UID?'（你）':''); const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm);
-      const v=document.createElement('span'); v.className='v'; v.textContent=longFmt(r.t); li.append(n,w,v); ul.appendChild(li); });
+      const w=document.createElement('span'); w.className='who'; w.textContent=r.n+(r.k===UID?'（你 you）':''); const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm);
+      const v=document.createElement('span'); v.className='v'; v.textContent=durU(r.t); li.append(n,w,v); ul.appendChild(li); });
     el.append(h,sub,tabs,mine,ul); return;
   }
   const all=everyone().sort((a,b)=>b.live-a.live);
   all.forEach((p,i)=>{ const li=document.createElement('li');
     const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
-    const w=document.createElement('span'); w.className='who'; w.textContent=p.name+(p.self?'（你）':''); const sm=document.createElement('small'); sm.textContent=p.country; w.appendChild(sm);
+    const w=document.createElement('span'); w.className='who'; w.textContent=p.name+(p.self?'（你 you）':''); const sm=document.createElement('small'); sm.textContent=p.country; w.appendChild(sm);
     const v=document.createElement('span'); v.className='v'; v.textContent=p.phase==='sit'?fmt(p.live):'—';
     li.append(n,w,v); ul.appendChild(li); });
   el.append(h,sub,tabs,ul);
-  if(all.length<=1){ const q=document.createElement('div'); q.className='quiet'; q.textContent='山上暫時只有你。安住，自然有人會來。'; el.appendChild(q); }
+  if(all.length<=1){ const q=document.createElement('div'); q.className='quiet'; q.innerHTML=EN('山上暫時只有你。安住，自然有人會來。','Just you for now. Rest here; others will come.'); el.appendChild(q); }
 }
 
 /* ===================== the elder: tag + approach ===================== */
-const elderTag=document.createElement('div'); elderTag.id='elderTag'; elderTag.textContent='關於靜默'; tagsEl.appendChild(elderTag);
+const elderTag=document.createElement('div'); elderTag.id='elderTag'; elderTag.innerHTML=EN('關於靜默','About silence'); tagsEl.appendChild(elderTag);
 function drawElderTag(W,H){
   const v=new THREE.Vector3(ELDER_SEAT.x,ELDER_SEAT.y+1.6,ELDER_SEAT.z), d=v.distanceTo(camera.position); v.project(camera);
   if(v.z>1||d>150){ elderTag.style.display='none'; return; } elderTag.style.display='';
@@ -2696,15 +2710,15 @@ function drawElderTag(W,H){
 /* ===================== 隨喜: a silent thumbs-up for someone sitting ===================== */
 const likedAt=new Map(); // peerId -> time I last 隨喜'd them (once per sit is enough)
 const canLike=p=>p&&!p.stale&&p.peerId&&(p.info.phase==='sit'||p.info.phase==='free')&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
-function floatOver(p,text){
+function floatOver(p,text,en){
   const v=new THREE.Vector3(p.x,hAt(p.x,p.z)+1.9,p.z); v.project(camera); if(v.z>1||Math.abs(v.x)>.95||Math.abs(v.y)>.95) return false;
-  const d=document.createElement('div'); d.className='float-like'; d.textContent=text;
+  const d=document.createElement('div'); d.className='float-like'; d.innerHTML=escT(text)+(en?`<span class="en">${escT(en)}</span>`:'');
   d.style.left=((v.x+1)/2*innerWidth)+'px'; d.style.top=((1-v.y)/2*innerHeight)+'px'; document.body.appendChild(d); setTimeout(()=>d.remove(),2700); return true;
 }
 function sendLike(p){
   if(!canLike(p)) return; likedAt.set(p.peerId,Date.now());
   try{ aLike?.send({n:me.name,c:me.country},{target:p.peerId}); }catch{}
-  if(!floatOver(p,'好厲害！！隨喜 🙏')) toast(`已為 ${p.info.name} 隨喜：好厲害！！🙏`); likeShown=null; $('likeAsk').classList.add('hidden');
+  if(!floatOver(p,'好厲害！！隨喜 🙏','Well sat!')) toast(`已為 ${p.info.name} 隨喜：好厲害！！🙏`,`You cheered ${p.info.name} on 🙏`); likeShown=null; $('likeAsk').classList.add('hidden');
 }
 // walking past someone who is sitting: offer a 隨喜
 let likeShown=null;
@@ -2715,11 +2729,11 @@ function likeNear(){
       const near=Math.hypot(self.x-p.x,self.z-p.z)<3.2; if(!near){ p.lingerFrom=0; continue; }
       p.lingerFrom=p.lingerFrom||now; if(now-p.lingerFrom>45000&&now-(p.shhAt||0)>90000){ p.shhAt=now; shh(); } } }
   let hi=false; if(!best&&self&&me.phase==='walk'){ bd=2.8; for(const p of peers.values()){ if(!canHi(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bd){ bd=d; best=p; hi=true; } } }
-  if(best!==likeShown||hi!==likeHi){ likeShown=best; likeHi=hi; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.textContent=hi?`👋 和 ${best.info.name} 打招呼`:`🙏 為 ${best.info.name} 隨喜`; }
+  if(best!==likeShown||hi!==likeHi){ likeShown=best; likeHi=hi; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.innerHTML=hi?EN(`👋 和 ${escT(best.info.name)} 打招呼`,`Wave to ${escT(best.info.name)}`):EN(`🙏 為 ${escT(best.info.name)} 隨喜`,`Cheer ${escT(best.info.name)} on`); }
   if(best) $('elderAsk').classList.add('hidden');
   { let bt=null, bb=2.8; // goodbye is its own thing: offered whether or not you already gave this person a 隨喜
     if(self&&me.phase==='walk') for(const p of peers.values()){ if(!canBye(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bb){ bb=d; bt=p; } }
-    const b=$('byeAsk'), show=!!bt; if(show!==!b.classList.contains('hidden')||(show&&b.dataset.pid!==bt.peerId)){ b.classList.toggle('hidden',!show); if(show){ b.dataset.pid=bt.peerId; b.textContent=`👋 跟 ${bt.info.name} 說：先走囉`; } }
+    const b=$('byeAsk'), show=!!bt; if(show!==!b.classList.contains('hidden')||(show&&b.dataset.pid!==bt.peerId)){ b.classList.toggle('hidden',!show); if(show){ b.dataset.pid=bt.peerId; b.innerHTML=EN(`👋 跟 ${escT(bt.info.name)} 說：先走囉`,`Say bye to ${escT(bt.info.name)}`); } }
     b.classList.toggle('solo',$('likeAsk').classList.contains('hidden')); if(show) $('elderAsk').classList.add('hidden'); }
 }
 /* leaving before a friend who is still sitting: a quiet goodbye that waits until they open their eyes */
@@ -2728,7 +2742,7 @@ const canBye=p=>p&&!p.stale&&p.peerId&&['sit','free'].includes(p.info.phase)&&Da
 function sendBye(p){
   if(!canBye(p)) return; byeSent.set(p.peerId,Date.now());
   try{ aBye?.send({n:me.name,c:me.country},{target:p.peerId}); }catch{}
-  if(!(self&&floatOver(self,'👋 byebye！先走了，下次見！'))) toast(`已向 ${p.info.name} 道別：byebye！下次見 👋`);
+  if(!(self&&floatOver(self,'👋 byebye！先走了，下次見！','Bye! See you next time'))) toast(`已向 ${p.info.name} 道別：byebye！下次見 👋`,`You said bye to ${p.info.name} 👋`);
   $('byeAsk').classList.add('hidden');
 }
 $('byeAsk').onclick=()=>{ const p=peers.get($('byeAsk').dataset.pid); if(p) sendBye(p); };
@@ -2737,15 +2751,15 @@ function gotBye(d,peerId){
   if(Date.now()-(byeFrom.get(peerId)||0)<60000) return; byeFrom.set(peerId,Date.now());
   const n=String(d.n||'同修').slice(0,16), c=String(d.c||'').slice(0,16);
   if(seatedNow()){ byesGot.push({n,c}); renderLikes(); return; } // never disturb someone sitting: it waits for the end of the sit
-  const p=peers.get(peerId); if(!(p&&floatOver(p,'👋 byebye！下次見！'))) toast(`👋 ${n}：byebye！先走了，下次見！`);
+  const p=peers.get(peerId); if(!(p&&floatOver(p,'👋 byebye！下次見！','See you next time'))) toast(`👋 ${n}：byebye！先走了，下次見！`,`${n} is heading off. See you!`);
 }
 const escH=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const byeEndHTML=list=>list.length?`<div class="bye-end">${list.map(b=>`👋 <b>${escH(b.n)}</b>${b.c?'・'+escH(b.c):''} 先下山了，留下一句：byebye！先走了，下次見！`).join('<br>')}</div>`:'';
+const byeEndHTML=list=>list.length?`<div class="bye-end">${list.map(b=>`👋 <b>${escH(b.n)}</b>${b.c?'・'+escH(b.c):''} 先下山了：byebye，下次見！<span class="en i">left: bye, see you!</span>`).join('<br>')}</div>`:'';
 $('likeAsk').onclick=()=>{ if(!likeShown) return; if(likeHi) sendHi(likeShown); else sendLike(likeShown); };
 /* 打招呼: two people walking near each other can just say 嗨 — nothing more */
 let likeHi=false; const hiAt=new Map(), hiFrom=new Map();
 const canHi=p=>p&&!p.stale&&p.peerId&&p.info.phase==='walk'&&Date.now()-(hiAt.get(p.peerId)||0)>8000;
-const SHH=['嘘～這裡不是聊天室哦<br>快去找個喜歡的位置靜坐吧','山上只說一次 Hi! 👋<br>剩下的話，留給靜坐吧 🪷','你們好像很有話聊 😄<br>不如一起坐下，靜靜陪著彼此','小聲一點～<br>山在聽，心也在聽，快去坐下吧'];
+const SHH=['嘘～這裡不是聊天室哦<br>快去找個喜歡的位置靜坐吧<span class="en">Shh, this isn’t a chat room. Go find a spot to sit.</span>','山上只說一次 Hi! 👋<br>剩下的話，留給靜坐吧 🪷<span class="en">One Hi is enough up here. Save the rest for sitting.</span>','你們好像很有話聊 😄<br>不如一起坐下，靜靜陪著彼此<span class="en">Lots to say? Sit down together instead.</span>','小聲一點～<br>山在聽，心也在聽，快去坐下吧<span class="en">Softly now. The mountain is listening.</span>'];
 let shhN=0, shhT=null;
 function shh(){ // a gentle, playful nudge back to sitting
   let el=$('shh'); if(!el){ el=document.createElement('div'); el.id='shh'; document.body.appendChild(el); }
@@ -2775,9 +2789,9 @@ function gotLike(d,peerId){
 }
 function renderLikes(){
   const el=$('likes'); el.innerHTML=''; el.classList.toggle('hidden',!likesGot.length&&!byesGot.length); if(!likesGot.length&&!byesGot.length) return;
-  if(likesGot.length){ const h=document.createElement('div'); h.className='lk-h'; h.textContent=`${likesGot.length} 位同修為你隨喜 🙏`; el.appendChild(h); }
-  likesGot.slice(-4).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`${l.n}${l.c?'・'+l.c:''}：好厲害！！隨喜`; el.appendChild(x); });
-  byesGot.slice(-3).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`👋 ${l.n}：byebye！先走了，下次見！`; el.appendChild(x); });
+  if(likesGot.length){ const h=document.createElement('div'); h.className='lk-h'; h.innerHTML=EN(`${likesGot.length} 位同修為你隨喜 🙏`,`${likesGot.length} cheered you on`); el.appendChild(h); }
+  likesGot.slice(-4).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`${l.n}${l.c?'・'+l.c:''}：好厲害！！隨喜 Well sat!`; el.appendChild(x); });
+  byesGot.slice(-3).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`👋 ${l.n}：byebye！下次見！ Bye!`; el.appendChild(x); });
 }
 function clearLikes(){ likesGot.length=0; likeFrom.clear(); byesGot.length=0; renderLikes(); }
 
@@ -2789,10 +2803,11 @@ function elderNear(){
   if(show!==elderShown){ elderShown=show; $('elderAsk').classList.toggle('hidden',!show); }
 }
 const WISDOM=["閉上眼睛，放下一切，不追求平靜，不追求開悟。即是，即在，即成。", "當你不再急著抵達某個地方，才真正開始與自己相遇。", "靜下來，不是為了讓世界消失，而是終於聽見自己。", "不必改變每一個念頭，只需要看見它，然後讓它經過。", "你不需要成為更好的人，才能允許自己好好存在。", "當心不再追逐答案，答案便不再那麼重要。", "沉默不是沒有聲音，而是不再需要每個聲音都有回應。", "不與過去爭辯，不替未來焦慮，只讓此刻完整地發生。", "允許混亂存在，才是真正的平靜。", "坐著，不為了得到什麼；只是讓自己，不再失去當下。", "有些事情，不需要理解，只需要經歷。", "當你停止評價自己的每一個念頭，內心便多了一點自由。", "不必趕走黑暗，安靜地坐著，也是一種陪伴。", "生命不需要時時刻刻都有意義，有時候，存在本身就足夠了。", "讓呼吸自然來去，就像讓生命自然來去。", "你可以什麼都不做，而不代表你什麼都不是。", "放下控制，不代表放棄生活，而是學會與生活同行。", "不追逐寧靜，不排斥紛擾；無論晴雨，都能安住其中。", "當你不再努力扮演任何角色，才有機會看見最真實的自己。", "靜默不是逃離世界，而是重新學會如何與世界相處。"];
+const WISDOM_EN=["Close your eyes and let everything go. Don't chase calm, don't chase awakening. It is already here.", "When you stop rushing to get somewhere, you finally meet yourself.", "Becoming still is not to make the world disappear, but to finally hear yourself.", "You don't have to change every thought. Just see it, and let it pass.", "You don't need to become a better person before you allow yourself to simply be.", "When the mind stops chasing answers, the answers matter less.", "Silence is not the absence of sound, but no longer needing to answer every sound.", "Don't argue with the past, don't worry for the future. Let this moment happen fully.", "Letting the mess be is the real calm.", "Sit not to gain anything, only to stop losing the present.", "Some things don't need understanding, only living through.", "Each time you stop judging a thought, the heart gets a little freer.", "No need to chase away the dark. Sitting quietly is also company.", "Life doesn't have to mean something every moment. Sometimes being is enough.", "Let the breath come and go, the way life comes and goes.", "You can do nothing at all, and still be someone.", "Letting go of control isn't giving up on life; it's learning to walk with it.", "Not chasing peace, not pushing away the noise; at home in rain or shine.", "When you stop playing any role, you get to see who you really are.", "Silence is not running from the world, but learning again how to live in it."];
 let lastW=-1;
 function pickWisdom(){ let i; do{ i=Math.floor(Math.random()*WISDOM.length); }while(i===lastW&&WISDOM.length>1); lastW=i;
-  const p=$('abWisdom'); p.textContent=WISDOM[i]; p.style.animation='none'; void p.offsetWidth; p.style.animation=''; }
-function openAbout(){ pickWisdom(); { const n=nextSit(); $('abNext').textContent=`${sitWhen(n)}${n.extra?'（加開場次）':''}`; } $('mAbout').classList.remove('hidden'); }
+  const p=$('abWisdom'); p.innerHTML=EN(WISDOM[i],WISDOM_EN[i]); p.style.animation='none'; void p.offsetWidth; p.style.animation=''; }
+function openAbout(){ pickWisdom(); { const n=nextSit(); $('abNext').innerHTML=`${sitWhen(n)}${n.extra?'（加開場次 extra）':''}<span class="en">${sitWhenEn(n)} (Taiwan)</span>`; } $('mAbout').classList.remove('hidden'); }
 $('elderYes').onclick=()=>{ elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; openAbout(); bell(.25); };
 $('abClose').onclick=()=>$('mAbout').classList.add('hidden');
 
@@ -2809,14 +2824,16 @@ const twHour=t=>{ const h=+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Taipe
 /* the next group sit of any kind: the fixed Sunday one or an added one */
 function nextSit(after=Date.now()){ const w=nextWeekly(after), x=EXTRA_SITS.filter(t=>t>after).sort((a,b)=>a-b)[0]; return x&&x<w?{t:x,extra:true}:{t:w,extra:false}; }
 const sitWhen=n=>`${twDay(n.t)} ${twHour(n.t)}`;
+/* English: "Sun, Nov 22, 10:00 PM" (Taiwan time) */
+const sitWhenEn=n=>new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(n.t);
 const weeklyLiveNow=()=>{ const n=nextSit(Date.now()-WEEKLY_LIVE); return Date.now()>=n.t&&Date.now()<n.t+WEEKLY_LIVE; };
 const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-15*6e4&&n<EVENT.start+9*36e5; }; // 11/8 20:45 → 11/9 06:00 (Taiwan)
 function nextSitHTML(free){
   const nx=nextSit(), thanks=isEventDay()?`<div class="ns-thx">🙏 感謝你參與第一場線上共修活動！<br>今天是特別活動，所以有抽獎${free?'（抽獎需選「正式共修活動」打開鏡頭坐滿 45 分鐘，自由靜坐不列入）':''}。<br>從下週起，每週日晚上 10:00 固定共修活動，不一定每週都有抽獎；有特別活動會在 LINE 社群公告，也可以到營火旁找老人看最新消息。</div>`:'';
-  return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。</div>
-    <div class="ns-k">每週日晚上 10:00・全球固定線上共修活動</div>
-    <div class="ns-p">不需要抽獎，不需要特別理由。<br>只要想安靜一下，隨時歡迎回來。</div>
-    <div class="ns-next"><span>下一次共修活動${nx.extra?'・加開場次':''}</span><b>${sitWhen(nx)}</b><small>（台灣時間）</small></div></div>`;
+  return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。<span class="en">Today's silence is where we meet next.</span></div>
+    <div class="ns-k">每週日晚上 10:00・全球固定共修<span class="en">Every Sunday, 10 PM Taiwan time · group sit</span></div>
+    <div class="ns-p">想安靜一下，隨時歡迎回來。<span class="en">Come back whenever you want some quiet.</span></div>
+    <div class="ns-next"><span>下一次共修${nx.extra?'・加開場次':''}<span class="en">Next sit${nx.extra?' (extra)':''}</span></span><b>${sitWhen(nx)}</b><small>（台灣時間）</small><span class="en">${sitWhenEn(nx)} (Taiwan)</span></div></div>`;
 }
 const EVENT={start:Date.UTC(2026,10,8,13,0), live:180*60*1000}; // Sun 8 Nov 2026, 21:00 Taiwan (UTC+8); shown as live until midnight, when starting a sit stops counting
 function evText(){
@@ -2835,12 +2852,12 @@ function updateEvent(){
   const e=evText();
   if(!e){ // after the first event: every Sunday 22:00 Taiwan
     const nx=nextSit(), live=weeklyLiveNow(), d=nx.t-Date.now(), days=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4);
-    const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分`;
+    const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分`; const cdEn=days?`${days}d ${h}h`:h?`${h}h ${m}m`:`${m}m`;
     ['evCard','evPill'].forEach(id=>$(id).classList.remove('hidden'));
     { const md=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).format(nx.t), wd=twDay(nx.t).match(/（.）/)[0];
-      $('evPill').innerHTML=live?'<b>●</b> 共修活動進行中':`<span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.4"><span>下次共修倒數 <b>${cd}</b></span><span>${md}${wd}${twHour(nx.t)}</span>${nx.extra?'<span style="opacity:.85">加開場次</span>':''}</span>`; } requestAnimationFrame(()=>document.documentElement.style.setProperty('--pill-extra',Math.max(0,$('evPill').offsetHeight-28)+'px')); // the buttons below make room for a taller pill
-    $('evCard').classList.toggle('live',live); $('evK').textContent=live?'共修活動・進行中':nx.extra?'加開共修活動':'每週日固定共修活動';
-    $('evT').textContent=`${sitWhen(nx)}（台灣時間），全球一起上山靜坐`; $('evC').textContent=live?'共修活動進行中・現在上山一起坐':''; $('evC').classList.toggle('hidden',!live); // one line with the date is enough
+      $('evPill').innerHTML=live?'<b>●</b> 共修活動進行中 · Sitting now':`<span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.4"><span>下次共修倒數 <b>${cd}</b></span><span style="font-size:.84em;opacity:.8">Next sit in ${cdEn}</span><span>${md}${wd}${twHour(nx.t)}</span>${nx.extra?'<span style="opacity:.85">加開場次 Extra</span>':''}</span>`; } requestAnimationFrame(()=>document.documentElement.style.setProperty('--pill-extra',Math.max(0,$('evPill').offsetHeight-28)+'px')); // the buttons below make room for a taller pill
+    $('evCard').classList.toggle('live',live); $('evK').innerHTML=live?EN('共修活動・進行中','Group sit · now'):nx.extra?EN('加開共修活動','Extra group sit'):EN('每週日固定共修活動','Weekly Sunday group sit');
+    $('evT').innerHTML=EN(`${sitWhen(nx)}（台灣時間），全球一起上山靜坐`,`${sitWhenEn(nx)} Taiwan time · the world sits together`); $('evC').innerHTML=live?EN('共修活動進行中・現在上山一起坐','Happening now · come and sit'):''; $('evC').classList.toggle('hidden',!live); // one line with the date is enough
     return; }
   ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e));
   $('evPill').innerHTML=e.live?'🪷 共修活動進行中・怎麼參加？':e.pill; $('evPill').classList.toggle('live',e.live);
@@ -2865,7 +2882,7 @@ $('evShare').onclick=async()=>{
 /* still inside LINE's in-app browser (the hop didn't happen)? say how to get out */
 if(/\bLine\//i.test(navigator.userAgent)){
   const b=document.createElement('div'); b.id='inLine';
-  b.innerHTML='<button aria-label="關閉">×</button>你正在 LINE 裡開啟，<b>鏡頭可能無法使用</b>。<br>請點右上角 <b>⋮</b> 或 <b>⋯</b>，選「<b>以預設瀏覽器開啟</b>」。';
+  b.innerHTML='<button aria-label="關閉">×</button>你正在 LINE 裡開啟，<b>鏡頭可能無法使用</b>。<br>請點右上角 <b>⋮</b> 或 <b>⋯</b>，選「<b>以預設瀏覽器開啟</b>」。<span class="en">The camera may not work inside LINE. Tap ⋮ or ⋯ and open in your browser.</span>';
   b.querySelector('button').onclick=()=>b.remove(); document.body.appendChild(b);
 }
 
@@ -2879,7 +2896,7 @@ function freeSpot(a,f){
 const hash01=(str,k)=>{ let h=2166136261^k; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return ((h>>>0)%100000)/100000; };
 
 /* ---------- 1. heart-word stones (心語石): low, mossy boulders with words carved across the face ---------- */
-const STELES=[['此刻即是',.15,.9],['雲來雲去，山還是山',-.7,.88],['聽，安靜也有聲音',1.6,.62],['坐下的地方，就是道場',2.65,.88],['放下的手，才接得住光',-2.55,.6]];
+const STELES=[['此刻即是',.15,.9,'This moment is it'],['雲來雲去，山還是山',-.7,.88,'Clouds come and go; the mountain stays'],['聽，安靜也有聲音',1.6,.62,'Listen: silence has a sound'],['坐下的地方，就是道場',2.65,.88,'Where you sit is the place of practice'],['放下的手，才接得住光',-2.55,.6,'Only open hands can catch the light']];
 function carvedTexture(text){ // transparent decal: carved letters only, laid over the rock's face
   const cv=document.createElement('canvas'); cv.width=512; cv.height=192; const g=cv.getContext('2d');
   const lines=text.split('，'), fs=lines.length>1?54:72;
@@ -2890,7 +2907,7 @@ function carvedTexture(text){ // transparent decal: carved letters only, laid ov
 }
 const stoneMat=new THREE.MeshStandardMaterial({color:'#9d978c',roughness:.95,flatShading:true});
 const mossMat=new THREE.MeshStandardMaterial({color:'#6f8f45',roughness:1,flatShading:true});
-const steles=STELES.map(([text,a,f],si)=>{
+const steles=STELES.map(([text,a,f,en],si)=>{
   const [x,z]=freeSpot(a,f), y=hAt(x,z), g=new THREE.Group(), r=rng(500+si);
   // a rounded, irregular boulder — wide and low
   const geo=new THREE.IcosahedronGeometry(1,2), p=geo.attributes.position;
@@ -2908,7 +2925,7 @@ const steles=STELES.map(([text,a,f],si)=>{
   g.position.set(x,y-.06,z); g.rotation.y=Math.atan2(-x,-z)+(r()-.5)*.25; // face the middle of the mountain
   g.traverse(o=>{ if(o.isMesh&&o!==face){ o.castShadow=true; o.receiveShadow=true; } }); scene.add(g);
   OBST.push({x,z,r:.9,kind:'stele'});
-  const tag=document.createElement('div'); tag.className='stele-tag'; tag.innerHTML=text.split('，').map(t=>t.replace(/[<>&]/g,'')).join('<br>'); tagsEl.appendChild(tag);
+  const tag=document.createElement('div'); tag.className='stele-tag'; tag.innerHTML=text.split('，').map(t=>t.replace(/[<>&]/g,'')).join('<br>')+`<span class="en">${en}</span>`; tagsEl.appendChild(tag);
   return {x,z,y,tag,op:0};
 });
 
@@ -2917,6 +2934,7 @@ const steles=STELES.map(([text,a,f],si)=>{
   const [x2,z2]=freeSpot(2.2,.45); makeCairn(x2,z2,[.45,.36,.29,.22,.16,.11],2);
   const [x3,z3]=freeSpot(3.25,.78); makeCairn(x3,z3,[.4,.32,.25,.17],3);
   const [x4,z4]=freeSpot(-.35,.55); makeCairn(x4,z4,[.43,.35,.28,.21,.15],4); }
+const HEART_EN=["Look inward; there is a finer view in your heart than here.", "See things as they are. A tree is just a tree; a mountain, just a mountain.", "Everything changes: feelings, thoughts, relationships, who you are. What can you hold on to?", "Real peace isn't in a temple or on this mountain. It is only in your heart.", "Don't chase calm, comfort, pleasure or joy. Let go of all chasing.", "Do everything, but let go of clinging to anything.", "Don't chase a still mind; notice that this chasing is clinging too.", "Staying aware is the real practice.", "Feelings and thoughts change like clouds; awareness is the blue sky, unmoved and whole.", "Slow down, and the heart will catch up.", "Each return to the breath is a homecoming.", "Tired? Sit down first. The road isn't going anywhere.", "Where the heart grows quiet, the wind grows gentle.", "One stone on another, one breath after another.", "Every road you've walked has been bringing you here.", "Be gentle with yourself right now.", "When worries come, let them sit beside you.", "The mountain doesn't hurry the clouds; you don't need to hurry yourself.", "Let your shoulders drop, and your heart too.", "Every quiet moment is quietly caring for you."];
 const HEART=['向內看，會在心中找到比這裡更好的風景。','看到一切本來的樣子。樹，就只是樹；山，就只是山。','一切都在變動，情緒、念頭、關係、身份……你能抓住什麼呢？','真正的平靜，不在寺廟，不在這座山，只存在你的內心。','不要追求平靜、舒服、愉悅、喜樂……應當放下一切追求。','去做一切事物，但放下對一切事物的執著。','不要追求靜心，應當覺察到，這樣的追求也是執著。','保持覺察，才是真正的精進。','看到情緒、念頭如白雲變化，看到覺知的本性如藍天，如如不動，本自具足。','慢一點，心會跟上來。','每一次回到呼吸，都是一次回家。','累了，就先坐下來，路不會跑掉。','心靜下來的地方，風也會變輕。',
   '一顆石頭疊上一顆石頭，一個呼吸接著一個呼吸。','你走過的路，都在帶你回到這裡。','溫柔地對待此刻的自己。','煩惱來了，就讓它坐在旁邊。','山不催促雲，你也不必催促自己。',
   '把肩膀放下來，把心也放下來。','每一個安靜的片刻，都在默默照顧你。'];
@@ -2931,7 +2949,7 @@ function heartNear(){
   if(near<0){ heartCard.classList.remove('on'); return; }
   if(!heartDeck.length){ heartDeck=HEART.map((_,k)=>k).sort(()=>Math.random()-.5); if(heartDeck[heartDeck.length-1]===lastHeart) heartDeck.unshift(heartDeck.pop()); }
   const i=heartDeck.pop(); lastHeart=i; // a shuffled deck: no line comes back until every line has been read
-  heartCard.innerHTML=`<div class="hk">心之語</div><div class="ht">${HEART[i].replace(/，/g,'，<br>').replace(/([。；])(?=.)/g,'$1<br>')}</div>`; // lines are our own text, safe to break at commas
+  heartCard.innerHTML=`<div class="hk">心之語 · Heart words</div><div class="ht">${HEART[i].replace(/，/g,'，<br>').replace(/([。；])(?=.)/g,'$1<br>')}<span class="en">${HEART_EN[i]}</span></div>`; // lines are our own text, safe to break at commas
   heartCard.classList.add('on');
 }
 
@@ -2981,7 +2999,7 @@ const goldStarMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,fo
 const goldStars=new THREE.Points(goldStarGeo,goldStarMat); goldStars.frustumCulled=false; scene.add(goldStars);
 const pondCap=document.createElement('div'); pondCap.className='pond-cap'; document.body.appendChild(pondCap); let pondOp=0;
 function updatePondCap(){ const n=Math.max(lotusAll,lotuses.length);
-  pondCap.innerHTML=n?`池中的每一朵蓮花，都是一份祝福<br><b>已有 ${n} 朵 🪷</b>`:'這座池塘，等著第一朵祝福蓮花 🪷'; }
+  pondCap.innerHTML=n?`池中的每一朵蓮花，都是一份祝福<br><b>已有 ${n} 朵 🪷</b><span class="en">Every lotus is a blessing · ${n} so far</span>`:EN('這座池塘，等著第一朵祝福蓮花 🪷','This pond is waiting for its first lotus 🪷'); }
 function updateGrowth(){ goldStarGeo.setDrawRange(0,Math.min(STAR_MAX,Math.floor(mountainTotalAll()/3600))); updatePondCap(); } // golden stars: one per hour the mountain has sat
 updateGrowth(); setInterval(updateGrowth,5000);
 
@@ -3010,10 +3028,10 @@ function lotusNear(){
   if(show){ $('elderAsk').classList.add('hidden'); $('likeAsk').classList.add('hidden'); }
 }
 $('lotusAsk').onclick=()=>{
-  if(Date.now()-lastLotus<120000){ toast(`下一朵蓮花，${Math.ceil((120000-(Date.now()-lastLotus))/1000)} 秒後可以種 🪷`); return; }
+  if(Date.now()-lastLotus<120000){ { const w=Math.ceil((120000-(Date.now()-lastLotus))/1000); toast(`下一朵蓮花，${w} 秒後可以種 🪷`,`Next lotus in ${w}s`); } return; }
   $('lotusWish').value=''; $('lotusGo').disabled=true; $('mLotus').classList.remove('hidden');
 };
-document.querySelectorAll('#lotusChips button').forEach(b=>b.onclick=()=>{ const w=$('lotusWish'); w.value=(w.value?w.value+' ':'')+b.textContent; w.dispatchEvent(new Event('input')); });
+document.querySelectorAll('#lotusChips button').forEach(b=>b.onclick=()=>{ const w=$('lotusWish'); w.value=(w.value?w.value+' ':'')+(ZH?b.dataset.w:b.dataset.we); w.dispatchEvent(new Event('input')); });
 $('lotusWish').addEventListener('input',()=>{ $('lotusGo').disabled=!$('lotusWish').value.trim(); });
 $('lotusCancel').onclick=()=>$('mLotus').classList.add('hidden');
 $('lotusGo').onclick=()=>{
@@ -3025,7 +3043,7 @@ $('lotusGo').onclick=()=>{
   const myL=plantLotus(x,z,wish,true); bell(.22);
   try{ aLotus?.send({x:+x.toFixed(3),z:+z.toFixed(3)}); }catch{}
   if(srv.id) rpc('gs_plant',{...auth(),p_x:x,p_z:z}).then(r=>{ if(r&&r.id){ const L=myL||lotuses.find(l=>Math.hypot(l.x-x,l.z-z)<.05); if(L) L.id=r.id; lotusAll++; updatePondCap(); } }).catch(()=>{});
-  setTimeout(()=>toast('🪷 你的蓮花已經種下，靜靜開在池中'),11000);
+  setTimeout(()=>toast('🪷 你的蓮花已經種下，靜靜開在池中','Your lotus is planted and blooming'),11000);
 };
 
 /* ---------- 3. wish lanterns ---------- */
@@ -3081,12 +3099,12 @@ function lanNear(){
   if(best!=null){ $('elderAsk').classList.add('hidden'); $('likeAsk').classList.add('hidden'); }
 }
 $('lanAsk').onclick=()=>{
-  if(Date.now()-lastLan<120000){ toast(`燈還在準備中，${Math.ceil((120000-(Date.now()-lastLan))/1000)} 秒後可以再點一盞 🏮`); return; }
+  if(Date.now()-lastLan<120000){ { const w=Math.ceil((120000-(Date.now()-lastLan))/1000); toast(`燈還在準備中，${w} 秒後可以再點一盞 🏮`,`Next lantern in ${w}s`); } return; }
   $('lanWish').value=''; $('lanGo').disabled=true;
-  $('lanCount').textContent=lanWeek?`這 7 天，山上已經放飛了 ${lanWeek} 盞燈`:'你可以點亮這座山的第一盞燈';
+  $('lanCount').innerHTML=lanWeek?EN(`這 7 天，山上已經放飛了 ${lanWeek} 盞燈`,`${lanWeek} lanterns released this week`):EN('你可以點亮這座山的第一盞燈','Light the first lantern on this mountain');
   $('mLan').classList.remove('hidden');
 };
-document.querySelectorAll('#lanChips button').forEach(b=>b.onclick=()=>{ const w=$('lanWish'); w.value=(w.value?w.value+' ':'')+b.textContent; w.dispatchEvent(new Event('input')); });
+document.querySelectorAll('#lanChips button').forEach(b=>b.onclick=()=>{ const w=$('lanWish'); w.value=(w.value?w.value+' ':'')+(ZH?b.dataset.w:b.dataset.we); w.dispatchEvent(new Event('input')); });
 $('lanWish').addEventListener('input',()=>{ $('lanGo').disabled=!$('lanWish').value.trim(); });
 $('lanCancel').onclick=()=>$('mLan').classList.add('hidden');
 $('lanGo').onclick=()=>{
@@ -3096,7 +3114,7 @@ $('lanGo').onclick=()=>{
   launchLantern(spot,wish,true); bell(.25);
   try{ aLan?.send({s:spot}); }catch{}
   if(srv.id) rpc('gs_light',auth()).then(r=>{ if(r&&r.id){ skyList.unshift({id:String(r.id),t:+r.t}); lanWeek++; } }).catch(()=>{});
-  setTimeout(()=>toast('🏮 你的祈願燈已經放飛，帶著你的心意飄向遠方'),12000); // after the wish has faded
+  setTimeout(()=>toast('🏮 你的祈願燈已經放飛，帶著你的心意飄向遠方','Your lantern is rising with your wish'),12000); // after the wish has faded
 };
 
 /* ---------- per frame ---------- */
@@ -3190,7 +3208,7 @@ function stepTentAnim(){
 function leaveTent(){ const t=inTent; if(!t) return; inTent=null; t.open=1; t.openT=1; setTimeout(()=>{ if(inTent!==t) t.openT=0; },1400);
   self.x=t.ex; self.z=t.ez; self.r=t.rot; }
 if(QS.get('debug')) window.__comp={ skip:(n)=>self?.comp?.list.forEach(c=>c.age+=n), list:()=>(self?.comp?.list||[]).map(c=>({kind:c.kind,x:+c.g.position.x.toFixed(2),z:+c.g.position.z.toFixed(2),mode:c.st?.mode})) };
-if(QS.get('debug')) window.__gs={polar:(a,f)=>polar(a,f),reach:(m)=>{ srv.minSecs=m*60; srvApply({code:"GS-TEST",seconds:m*60}); },note:(t)=>{ $("sitNote").textContent=t; $("sitNote").classList.remove("hidden"); },cairns:()=>CAIRNS.map(c=>[+c.x.toFixed(1),+c.z.toFixed(1)]),obst:()=>OBST.map(o=>[o.kind,+o.x.toFixed(1),+o.z.toFixed(1)]),tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r,sitP:self.sitP,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,lot:lotuses.map(l=>[+l.x.toFixed(2),+l.z.toFixed(2),!!l.drift,+(l.open||0).toFixed(2)])})};
+if(QS.get('debug')) window.__gs={ui:{openAbout,openBadges,toast,shh,renderRank,startFree,rise,card:()=>personCard(self)},polar:(a,f)=>polar(a,f),reach:(m)=>{ srv.minSecs=m*60; srvApply({code:"GS-TEST",seconds:m*60}); },note:(t)=>{ $("sitNote").textContent=t; $("sitNote").classList.remove("hidden"); },cairns:()=>CAIRNS.map(c=>[+c.x.toFixed(1),+c.z.toFixed(1)]),obst:()=>OBST.map(o=>[o.kind,+o.x.toFixed(1),+o.z.toFixed(1)]),tents:()=>TENTS.map(t=>({x:t.x,z:t.z,ex:t.ex,ez:t.ez,kind:t.kind})),tp:(x,z)=>{ self.x=x; self.z=z; },me:()=>({phase:me.phase,x:self.x,z:self.z,r:self.r,sitP:self.sitP,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,lot:lotuses.map(l=>[+l.x.toFixed(2),+l.z.toFixed(2),!!l.drift,+(l.open||0).toFixed(2)])})};
 function animateTents(dt){ stepTentAnim();
   TENTS.forEach(t=>{ t.open+=(t.openT-t.open)*Math.min(1,dt*3.2); t.door.rotation.y=t.open*1.2; }); }
 
