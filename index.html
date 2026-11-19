@@ -411,7 +411,10 @@ body.on-intro #lb{display:none}
 <body class="on-intro">
 <canvas id="gl"></canvas>
 <div id="tags"></div>
-<div id="loading">山正在成形…<span class="en">The mountain is taking shape…</span></div>
+<div id="loading"><span class="zh">山正在成形…</span><span class="en" data-src="The mountain is taking shape…">The mountain is taking shape…</span></div>
+<script>/* show the loading line in the chosen language before the mountain's code arrives */
+(function(){ var L=['en','zh','ja','th'],l=null; try{ l=localStorage.getItem('gsLang'); }catch(e){} if(L.indexOf(l)<0){ var n=(navigator.language||'').toLowerCase(); l=n.indexOf('zh')===0?'zh':n.indexOf('ja')===0?'ja':n.indexOf('th')===0?'th':'en'; }
+  document.documentElement.classList.add('l-'+l); var t={ja:'山が姿を現しています…',th:'ภูเขากำลังก่อตัว…'}[l]; if(t) document.querySelector('#loading .en').textContent=t; })();</script>
 
 <button id="evPill" class="hidden"></button>
 <button id="btnCert" class="hidden">🎫 我的完成碼</button>
@@ -3314,7 +3317,7 @@ function animateSurprises(t,dt,W,H){
   for(const s of steles){ const d=Math.hypot(sx-s.x,sz-s.z), want=d<1.6?1:d<3.8?(3.8-d)/2.2:0; s.op+=(want-s.op)*Math.min(1,dt*2); steleOp=Math.max(steleOp,s.op); labelAt(s.tag,s.x,s.y+1.55,s.z,s.op,W,H,40,true); }
   if(self) self.tagEl.style.opacity=(1-steleOp*.9).toFixed(2); // let the stone's words speak
   // pond caption
-  { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk'&&!(lanFocus&&performance.now()<lanFocus.until))?1:0; if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
+  { const d=Math.hypot(sx-POND.x,sz-POND.z), want=(d<POND.r+2.6&&me.phase==='walk'&&!heartCard.classList.contains('on')&&!(lanFocus&&performance.now()<lanFocus.until))?1:0; /* the heart words take the same spot */ if(want!==pondOp){ pondOp=want; pondCap.style.opacity=want; } }
   // light motes drifting to the water
   for(let i=motes.length-1;i>=0;i--){ const o=motes[i], k=clamp((t-o.t0)/1.6,0,1), e=k*k*(3-2*k);
     o.m.position.lerpVectors(o.from,o.to,e); o.m.position.y+=Math.sin(k*Math.PI)*.6; if(k>=1){ scene.remove(o.m); motes.splice(i,1); } }
