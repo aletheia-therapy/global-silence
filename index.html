@@ -52,6 +52,18 @@
 .en{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;font-size:.76em;font-weight:400;font-style:normal;letter-spacing:.01em;line-height:1.32;opacity:.74;margin-top:1px;text-transform:none;white-space:normal}
 .en.i{display:inline;margin-left:.4em}
 button .en,a .en{opacity:.82}
+/* one language at a time: Chinese text sits beside an .en twin; the twin is hidden in Chinese, the Chinese is hidden otherwise */
+html.l-zh .en{display:none!important}
+html:not(.l-zh) .zh{display:none!important}
+html:not(.l-zh) .en{display:inline;font:inherit;opacity:1;letter-spacing:inherit;margin:0;line-height:inherit;text-transform:inherit}
+html:not(.l-zh) #btnDown small{font-size:13px;opacity:1;font-weight:600;letter-spacing:0;line-height:1.2;padding:0 6px}
+html.l-th body *{letter-spacing:0!important}  /* Thai marks sit on the letters; spacing pulls them apart */
+html:not(.l-zh) .stele-tag{letter-spacing:.04em;font-size:18px}
+html:not(.l-zh) .intro-title{letter-spacing:.06em}
+html.l-en .intro-title,html.l-en .hud-title.brand{display:none}
+.lang-pick{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 0 14px}
+.lang-pick button{font:inherit;font-size:12.5px;padding:5px 12px;border-radius:999px;border:1px solid rgba(232,195,122,.35);background:rgba(255,255,255,.04);color:var(--ink-dim);cursor:pointer}
+.lang-pick button.on{background:var(--gold);color:#2a2111;border-color:var(--gold);font-weight:600}
 html,body{margin:0;height:100%;color:var(--ink);font-family:var(--sans);overflow:hidden;overscroll-behavior:none;
   background:linear-gradient(180deg,#3b4a7a,#f0b08e 70%,#fbe3d2)}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
@@ -409,7 +421,7 @@ body.on-intro #lb{display:none}
 <div id="mtTotal"><span class="mt-l">全球累積靜默<span class="en">World silence</span></span><span class="mt-v" id="mtVal">—</span></div>
 <div id="hud" class="hidden">
   <div class="hud-box">
-    <div class="hud-title">全球靜默空間</div>
+    <div class="hud-title brand" data-brand>全球靜默空間</div>
     <div class="en-script hud-en">Global Silence Space</div>
     <div class="hud-stat" id="hudStat">連線中…</div>
     <div class="hud-stat" id="hudSum"></div>
@@ -420,7 +432,8 @@ body.on-intro #lb{display:none}
 <!-- Intro -->
 <div id="intro" class="welcome">
   <div class="intro-card">
-    <h1 class="intro-title">全球靜默空間</h1>
+    <div class="lang-pick" id="langPick"><button data-l="en">English</button><button data-l="zh">繁體中文</button><button data-l="ja">日本語</button><button data-l="th">ไทย</button></div>
+    <h1 class="intro-title" data-brand>全球靜默空間</h1>
     <div class="en-script intro-en" lang="en">Global Silence Space</div>
     <p class="intro-sub">一座山頂，俯瞰群山與遠方的城市。<br>世界各地的人，此刻在這裡一起閉上眼睛。<span class="en">A mountaintop above the hills and a distant city, where people from all over the world close their eyes together.</span></p>
     <button class="ev-card hidden" id="evCard"><div class="ev-k" id="evK">第一場線上共修活動</div><div class="ev-t" id="evT"></div><div class="ev-c" id="evC"></div></button>
@@ -430,8 +443,8 @@ body.on-intro #lb{display:none}
     <button class="home-link hidden" data-home style="margin-top:4px">📲 <u>放到手機桌面，下次一點就上山</u><span class="en">Add to your home screen</span></button>
     <div id="introForm" class="hidden">
     <div class="row2">
-      <div><label class="f" for="inName">暱稱&nbsp;&nbsp;Nickname</label><input class="t" id="inName" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
-      <div><label class="f" for="inCountry">國家&nbsp;&nbsp;Country</label><input class="t" id="inCountry" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
+      <div><label class="f" for="inName">暱稱<span class="en">Nickname</span></label><input class="t" id="inName" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
+      <div><label class="f" for="inCountry">國家<span class="en">Country</span></label><input class="t" id="inCountry" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" required></div>
     </div>
     <p class="intro-heart">這裡沒有宗教，也沒有門派，<br>不需要任何信仰或法門。<br>只有你，和你的一顆心，<br>安安靜靜地，和自己待在一起。<span class="en">No religion, no school, no belief needed. Just you and your heart, quietly with yourself.</span></p>
     <button class="btn-main" id="btnEnter" disabled>上山<span class="en">Go up</span></button>
@@ -443,7 +456,7 @@ body.on-intro #lb{display:none}
 
 <!-- walking controls -->
 <div id="joy" class="hidden"><div id="knob"></div></div>
-<button id="btnDown" class="hidden">就這裡<small>Sit here</small></button>
+<button id="btnDown" class="hidden">就這裡<small class="en">Sit here</small></button>
 <div id="walkHint" class="hidden">左下圓圈走動・拖曳畫面轉視角<span class="en">Joystick to walk · drag to look around</span></div>
 
 <!-- step 1: direction -->
@@ -545,7 +558,7 @@ body.on-intro #lb{display:none}
   <h2 class="m-title" style="font-size:20px;margin-top:4px">種一朵祝福蓮花 🪷<span class="en">Plant a lotus of blessing</span></h2>
   <p class="s-sub" style="margin:6px 0 0">寫下你的祝福。字<b>只有你看得到</b>，花開時慢慢淡去，留下的蓮花大家都看得見。<span class="en">Write a blessing. <b>Only you</b> see the words; they fade as the lotus opens for everyone to see.</span></p>
   <div class="lan-chips chips" id="lotusChips"><button class="chip" data-w="願世界和平" data-we="Peace in the world">願世界和平<span class="en">Peace in the world</span></button><button class="chip" data-w="願家人平安" data-we="Safety for my family">願家人平安<span class="en">Safety for my family</span></button><button class="chip" data-w="願病者康復" data-we="Healing for the sick">願病者康復<span class="en">Healing for the sick</span></button><button class="chip" data-w="願逝者安息" data-we="Rest for those who passed">願逝者安息<span class="en">Rest for those who passed</span></button><button class="chip" data-w="願眾生離苦" data-we="Freedom from suffering for all">願眾生離苦<span class="en">Freedom from suffering for all</span></button><button class="chip" data-w="願自己安好" data-we="Well-being for myself">願自己安好<span class="en">Well-being for myself</span></button></div>
-  <textarea id="lotusWish" maxlength="60" placeholder="把祝福送給誰…… / A blessing for…"></textarea>
+  <textarea id="lotusWish" maxlength="60" placeholder="把祝福送給誰……" data-ph="A blessing for…"></textarea>
   <div class="acts"><button class="btn-sec" id="lotusCancel">取消<span class="en">Cancel</span></button><button class="btn-pri" id="lotusGo" disabled style="background:linear-gradient(180deg,#ffd6e4,#f290b2);color:#4a1f2e">種下・祝福<span class="en">Plant</span></button></div>
 </div></div>
 <div class="modal hidden" id="mLan"><div class="modal-in">
@@ -553,7 +566,7 @@ body.on-intro #lb{display:none}
   <h2 class="m-title" style="font-size:20px;margin-top:4px">點一盞祈願燈 🏮<span class="en">Light a wish lantern</span></h2>
   <p class="s-sub" style="margin:6px 0 0">寫下你的祈願。字<b>只有你看得到</b>，燈會帶著它飄向遠方。<span class="en">Write a wish. <b>Only you</b> see it; the lantern carries it far away.</span></p>
   <div class="lan-chips chips" id="lanChips"><button class="chip" data-w="願世界和平" data-we="Peace in the world">願世界和平<span class="en">Peace in the world</span></button><button class="chip" data-w="願家人平安" data-we="Safety for my family">願家人平安<span class="en">Safety for my family</span></button><button class="chip" data-w="願病者康復" data-we="Healing for the sick">願病者康復<span class="en">Healing for the sick</span></button><button class="chip" data-w="願逝者安息" data-we="Rest for those who passed">願逝者安息<span class="en">Rest for those who passed</span></button><button class="chip" data-w="願眾生離苦" data-we="Freedom from suffering for all">願眾生離苦<span class="en">Freedom from suffering for all</span></button><button class="chip" data-w="願自己安好" data-we="Well-being for myself">願自己安好<span class="en">Well-being for myself</span></button></div>
-  <textarea id="lanWish" maxlength="60" placeholder="為誰祈願…… / A wish for…"></textarea>
+  <textarea id="lanWish" maxlength="60" placeholder="為誰祈願……" data-ph="A wish for…"></textarea>
   <div class="note" id="lanCount" style="margin-top:6px"></div>
   <div class="acts"><button class="btn-sec" id="lanCancel">取消<span class="en">Cancel</span></button><button class="btn-pri" id="lanGo" disabled style="background:linear-gradient(180deg,#ffcf8a,#f0a14a)">點亮・放飛<span class="en">Light it</span></button></div>
 </div></div>
@@ -567,12 +580,12 @@ body.on-intro #lb{display:none}
   <div class="ab-wisdom"><div class="ab-wk">老人輕聲對你說<span class="en">He says softly</span></div><p id="abWisdom"></p></div>
   <div class="ab-sec">
     <h3>每週固定共修活動<span class="en">Weekly group sit</span></h3>
-    <p>每週日晚上 10:00（台灣時間），全球一起上山靜坐。<span class="en">Every Sunday at 10 PM Taiwan time (UTC+8), we sit together.</span>下一次 Next：<b style="color:var(--gold)" id="abNext"></b></p>
+    <p>每週日晚上 10:00（台灣時間），全球一起上山靜坐。<span class="en">Every Sunday at 10 PM Taiwan time (UTC+8), we sit together.</span></p><p>下一次<span class="en">Next</span>：<b style="color:var(--gold)" id="abNext"></b></p>
   </div>
   <div class="ab-sec">
     <h3>最新消息與聯絡<span class="en">News &amp; contact</span></h3>
     <p>活動公告、共修提醒，或想和創辦人聯絡，都在 LINE 社群。<span class="en">Events, reminders and a word with the founder: all in our LINE group.</span></p>
-    <a class="line-btn" id="abNews" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群・Join</a>
+    <a class="line-btn" id="abNews" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群<span class="en">Join our LINE group</span></a>
     <button class="home-link hidden" data-home>📲 <u>把靜默空間放到手機桌面</u><span class="en">Add to your home screen</span></button>
   </div>
   <div class="ab-sec">
@@ -586,7 +599,7 @@ body.on-intro #lb{display:none}
   <div class="end-sub">這一座<span class="en">This sit</span></div>
   <div class="end-big" id="endTime">0 分</div>
   <div class="end-sub" id="endSub"></div>
-  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群，接收活動提醒・Join for news</a>
+  <a class="line-btn" href="https://line.me/ti/g2/ziZUUkeGsQugWlcQW-GxYx0tB1k8RKW2CzlmSA" target="_blank" rel="noopener" style="margin-top:18px"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5 1.1-.5 5.9-3.5 8-6C21.4 14.4 22 12.8 22 11c0-4.4-4.5-8-10-8z"/></svg>加入 LINE 社群，接收活動提醒<span class="en">Join our LINE group for news</span></a>
   <button class="home-link hidden" data-home>📲 <u>放到手機桌面，下次一點就上山</u><span class="en">Add to your home screen</span></button>
   <button class="btn-main" id="btnEndOk" style="margin-top:10px;background:transparent;color:var(--ink);border:1px solid var(--line)">回到山上<span class="en">Back to the mountain</span></button>
 </div></div>
@@ -656,6 +669,35 @@ import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 
+/* Japanese and Thai, keyed by the English text ({0}… are numbers, names or dates) */
+const TR={"The mountain is taking shape…":["山が姿を現しています…","ภูเขากำลังก่อตัว…"],"Music":["音楽","เพลง"],"Music off":["音楽オフ","ปิดเพลง"],"Ranking":["ランキング","อันดับ"],"Numbers add up; awareness is now.":["数字は積み重なり、気づきは今にある。","ตัวเลขสะสมไป ความรู้ตัวอยู่ที่ขณะนี้"],"World silence":["世界の静寂","ความเงียบของโลก"],"Overview":["全景","มุมกว้าง"],"People":["人々","ผู้คน"],"A mountaintop above the hills and a distant city, where people from all over the world close their eyes together.":["山々と遠くの街を見下ろす山頂。世界中の人が、ここで一緒に目を閉じます。","ยอดเขาเหนือทิวเขาและเมืองไกล ที่ซึ่งผู้คนจากทั่วโลกหลับตาลงด้วยกัน"],"Go up the mountain":["山に登る","ขึ้นภูเขา"],"Group sits &amp; news → join our LINE group":["共修の時間とお知らせ → LINEグループへ","เวลานั่งร่วมกันและข่าวสาร → เข้ากลุ่ม LINE"],"Add to your home screen":["ホーム画面に追加","เพิ่มไปที่หน้าจอหลัก"],"Nickname":["ニックネーム","ชื่อเล่น"],"Country":["国","ประเทศ"],"No religion, no school, no belief needed. Just you and your heart, quietly with yourself.":["宗教も宗派も、信仰もいりません。あなたとあなたの心だけで、静かに自分と過ごす場所です。","ไม่มีศาสนา ไม่มีสำนัก ไม่ต้องมีความเชื่อใด มีเพียงคุณกับหัวใจของคุณ อยู่กับตัวเองอย่างเงียบ ๆ"],"Go up":["登る","ขึ้นไป"],"Enter a nickname and country":["ニックネームと国を入力してください","กรอกชื่อเล่นและประเทศ"],"No chat, only silent company. Formal sits use your camera, seen only by people on the mountain now. Nothing is recorded.":["おしゃべりはなく、静かに共にいるだけです。正式な坐禅ではカメラを使い、今山にいる人だけが見られます。録画も保存もしません。","ไม่มีการคุย มีเพียงการอยู่ด้วยกันอย่างเงียบ ๆ การนั่งแบบทางการจะเปิดกล้อง ให้เห็นเฉพาะคนที่อยู่บนภูเขาตอนนี้ ไม่มีการบันทึก"],"Sit here":["ここに坐る","นั่งตรงนี้"],"Joystick to walk · drag to look around":["スティックで歩く・ドラッグで見回す","จอยสติ๊กเพื่อเดิน · ลากเพื่อมองรอบ ๆ"],"Choose where to face":["向きを選ぶ","เลือกทิศที่จะหันไป"],"Pick a direction, then sit down.":["向きを選んでから坐りましょう。","เลือกทิศ แล้วนั่งลง"],"There is a tree here to lean on. Pick a direction, then sit.":["そばに木があります。もたれて坐れます。向きを選んでから坐りましょう。","มีต้นไม้ให้พิงอยู่ตรงนี้ เลือกทิศ แล้วนั่งลง"],"Keep walking":["もう少し歩く","เดินต่อ"],"Sit down":["坐る","นั่งลง"],"Turn on your camera":["カメラをオンに","เปิดกล้อง"],"Set your phone in front of you so others can see you sitting.":["スマホを目の前に置き、坐る姿をみんなに見せましょう。","ตั้งโทรศัพท์ไว้ตรงหน้า ให้คนอื่นเห็นคุณนั่งอยู่"],"Press start when you are ready. No rush.":["準備ができたら開始を押してください。急がなくて大丈夫。","พร้อมแล้วค่อยกดเริ่ม ไม่ต้องรีบ"],"Turn off silent mode and turn the volume up to hear the bells.":["鐘の音を聞くために、マナーモードを解除して音量を上げてください。","ปิดโหมดเงียบและเพิ่มเสียง เพื่อให้ได้ยินเสียงระฆัง"],"Camera trouble? Sit freely instead. It still counts for the world.":["カメラが使えない？自由坐禅でも大丈夫。世界の累計に加わります。","กล้องมีปัญหา? นั่งแบบอิสระแทนได้ ยังนับรวมให้โลก"],"Sit freely instead":["自由坐禅にする","นั่งแบบอิสระแทน"],"If you are not seen for over a minute, the sit ends. Time counts until you left.":["1分以上映らないと坐禅は終了します。時間は離れた時点まで数えます。","ถ้ากล้องไม่เห็นคุณเกินหนึ่งนาที การนั่งจะจบ เวลาจะนับถึงตอนที่คุณออกไป"],"Back":["戻る","กลับ"],"Camera on":["カメラオン","เปิดกล้องแล้ว"],"Start":["開始","เริ่ม"],"How would you like to sit?":["どのように坐りますか？","อยากนั่งแบบไหน?"],"Both are quiet sits. You can change your mind anytime.":["どちらも静かな坐禅です。いつでも変えられます。","ทั้งสองแบบเป็นการนั่งเงียบ เปลี่ยนใจได้ทุกเมื่อ"],"Free sit":["自由坐禅","นั่งแบบอิสระ"],"free sit":["自由坐禅","นั่งอิสระ"],"No camera, just sit":["カメラなしで、ただ坐る","ไม่ต้องเปิดกล้อง แค่นั่ง"],"Counts for the world":["世界の累計に加わる","นับรวมให้โลก"],"Not for your hours, ranking or draws":["個人時間・ランキング・抽選には入りません","ไม่นับเป็นชั่วโมงของคุณ อันดับ หรือการจับรางวัล"],"Formal sit":["正式な坐禅","นั่งแบบทางการ"],"Camera on, truly together":["カメラをつけて、本当に一緒に","เปิดกล้อง อยู่ด้วยกันจริง ๆ"],"Your hours and the world's":["あなたの時間にも世界にも","นับให้ทั้งคุณและโลก"],"Ranking and event draws":["ランキングとイベント抽選","อันดับและการจับรางวัลในกิจกรรม"],"Free sit · counts for the world, not for you":["自由坐禅・世界の累計に入り、個人には入りません","นั่งอิสระ · นับให้โลก ไม่นับให้คุณ"],"Stand up":["立ち上がる","ลุกขึ้น"],"Switch to a formal sit to keep your own hours":["正式な坐禅に切り替えて、自分の時間を記録","เปลี่ยนเป็นนั่งแบบทางการ เพื่อเก็บชั่วโมงของคุณ"],"Light a wish lantern":["願いの灯籠をともす","จุดโคมแห่งคำอธิษฐาน"],"Afraid of bugs? Sit in a tent":["虫が苦手？テントで坐る","กลัวแมลง? นั่งในเต็นท์"],"Plant a lotus of blessing":["祈りの蓮を植える","ปลูกดอกบัวแห่งพร"],"The lotus pond":["山頂の蓮池","สระบัวบนยอดเขา"],"Write a blessing. <b>Only you<\/b> see the words; they fade as the lotus opens for everyone to see.":["祈りを書きましょう。言葉は<b>あなただけ<\/b>に見え、蓮が咲くと消えて、花はみんなに見えます。","เขียนคำอวยพร <b>มีแค่คุณ<\/b>ที่เห็นถ้อยคำ เมื่อบัวบาน ถ้อยคำจะจางหาย และทุกคนจะเห็นดอกบัว"],"Peace in the world":["世界の平和を","ขอให้โลกสงบสุข"],"Safety for my family":["家族の無事を","ขอให้ครอบครัวปลอดภัย"],"Healing for the sick":["病む人の回復を","ขอให้ผู้ป่วยหายดี"],"Rest for those who passed":["亡き人の安らぎを","ขอให้ผู้ล่วงลับไปสู่สุคติ"],"Freedom from suffering for all":["すべての生きものが苦しみから離れますように","ขอให้สรรพสัตว์พ้นทุกข์"],"Well-being for myself":["自分自身の安らぎを","ขอให้ตัวเองสบายดี"],"Cancel":["キャンセル","ยกเลิก"],"Plant":["植える","ปลูก"],"Lanterns at the cliff":["崖のそばの灯籠","โคมลอยริมหน้าผา"],"Write a wish. <b>Only you<\/b> see it; the lantern carries it far away.":["願いを書きましょう。<b>あなただけ<\/b>が見え、灯籠が遠くへ運びます。","เขียนคำอธิษฐาน <b>มีแค่คุณ<\/b>ที่เห็น โคมจะพามันลอยไปไกล"],"Light it":["ともす","จุดโคม"],"About this place?":["この場所について聞く？","อยากรู้เรื่องที่นี่ไหม?"],"OK":["OK","ตกลง"],"The old man by the fire":["焚き火のそばの老人","ชายชราข้างกองไฟ"],"About silence":["静寂について","เกี่ยวกับความเงียบ"],"\"Sit down. Nothing to do. The mountain is here, the fire is here, and so are you.\"":["「坐ってごらん。何もしなくていい。山はここに、火はここに、そしてあなたもここにいる。」","“นั่งลงเถอะ ไม่ต้องทำอะไร ภูเขาอยู่ตรงนี้ ไฟอยู่ตรงนี้ และคุณก็อยู่ตรงนี้”"],"He says softly":["老人がそっと言う","ท่านกล่าวเบา ๆ"],"Weekly group sit":["毎週の共修","นั่งร่วมกันประจำสัปดาห์"],"Every Sunday at {0} PM Taiwan time (UTC+{1}), we sit together.":["毎週日曜日 台湾時間 午後{0}時（UTC+{1}）、みんなで坐ります。","ทุกวันอาทิตย์ เวลา 22:00 น. ตามเวลาไต้หวัน (UTC+{1}) เรานั่งด้วยกัน"],"Next":["次回","ครั้งถัดไป"],"News &amp; contact":["お知らせと連絡","ข่าวสารและติดต่อ"],"Events, reminders and a word with the founder: all in our LINE group.":["イベント、リマインダー、創設者との連絡は、すべてLINEグループで。","กิจกรรม การแจ้งเตือน และการพูดคุยกับผู้ก่อตั้ง อยู่ในกลุ่ม LINE ทั้งหมด"],"Join our LINE group":["LINEグループに参加","เข้ากลุ่ม LINE"],"Join our LINE group for news":["LINEグループでお知らせを受け取る","เข้ากลุ่ม LINE เพื่อรับข่าวสาร"],"If the mountain has kept you company, buy the founder a coffee to keep its lights on.":["この山があなたのそばにいられたなら、コーヒー一杯で山の灯りを支えてください。","ถ้าภูเขานี้ได้อยู่เป็นเพื่อนคุณ เลี้ยงกาแฟผู้ก่อตั้งสักแก้ว เพื่อให้ไฟบนภูเขายังสว่างอยู่"],"Back to the mountain":["山に戻る","กลับสู่ภูเขา"],"This sit":["今回の坐禅","รอบนี้"],"Sitting milestones":["坐禅のしるし","หมุดหมายการนั่ง"],"Unlocked by your formal-sit hours. Hours never reset; badges are yours to keep.":["正式な坐禅の時間で解放されます。時間はリセットされず、バッジはずっとあなたのものです。","ปลดล็อกด้วยชั่วโมงการนั่งแบบทางการ ชั่วโมงไม่ถูกรีเซ็ต เหรียญเป็นของคุณตลอดไป"],"Add to home screen":["ホーム画面に追加","เพิ่มไปที่หน้าจอหลัก"],"Open it like an app next time":["次からはアプリのように開けます","ครั้งหน้าเปิดได้เหมือนแอป"],"Power saving · tap to brighten":["省電力中・タップで明るく","โหมดประหยัดไฟ · แตะเพื่อเพิ่มความสว่าง"],"Free sit · tap to brighten":["自由坐禅・タップで明るく","นั่งอิสระ · แตะเพื่อเพิ่มความสว่าง"],"{0} hours of silence, together":["みんなで静寂 {0} 時間","ความเงียบร่วมกัน {0} ชั่วโมง"],"Confirming with the server…":["サーバーで確認中…","กำลังยืนยันกับเซิร์ฟเวอร์…"],"New badge":["新しいバッジ","เหรียญใหม่"],"New badge: {0}":["新しいバッジ：{0}","เหรียญใหม่: {0}"],"Next: {0}, {1} to go":["次：{0}、あと {1}","ถัดไป: {0} อีก {1}"],"{0} to go":["あと {0}","อีก {0}"],"You have every badge. Thank you for being here.":["すべてのバッジを集めました。いつもここにいてくれてありがとう。","คุณได้ครบทุกเหรียญแล้ว ขอบคุณที่อยู่ตรงนี้เสมอ"],"Tap Share":["共有をタップ","แตะ แชร์"],"Choose “Add to Home Screen”":["「ホーム画面に追加」を選ぶ","เลือก “เพิ่มไปยังหน้าจอโฮม”"],"Tap “Add”":["「追加」をタップ","แตะ “เพิ่ม”"],"Your name and hours come with you.":["名前と時間も引き継がれます。","ชื่อและชั่วโมงของคุณจะตามไปด้วย"],"Tap below to add it to your home screen.":["下のボタンでホーム画面に追加できます。","แตะด้านล่างเพื่อเพิ่มไปที่หน้าจอหลัก"],"Tap ⋮ at the top right":["右上の ⋮ をタップ","แตะ ⋮ ที่มุมขวาบน"],"Choose “Add to Home screen” or “Install app”":["「ホーム画面に追加」または「アプリをインストール」を選ぶ","เลือก “เพิ่มลงในหน้าจอหลัก” หรือ “ติดตั้งแอป”"],"Install":["インストール","ติดตั้ง"],"Open in Safari":["Safariで開く","เปิดใน Safari"],"Open in browser":["ブラウザで開く","เปิดในเบราว์เซอร์"],"Open this page in Safari first.":["まずSafariでこのページを開いてください。","เปิดหน้านี้ใน Safari ก่อน"],"Open this page in Chrome first.":["まずChromeでこのページを開いてください。","เปิดหน้านี้ใน Chrome ก่อน"],"Copy link":["リンクをコピー","คัดลอกลิงก์"],"Copied. Paste it into your browser.":["コピーしました。ブラウザに貼り付けてください。","คัดลอกแล้ว วางในเบราว์เซอร์ได้เลย"],"Added to your home screen 🙏":["ホーム画面に追加しました 🙏","เพิ่มไปที่หน้าจอหลักแล้ว 🙏"],"{0} left: bye, see you!":["{0} は山を下りました：またね！","{0} ลงเขาแล้ว: บ๊ายบาย แล้วพบกันใหม่!"],"Shh, this isn’t a chat room. Go find a spot to sit.":["しーっ、ここはおしゃべりの場ではありません。好きな場所を見つけて坐りましょう。","ชู่ว ที่นี่ไม่ใช่ห้องแชต ไปหาที่นั่งที่ชอบเถอะ"],"One Hi is enough up here. Save the rest for sitting.":["山では挨拶は一度だけ。あとは坐禅に。","บนนี้ทักทายครั้งเดียวก็พอ ที่เหลือเก็บไว้นั่งสมาธิ"],"Lots to say? Sit down together instead.":["話したいことがたくさん？一緒に坐りましょう。","มีเรื่องคุยเยอะ? มานั่งด้วยกันแทนดีกว่า"],"Softly now. The mountain is listening.":["静かに。山が聞いています。","เบา ๆ หน่อย ภูเขากำลังฟังอยู่"],"Today's silence is where we meet next.":["今日の静寂は、次の出会いの始まり。","ความเงียบวันนี้ คือจุดเริ่มของการพบกันครั้งหน้า"],"Every Sunday, {0} PM Taiwan time · group sit":["毎週日曜 台湾時間 午後{0}時・共修","ทุกวันอาทิตย์ 22:00 น. เวลาไต้หวัน · นั่งร่วมกัน"],"Come back whenever you want some quiet.":["静けさがほしいとき、いつでも戻ってきてください。","อยากเงียบสักพักเมื่อไร กลับมาได้เสมอ"],"{0} (Taiwan time)":["{0}（台湾時間）","{0} (เวลาไต้หวัน)"],"Next sit":["次の共修","การนั่งครั้งถัดไป"],"Next sit (extra)":["次の共修（追加回）","การนั่งครั้งถัดไป (รอบพิเศษ)"],"· extra sit":["・追加回","· รอบพิเศษ"],"The camera may not work inside LINE. Tap ⋮ or ⋯ and open in your browser.":["LINE内ではカメラが使えないことがあります。⋮ か ⋯ をタップしてブラウザで開いてください。","ใน LINE กล้องอาจใช้ไม่ได้ แตะ ⋮ หรือ ⋯ แล้วเปิดในเบราว์เซอร์"],"Every lotus is a blessing · {0} so far":["一輪一輪が祈り・これまで {0} 輪","ดอกบัวทุกดอกคือคำอวยพร · ตอนนี้มี {0} ดอก"],"This pond is waiting for its first lotus 🪷":["この池は最初の蓮を待っています 🪷","สระนี้กำลังรอดอกบัวดอกแรก 🪷"],"away":["離席中","ไม่อยู่"],"choosing a spot":["場所を選び中","กำลังเลือกที่"],"sitting down…":["坐ろうとしています…","กำลังนั่งลง…"],"Could not connect. Check your network and reload.":["接続できませんでした。ネットワークを確認して再読み込みしてください。","เชื่อมต่อไม่ได้ ตรวจสอบเครือข่ายแล้วโหลดใหม่"],"Offline":["オフライン","ออฟไลน์"],"Three bells will ring at {0} minutes. Just close your eyes.":["{0}分で鐘が三回鳴ります。安心して目を閉じてください。","ระฆังจะดังสามครั้งเมื่อครบ {0} นาที หลับตาลงได้เลย"],"World silence is about to reach {0} hours":["世界の静寂がまもなく {0} 時間に","ความเงียบของโลกใกล้ถึง {0} ชั่วโมง"],"Congratulations":["おめでとう","ยินดีด้วย"],"Thank you to everyone sitting quietly here":["静かに坐るすべての人に、ありがとう","ขอบคุณทุกคนที่นั่งเงียบ ๆ อยู่บนภูเขานี้"],"{0} on the mountain now, {1} sitting":["いま山に {0} 人、うち {1} 人が坐禅中","ตอนนี้มี {0} คนบนภูเขา นั่งอยู่ {1} คน"],"Connecting…":["接続中…","กำลังเชื่อมต่อ…"],"The mountain is with you":["山があなたと共に","ภูเขาอยู่กับคุณ"],"{0} here · {1} sitting":["{0} 人・坐禅中 {1} 人","{0} คน · นั่งอยู่ {1} คน"],"Back to me":["自分に戻る","กลับมาที่ฉัน"],"Thank you for adding <b>{0}<\/b> to the world's silence.":["世界の静寂に <b>{0}<\/b> を加えてくれてありがとう。","ขอบคุณที่มอบ <b>{0}<\/b> ให้ความเงียบของโลก"],"A free sit counts for the world, not your own hours":["自由坐禅は世界の累計に入り、個人の時間には入りません","การนั่งอิสระนับให้โลก ไม่นับเป็นชั่วโมงของคุณ"],"Cheered on by {0} 🙏":["{0} 人があなたを随喜しました 🙏","มี {0} คนอนุโมทนาให้คุณ 🙏"],"{0} cheered you on":["{0} 人があなたを随喜","{0} คนอนุโมทนาให้คุณ"],"Well sat 🙏":["よく坐りました 🙏","นั่งได้ดีมาก 🙏"],"Well sat!":["すばらしい！随喜 🙏","เยี่ยมมาก! อนุโมทนา"],"Silence shared by the whole mountain":["山のみんなで分かち合った静寂","ความเงียบที่ทั้งภูเขามีร่วมกัน"],"To keep your own hours, choose a formal sit next time":["自分の時間を残すには、次は正式な坐禅を","ถ้าอยากเก็บชั่วโมงของตัวเอง ครั้งหน้าเลือกนั่งแบบทางการ"],"Please allow camera access and try again.":["カメラへのアクセスを許可して、もう一度お試しください。","โปรดอนุญาตให้ใช้กล้อง แล้วลองอีกครั้ง"],"The camera turned off":["カメラがオフになりました","กล้องถูกปิด"],"Try another angle or turn on a light.":["角度を変えるか、明かりをつけてください。","ลองเปลี่ยนมุมหรือเปิดไฟ"],"Keep your face in view, the phone {0}–{1} m in front of you.":["顔が映るように、スマホを{0}〜{1}m前に置いてください。","ให้เห็นใบหน้า วางโทรศัพท์ห่างจากตัว {0}–{1} เมตร"],"All good. Start when you are ready.":["準備OK。いつでも始められます。","พร้อมแล้ว เริ่มได้เมื่อพร้อม"],"Set the phone steady and settle in.":["スマホを固定して、姿勢を整えましょう。","ตั้งโทรศัพท์ให้มั่นคง แล้วนั่งให้สบาย"],"You were out of view for a minute, so the sit ended. Time counts until you left.":["1分間映らなかったため、坐禅を終了しました。時間は離れた時点まで数えます。","กล้องไม่เห็นคุณหนึ่งนาที การนั่งจึงจบลง เวลานับถึงตอนที่คุณออกไป"],"You left for over a minute, so the sit ended. Time counts until you left.":["1分以上画面を離れたため、坐禅を終了しました。時間は離れた時点まで数えます。","คุณออกจากหน้าจอเกินหนึ่งนาที การนั่งจึงจบลง เวลานับถึงตอนที่คุณออกไป"],"Paused: {0}":["一時停止：{0}","หยุดชั่วคราว: {0}"],"Paused: {0}, ends in {1}":["一時停止：{0}、{1} 後に終了","หยุดชั่วคราว: {0} จะจบใน {1}"],"app in background":["画面から離れています","แอปอยู่เบื้องหลัง"],"camera covered":["カメラが覆われています","กล้องถูกบัง"],"no one in view":["人が映っていません","ไม่เห็นใครในกล้อง"],"Sitting together · {0}":["一緒に坐禅中・{0} 人","นั่งด้วยกัน · {0} คน"],"Sitting · the mountain is with you":["坐禅中・山があなたと共に","กำลังนั่ง · ภูเขาอยู่กับคุณ"],"✓ Done. Keep sitting, or rise slowly":["✓ 達成。このまま坐っても、ゆっくり立っても大丈夫","✓ ครบแล้ว นั่งต่อหรือค่อย ๆ ลุกก็ได้"],"The camera stopped":["カメラが止まりました","กล้องหยุดทำงาน"],"🙏 Well done.<br>Your time on this mountain: {0}":["🙏 おつかれさまでした。<br>この山での累計：{0}","🙏 ทำได้ดีมาก<br>เวลาของคุณบนภูเขานี้: {0}"],"Silence for love and peace":["愛と平和のための静寂","ความเงียบเพื่อความรักและสันติ"],"Time everyone here has sat together":["この山でみんなが坐った時間","เวลาที่ทุกคนบนภูเขานี้นั่งด้วยกัน"],"My badges":["マイバッジ","เหรียญของฉัน"],"{0} of {1} unlocked · {2} in total":["{1} 個中 {0} 個解放・累計 {2}","ปลดล็อกแล้ว {0} จาก {1} · รวม {2}"],"Sit {0} minutes for your first badge 🌱":["{0}分坐ると最初のバッジがもらえます 🌱","นั่งครบ {0} นาทีเพื่อรับเหรียญแรก 🌱"],"Badges unlocked: {0}. Tap your name in the ranking to see them.":["バッジを {0} 個解放しました。ランキングの自分の名前をタップして見てみましょう。","ปลดล็อกเหรียญแล้ว {0} เหรียญ แตะชื่อของคุณในอันดับเพื่อดู"],"(you)":["（あなた）","(คุณ)"],"Total":["累計","รวม"],"This is you.":["これはあなたです。","นี่คือคุณ"],"No talking here. A wave is enough 👋":["ここでは話しません。手を振るだけで十分 👋","ที่นี่ไม่คุยกัน โบกมือก็พอ 👋"],"No talking here. Cheer them on in silence 🙏":["ここでは話しません。心の中で随喜を 🙏","ที่นี่ไม่คุยกัน อนุโมทนาในใจก็พอ 🙏"],"Cheered 🙏":["随喜しました 🙏","อนุโมทนาแล้ว 🙏"],"🙏 Cheer them on":["🙏 随喜する","🙏 อนุโมทนา"],"👋 Waved":["👋 挨拶しました","👋 ทักทายแล้ว"],"👋 Wave":["👋 挨拶する","👋 ทักทาย"],"Walking":["散策中","กำลังเดิน"],"Sitting down":["坐ろうとしています","กำลังนั่งลง"],"On the mountain now":["いま山にいる人","คนที่อยู่บนภูเขาตอนนี้"],"All time":["累計時間","ทั้งหมด"],"Everyone who has sat here":["この山で坐ったすべての人","ทุกคนที่เคยนั่งที่นี่"],"You are #{0} of {1} · {2}":["{1} 人中 {0} 位・{2}","คุณอันดับ {0} จาก {1} คน · {2}"],"Just you for now. Rest here; others will come.":["今はあなただけ。ここで休んで。きっと誰かが来ます。","ตอนนี้มีแค่คุณ พักอยู่ตรงนี้ เดี๋ยวก็มีคนมา"],"Bye! See you!":["またね！","บ๊ายบาย แล้วพบกันใหม่!"],"Bye! See you next time":["またね、次にまた！","บ๊ายบาย แล้วพบกันใหม่!"],"See you next time":["またね！","แล้วพบกันใหม่!"],"You cheered {0} on 🙏":["{0} に随喜しました 🙏","คุณอนุโมทนาให้ {0} แล้ว 🙏"],"You said bye to {0} 👋":["{0} にさよならを言いました 👋","คุณบอกลา {0} แล้ว 👋"],"{0} is heading off. See you!":["{0} が山を下ります。またね！","{0} กำลังลงเขา แล้วพบกันใหม่!"],"Group sit now":["共修中","กำลังนั่งร่วมกัน"],"Group sit · now":["共修・開催中","นั่งร่วมกัน · ตอนนี้"],"Next sit in <b>{0}<\/b>":["次の共修まで <b>{0}<\/b>","นั่งร่วมกันครั้งหน้าในอีก <b>{0}<\/b>"],"Extra sit":["追加回","รอบพิเศษ"],"Extra group sit":["追加の共修","นั่งร่วมกันรอบพิเศษ"],"Weekly Sunday group sit":["毎週日曜の共修","นั่งร่วมกันทุกวันอาทิตย์"],"{0} Taiwan time · the world sits together":["{0}（台湾時間）・世界が一緒に坐ります","{0} เวลาไต้หวัน · ทั้งโลกนั่งด้วยกัน"],"Happening now · come and sit":["開催中・一緒に坐りましょう","กำลังจัดอยู่ · มานั่งด้วยกัน"],"Heart words":["心のことば","ถ้อยคำจากใจ"],"{0} lanterns released this week":["この7日間で {0} 個の灯籠が空へ","7 วันนี้ปล่อยโคมไปแล้ว {0} ดวง"],"Light the first lantern on this mountain":["この山で最初の灯籠をともしましょう","จุดโคมดวงแรกของภูเขานี้"],"You were choosing for a while, so you stood up. Tap “Sit here” when ready.":["しばらく選んでいたので立ち上がりました。準備ができたら「ここに坐る」をタップ。","คุณเลือกนานไปหน่อย จึงลุกขึ้นให้แล้ว พร้อมเมื่อไรแตะ “นั่งตรงนี้”"],"No movement for a while, so you stood up. Sit again whenever you like.":["しばらく動きがなかったので立ち上がりました。いつでもまた坐れます。","ไม่มีการเคลื่อนไหวสักพัก จึงลุกขึ้นให้แล้ว นั่งใหม่ได้ทุกเมื่อ"],"Next lotus in {0}":["次の蓮まで {0}","ดอกบัวดอกถัดไปในอีก {0}"],"Your lotus is planted and blooming":["あなたの蓮が植えられ、池に咲いています","ดอกบัวของคุณปลูกแล้ว กำลังบานในสระ"],"Next lantern in {0}":["次の灯籠まで {0}","โคมดวงถัดไปในอีก {0}"],"Your lantern is rising with your wish":["あなたの灯籠が願いを乗せて空へ","โคมของคุณลอยขึ้นพร้อมคำอธิษฐาน"],"Camera":["カメラ","กล้อง"],"Light":["明るさ","แสง"],"Sees you":["あなたを検出","เห็นคุณ"],"Phone steady":["スマホを固定","โทรศัพท์นิ่ง"],"Camera off":["カメラがオフ","กล้องปิดอยู่"],"Light OK":["明るさOK","แสงพอดี"],"Too dark or covered":["暗すぎるか覆われています","มืดเกินไปหรือถูกบัง"],"Detection unavailable (you can still sit)":["検出は使えません（坐禅はできます）","ตรวจจับไม่ได้ (ยังนั่งได้)"],"Getting ready…":["準備中…","กำลังเตรียม…"],"Can’t see you":["映っていません","ไม่เห็นคุณ"],"Opened inside LINE/FB/IG, where the camera often fails. Open this site in Chrome or Safari, or sit freely for now.":["LINE/FB/IG内ではカメラが使えないことが多いです。ChromeかSafariで開くか、今は自由坐禅をどうぞ。","เปิดใน LINE/FB/IG ซึ่งกล้องมักใช้ไม่ได้ เปิดเว็บนี้ใน Chrome หรือ Safari หรือนั่งแบบอิสระไปก่อน"],"Camera won’t open? Sit freely instead. It still counts for the world.":["カメラが開かない？自由坐禅でも世界の累計に加わります。","กล้องเปิดไม่ได้? นั่งแบบอิสระแทนได้ ยังนับรวมให้โลก"],"Check not passing? Sit freely instead. It still counts for the world.":["チェックが通らない？自由坐禅でも世界の累計に加わります。","ตรวจไม่ผ่าน? นั่งแบบอิสระแทนได้ ยังนับรวมให้โลก"],"Timer resumed.":["計測を再開しました。","จับเวลาต่อแล้ว"],"The camera cannot see you, so the timer is paused. Please adjust your position or the light.":["カメラにあなたが映っていないため、計測を一時停止しました。位置か明かりを調整してください。","กล้องมองไม่เห็นคุณ จึงหยุดจับเวลาไว้ก่อน โปรดปรับตำแหน่งหรือแสง"],"Just a reminder, the camera still cannot see you.":["お知らせです。まだカメラに映っていません。","แจ้งเตือนอีกครั้ง กล้องยังมองไม่เห็นคุณ"],"Five seconds before the sit ends. Please adjust the camera or the light.":["あと5秒で坐禅が終わります。カメラの角度か明かりを調整してください。","อีกห้าวินาทีการนั่งจะจบ โปรดปรับกล้องหรือแสง"],"The sit has ended. Your time counts up to now.":["坐禅を終了しました。時間は今までの分を数えます。","การนั่งจบแล้ว เวลานับถึงตอนนี้"],"Close your eyes and let everything go. Don't chase calm, don't chase awakening. It is already here.":["目を閉じて、すべてを手放す。静けさも悟りも追わない。それは、もうここにある。","หลับตา ปล่อยวางทุกสิ่ง ไม่ไขว่คว้าความสงบ ไม่ไขว่คว้าการตื่นรู้ มันอยู่ตรงนี้แล้ว"],"When you stop rushing to get somewhere, you finally meet yourself.":["どこかへ急ぐのをやめたとき、ようやく自分に出会う。","เมื่อเลิกรีบไปให้ถึงที่ไหนสักแห่ง คุณจึงได้พบตัวเอง"],"Becoming still is not to make the world disappear, but to finally hear yourself.":["静まるのは世界を消すためではなく、ようやく自分の声を聴くため。","การนิ่งสงบไม่ใช่เพื่อให้โลกหายไป แต่เพื่อได้ยินตัวเองในที่สุด"],"You don't have to change every thought. Just see it, and let it pass.":["すべての思いを変えなくていい。ただ見て、通り過ぎさせればいい。","ไม่ต้องเปลี่ยนทุกความคิด แค่เห็นมัน แล้วปล่อยให้ผ่านไป"],"You don't need to become a better person before you allow yourself to simply be.":["ただ在ることを自分に許すのに、もっと良い人になる必要はない。","คุณไม่ต้องเป็นคนที่ดีกว่านี้ก่อน จึงจะอนุญาตให้ตัวเองได้มีอยู่อย่างเรียบง่าย"],"When the mind stops chasing answers, the answers matter less.":["心が答えを追わなくなると、答えはそれほど大切ではなくなる。","เมื่อใจเลิกไล่ตามคำตอบ คำตอบก็สำคัญน้อยลง"],"Silence is not the absence of sound, but no longer needing to answer every sound.":["沈黙とは音がないことではなく、すべての音に応えなくてよくなること。","ความเงียบไม่ใช่การไม่มีเสียง แต่คือการไม่ต้องตอบทุกเสียงอีกต่อไป"],"Don't argue with the past, don't worry for the future. Let this moment happen fully.":["過去と争わず、未来を憂えず、この瞬間をまるごと起こらせる。","ไม่โต้เถียงกับอดีต ไม่กังวลแทนอนาคต ปล่อยให้ขณะนี้เกิดขึ้นอย่างเต็มที่"],"Letting the mess be is the real calm.":["乱れをそのままにしておくことが、本当の静けさ。","การยอมให้ความวุ่นวายเป็นอย่างที่มันเป็น คือความสงบที่แท้"],"Sit not to gain anything, only to stop losing the present.":["何かを得るためではなく、今を失わないために坐る。","นั่งไม่ใช่เพื่อได้อะไร แต่เพื่อไม่ทำปัจจุบันหล่นหาย"],"Some things don't need understanding, only living through.":["理解しなくていいこともある。ただ経験すればいい。","บางเรื่องไม่ต้องเข้าใจ แค่ต้องผ่านมันไป"],"Each time you stop judging a thought, the heart gets a little freer.":["思いを裁くのをやめるたび、心は少し自由になる。","ทุกครั้งที่เลิกตัดสินความคิด ใจก็เป็นอิสระขึ้นอีกนิด"],"No need to chase away the dark. Sitting quietly is also company.":["闇を追い払わなくていい。静かに坐ることも、寄り添いになる。","ไม่ต้องไล่ความมืดไป การนั่งเงียบ ๆ ก็เป็นการอยู่เป็นเพื่อนเช่นกัน"],"Life doesn't have to mean something every moment. Sometimes being is enough.":["人生は一瞬一瞬に意味がなくてもいい。ただ在るだけで十分なときもある。","ชีวิตไม่จำเป็นต้องมีความหมายทุกขณะ บางครั้งแค่มีอยู่ก็พอแล้ว"],"Let the breath come and go, the way life comes and goes.":["呼吸を来ては去らせる。人生が来ては去るように。","ปล่อยให้ลมหายใจเข้าออก เหมือนชีวิตที่มาแล้วก็ไป"],"You can do nothing at all, and still be someone.":["何もしなくても、あなたはあなたのまま。","คุณไม่ต้องทำอะไรเลย ก็ยังเป็นใครสักคนได้"],"Letting go of control isn't giving up on life; it's learning to walk with it.":["コントロールを手放すことは人生を諦めることではなく、人生と共に歩むことを学ぶこと。","การปล่อยวางการควบคุมไม่ใช่การยอมแพ้ต่อชีวิต แต่คือการเรียนรู้ที่จะเดินไปกับมัน"],"Not chasing peace, not pushing away the noise; at home in rain or shine.":["平穏を追わず、騒がしさを拒まず。晴れても雨でも、安らいでいる。","ไม่ไล่ตามความสงบ ไม่ผลักไสความวุ่นวาย ฝนตกหรือแดดออกก็อยู่ได้อย่างสบายใจ"],"When you stop playing any role, you get to see who you really are.":["どんな役も演じなくなったとき、本当の自分が見えてくる。","เมื่อเลิกสวมบทบาทใด ๆ คุณจะได้เห็นว่าตัวเองเป็นใครจริง ๆ"],"Silence is not running from the world, but learning again how to live in it.":["静寂は世界から逃げることではなく、世界の中で生き直すことを学ぶこと。","ความเงียบไม่ใช่การหนีโลก แต่คือการเรียนรู้ที่จะอยู่ในโลกอีกครั้ง"],"Look inward; there is a finer view in your heart than here.":["内を見つめて。心の中に、ここよりも美しい景色がある。","มองเข้าไปข้างใน ในใจคุณมีทิวทัศน์ที่งดงามกว่าที่นี่"],"See things as they are. A tree is just a tree; a mountain, just a mountain.":["ありのままを見る。木はただ木、山はただ山。","เห็นทุกสิ่งตามที่มันเป็น ต้นไม้ก็เป็นแค่ต้นไม้ ภูเขาก็เป็นแค่ภูเขา"],"Everything changes: feelings, thoughts, relationships, who you are. What can you hold on to?":["すべては移ろう。感情も、思いも、関係も、自分という役割も。何をつかめるだろう？","ทุกสิ่งเปลี่ยนแปลง อารมณ์ ความคิด ความสัมพันธ์ ตัวตน แล้วคุณจะยึดอะไรไว้ได้?"],"Real peace isn't in a temple or on this mountain. It is only in your heart.":["本当の平安は寺にも、この山にもない。あなたの心の中にだけある。","ความสงบที่แท้ไม่ได้อยู่ในวัด ไม่ได้อยู่บนภูเขานี้ มันอยู่ในใจคุณเท่านั้น"],"Don't chase calm, comfort, pleasure or joy. Let go of all chasing.":["静けさも、心地よさも、喜びも追わない。追うことそのものを手放す。","อย่าไล่ตามความสงบ ความสบาย ความสุข หรือความปีติ ปล่อยวางการไขว่คว้าทั้งหมด"],"Do everything, but let go of clinging to anything.":["すべてを行い、何にも執着しない。","ทำทุกสิ่ง แต่ปล่อยวางการยึดติดในทุกสิ่ง"],"Don't chase a still mind; notice that this chasing is clinging too.":["静かな心を追わない。その追い求めもまた執着だと気づく。","อย่าไล่ตามใจที่นิ่ง ให้รู้ว่าการไล่ตามนี้ก็คือการยึดติดเช่นกัน"],"Staying aware is the real practice.":["気づき続けることこそ、本当の精進。","การรู้ตัวอยู่เสมอ คือความเพียรที่แท้"],"Feelings and thoughts change like clouds; awareness is the blue sky, unmoved and whole.":["感情と思いは雲のように変わる。気づきは青空のように動かず、もとから満ちている。","อารมณ์และความคิดเปลี่ยนไปเหมือนเมฆ ความรู้ตัวคือท้องฟ้าสีคราม ไม่หวั่นไหวและสมบูรณ์อยู่แล้ว"],"Slow down, and the heart will catch up.":["ゆっくりと。心が追いついてくる。","ช้าลงหน่อย แล้วใจจะตามมาทัน"],"Each return to the breath is a homecoming.":["呼吸に戻るたび、家に帰る。","ทุกครั้งที่กลับมาที่ลมหายใจ คือการกลับบ้าน"],"Tired? Sit down first. The road isn't going anywhere.":["疲れたら、まず坐ろう。道は逃げない。","เหนื่อยไหม? นั่งลงก่อน ทางไม่หนีไปไหน"],"Where the heart grows quiet, the wind grows gentle.":["心が静まるところでは、風もやさしくなる。","ที่ใดใจสงบลง ที่นั่นลมก็อ่อนโยนลง"],"One stone on another, one breath after another.":["石の上に石を、呼吸のあとに呼吸を。","หินซ้อนหินทีละก้อน ลมหายใจต่อลมหายใจ"],"Every road you've walked has been bringing you here.":["歩いてきたすべての道が、あなたをここへ連れてきた。","ทุกเส้นทางที่เดินมา ล้วนพาคุณมาถึงที่นี่"],"Be gentle with yourself right now.":["今の自分に、やさしく。","อ่อนโยนกับตัวเองในขณะนี้"],"When worries come, let them sit beside you.":["悩みが来たら、隣に坐らせておけばいい。","เมื่อความกังวลมา ก็ให้มันนั่งอยู่ข้าง ๆ"],"The mountain doesn't hurry the clouds; you don't need to hurry yourself.":["山は雲を急かさない。あなたも自分を急かさなくていい。","ภูเขาไม่เร่งเมฆ คุณก็ไม่ต้องเร่งตัวเอง"],"Let your shoulders drop, and your heart too.":["肩の力を抜いて、心の力も抜いて。","ปล่อยไหล่ลง แล้วปล่อยใจลงด้วย"],"Every quiet moment is quietly caring for you.":["静かなひとときの一つ一つが、そっとあなたを癒している。","ทุกช่วงเวลาที่เงียบสงบ กำลังดูแลคุณอยู่อย่างเงียบ ๆ"],"fireflies":["✨ ホタル","✨ หิ่งห้อย"],"butterflies":["🦋 チョウ","🦋 ผีเสื้อ"],"a little bird":["🐦 小鳥","🐦 นกน้อย"],"a fawn":["🦌 子鹿","🦌 ลูกกวาง"],"a crane":["🕊️ 鶴","🕊️ นกกระเรียน"],"Keeping you company today: {0}":["今日一緒に坐った仲間：{0}","วันนี้มีเพื่อนนั่งกับคุณ: {0}"],"Face the valley":["谷を向く","หันหน้าสู่หุบเขา"],"Back to the cliff":["崖を背に","หันหลังให้หน้าผา"],"Hills on the left":["左に山","ภูเขาทางซ้าย"],"Hills on the right":["右に山","ภูเขาทางขวา"],"Lean on the tree":["木にもたれる","พิงต้นไม้"],"This moment is it":["この瞬間こそ","ขณะนี้แหละคือสิ่งนั้น"],"Clouds come and go; the mountain stays":["雲は来ては去り、山は山のまま","เมฆมาแล้วก็ไป ภูเขายังเป็นภูเขา"],"Listen: silence has a sound":["聴いて、静けさにも音がある","ฟังสิ ความเงียบก็มีเสียง"],"Where you sit is the place of practice":["坐るところが、道場","ที่ที่คุณนั่ง คือสถานปฏิบัติธรรม"],"Only open hands can catch the light":["手放した手だけが、光を受けとめられる","มือที่ปล่อยวางเท่านั้น จึงรับแสงไว้ได้"],"A blessing for…":["誰への祈り…","อวยพรให้…"],"A wish for…":["誰のための願い…","อธิษฐานให้…"],"First meeting":["はじめての出会い","การพบกันครั้งแรก"],"First time sitting with yourself":["はじめて自分と一緒に坐った","ครั้งแรกที่ได้นั่งอยู่กับตัวเอง"],"Resting in now":["今に安らぐ","พักอยู่ในขณะนี้"],"You can sit still now":["じっと坐れるようになった","เริ่มนั่งนิ่งได้แล้ว"],"A full sit":["一座の円満","นั่งครบหนึ่งรอบ"],"The weight of a {0}-minute sit":["{0}分の一座の重み","น้ำหนักของการนั่ง {0} นาที"],"Quiet traveller":["静かな旅人","นักเดินทางผู้สงบ"],"A traveller of the mountain":["山の旅人になった","กลายเป็นนักเดินทางของภูเขา"],"Regular":["山の常連","ขาประจำ"],"Often back on the mountain":["よく山に戻ってくる","กลับมาที่ภูเขาบ่อย ๆ"],"Mountain keeper":["山の守り人","ผู้พิทักษ์ภูเขา"],"The mountain is in your care":["この山はあなたが守っている","ภูเขานี้มีคุณดูแล"],"Moonlit companion":["月下の道連れ","เพื่อนร่วมทางใต้แสงจันทร์"],"Half a day of silence":["半日の静寂","ความเงียบครึ่งวัน"],"Light of a day":["一日の光","แสงแห่งหนึ่งวัน"],"A whole day of silence":["まる一日分の静寂","ความเงียบครบหนึ่งวันเต็ม"],"Silent companion":["静寂の道連れ","เพื่อนร่วมทางแห่งความเงียบ"],"A companion for the long road":["長い道のりの仲間","เพื่อนร่วมทางตลอดไป"],"Heart of the stars":["星空の心","หัวใจแห่งดวงดาว"],"The deepest silence here":["この山でいちばん深い静寂","ความเงียบที่ลึกที่สุดบนภูเขานี้"],"👋 Wave to {0}":["👋 {0} に挨拶","👋 ทักทาย {0}"],"🙏 Cheer {0} on":["🙏 {0} に随喜","🙏 อนุโมทนาให้ {0}"],"👋 Say bye to {0}":["👋 {0} にさよなら","👋 บอกลา {0}"]};
+/* ===== language: English, 繁體中文, 日本語, ไทย — one at a time =====
+   Chinese is written in the page; each Chinese piece has an English twin (<span class="en">).
+   Japanese and Thai are looked up from the English (TR below). Numbers, names and dates in <bdi> are kept as they are. */
+const LANGS=['en','zh','ja','th'];
+let LANG=(()=>{ try{ const s=localStorage.getItem('gsLang'); if(LANGS.includes(s)) return s; }catch{} const n=(navigator.language||'').toLowerCase(); return n.startsWith('zh')?'zh':n.startsWith('ja')?'ja':n.startsWith('th')?'th':'en'; })();
+const LOC={en:'en-US',zh:'zh-TW',ja:'ja-JP',th:'th-TH'};
+const TR_RE=/<bdi>[\s\S]*?<\/bdi>|\d+(?:\.\d+)?(?:[dhms]\b| ?min\b| h\b| s\b)?(?: \d+[hms]\b)?/g;
+function tr(h){ h=String(h??''); if(LANG==='en'||LANG==='zh'||!h) return h; const v=[]; const k=h.replace(TR_RE,m=>`{${v.push(m)-1}}`).trim();
+  const row=TR[k]; if(!row) return h; const t=row[LANG==='ja'?0:1]; return t?t.replace(/\{(\d+)\}/g,(_,i)=>v[i]??''):h; }
+function EN(zh,en){ return LANG==='zh'?zh:tr(en); }   // our own strings only; put anything a person typed through escT, inside <bdi>
+const INL=new Set(['B','BR','STRONG','EM','I','U','SPAN','SMALL','A']);
+function wrapZh(en){ let n=en.previousSibling; if(!n||(n.nodeType===1&&n.classList.contains('zh'))) return; const nodes=[];
+  while(n){ if(n.nodeType===3) nodes.unshift(n); else if(n.nodeType===1&&INL.has(n.tagName)&&!n.id&&!n.classList.contains('en')&&!n.classList.contains('zh')&&!n.querySelector('svg,img,input,button,.en')) nodes.unshift(n); else break; n=n.previousSibling; }
+  if(!nodes.length) return;
+  if(nodes[0].nodeType===3){ const m=nodes[0].data.match(/^[\s\p{Extended_Pictographic}\uFE0F\u200D✓✕○⟲⟳→·•]+/u); if(m&&m[0].length<nodes[0].data.length){ nodes[0]=nodes[0].splitText(m[0].length); } } // a leading icon stays for every language
+  const w=document.createElement('span'); w.className='zh'; en.parentNode.insertBefore(w,nodes[0]); nodes.forEach(x=>w.appendChild(x)); }
+function langEl(en){ if(!en.dataset.src){ en.dataset.src=en.innerHTML; wrapZh(en); } const t=LANG==='ja'||LANG==='th'?tr(en.dataset.src):en.dataset.src; if(en.innerHTML!==t) en.innerHTML=t; }
+function langScan(root){ if(root.nodeType!==1) return; if(root.matches('.en')) langEl(root); root.querySelectorAll('.en').forEach(langEl); }
+new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes) langScan(n); }).observe(document.body,{childList:true,subtree:true});
+const BRAND={zh:'全球靜默空間',en:'Global Silence Space',ja:'全球静寂空間',th:'พื้นที่ความเงียบทั่วโลก'};
+function applyLang(){ const h=document.documentElement; LANGS.forEach(l=>h.classList.toggle('l-'+l,l===LANG)); h.lang=LOC[LANG]; document.title=LANG==='zh'?'全球靜默空間':BRAND[LANG];
+  document.querySelectorAll('[data-brand]').forEach(e=>e.textContent=BRAND[LANG]);
+  document.querySelectorAll('[data-ph]').forEach(e=>{ if(!e.dataset.zph) e.dataset.zph=e.placeholder; e.placeholder=EN(e.dataset.zph,e.dataset.ph); });
+  document.querySelectorAll('#langPick button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));
+  langScan(document.body); }
+applyLang();
+document.querySelectorAll('#langPick button').forEach(b=>b.onclick=()=>{ LANG=b.dataset.l; try{ localStorage.setItem('gsLang',LANG); }catch{} applyLang(); try{ updateEvent(); updateHud(); }catch{} });
 /* =====================================================================
    全球靜默空間 v0.2 — 3D 山頂
    Presence is peer-to-peer (Trystero over Nostr signaling, no server).
@@ -1802,9 +1844,9 @@ class Companions{
       },{ph:Math.random()*6,st:{}}); }
   }
 }
-function compLine(){ const tr=me.compTier??-1; if(tr<0) return '';
-  const names=[(me.compNight?'✨ 螢火蟲':'🦋 蝴蝶'),'🐦 小鳥','🦌 小鹿','🕊️ 白鶴'].slice(0,tr+1), namesEn=[(me.compNight?'fireflies':'butterflies'),'a little bird','a fawn','a crane'].slice(0,tr+1);
-  return `<div class="comp-line">今天陪你坐的有：${names.join('・')}<span class="en">Keeping you company today: ${namesEn.join(', ')}</span></div>`; }
+function compLine(){ const ct=me.compTier??-1; if(ct<0) return '';
+  const names=[(me.compNight?'✨ 螢火蟲':'🦋 蝴蝶'),'🐦 小鳥','🦌 小鹿','🕊️ 白鶴'].slice(0,ct+1), namesEn=[(me.compNight?'fireflies':'butterflies'),'a little bird','a fawn','a crane'].slice(0,ct+1);
+  return `<div class="comp-line">今天陪你坐的有：${names.join('・')}<span class="en">Keeping you company today: <bdi>${namesEn.map(x=>tr(x)).join(', ')}</bdi></span></div>`; }
 
 class Person{
   constructor(info,remote){
@@ -1862,9 +1904,9 @@ class Person{
     this.tagEl.style.zIndex=String(1000-Math.round(dist*10));
     const ph=this.phase, showImg=ph==='sit'&&this.hasImg;
     this.imgEl.style.display=showImg?'':'none';
-    if(ph==='sit'){ const p=this.remote?this.info.paused:me.paused; this.timeEl.textContent=p?'暫離 away':fmt(this.remote?peerSec(this.info):me.sitSec); this.timeEl.classList.toggle('warn',!!p); }
-    else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?'選位置中 choosing':'入座中… sitting down'; this.timeEl.classList.remove('warn'); }
-    else if(ph==='free'){ this.timeEl.textContent='自由靜坐 free sit'; this.timeEl.classList.remove('warn'); }
+    if(ph==='sit'){ const p=this.remote?this.info.paused:me.paused; this.timeEl.textContent=p?EN('暫離','away'):fmt(this.remote?peerSec(this.info):me.sitSec); this.timeEl.classList.toggle('warn',!!p); }
+    else if(ph==='pose'||ph==='cam'){ this.timeEl.textContent=ph==='pose'?EN('選位置中','choosing a spot'):EN('入座中…','sitting down…'); this.timeEl.classList.remove('warn'); }
+    else if(ph==='free'){ this.timeEl.textContent=EN('自由靜坐','free sit'); this.timeEl.classList.remove('warn'); }
     else this.timeEl.textContent='';
   }
   dispose(){ scene.remove(this.k.g); this.tagEl.remove(); }
@@ -2132,7 +2174,7 @@ function celebrateOpening(){
 if(QS.get('fwopen')) setTimeout(()=>{ runOpening(Date.now()+11000); },6000); // preview: ?fwopen=1
 function hideCountdown(){ $('hourCd').classList.remove('on'); }
 function celebrateHour(h){
-  fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 恭喜 Congratulations</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時<span class="en">${h} hours of silence, together</span></div><div class="hm-s">${EN('謝謝每一位在山上安靜坐著的你','Thank you to everyone sitting quietly here')}</div>`;
+  fwBusy=true; store.set('fwAt',Date.now()); const msg=$('hourMsg'); msg.innerHTML=`<div class="hm-k">🎆 ${EN('恭喜','Congratulations')}</div><div class="hm-t">全球累積靜默 <b>${h}</b> 小時<span class="en">${h} hours of silence, together</span></div><div class="hm-s">${EN('謝謝每一位在山上安靜坐著的你','Thank you to everyone sitting quietly here')}</div>`;
   startFireworkShow(()=>{ fwBusy=false; }); setTimeout(()=>msg.classList.add('on'),3200); setTimeout(()=>msg.classList.remove('on'),15500);
 }
 /* one-off fireworks demo, 11 Nov 2026: whoever reaches the mountain in this short window gets the show at once; it switches itself off */
@@ -2189,12 +2231,10 @@ function updateHud(){
   $('hudSum').textContent='';
 }
 /* 中英雙語 helpers. The page always shows both languages; only the spoken voice and the wish chips follow the phone's own language. */
-const ZH=/^zh/i.test(navigator.language||'');
 function escT(x){ return String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function EN(zh,en){ return `${zh}<span class="en">${en}</span>`; }   // our own strings only; escape anything a person typed first
 const enDur=sec=>{ sec=Math.floor(sec); if(sec<60) return `${sec}s`; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return h?`${h}h ${m}m`:(s?`${m}m ${s}s`:`${m} min`); };
 const enHrs=sec=>{ const h=sec/3600; return h<1?(sec<60?`${Math.floor(sec)} s`:`${Math.round(sec/60)} min`):`${h.toFixed(1)} h`; };
-let toastT; function toast(t,en){ const el=$('toast'); el.innerHTML=escT(t)+(en?`<span class="en">${escT(en)}</span>`:''); el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
+let toastT; function toast(t,en){ const el=$('toast'); el.innerHTML=EN(escT(t),en??escT(t)); el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2800); }
 let sheetOn=false;
 function sheet(id){ sheetOn=!!id; ['sheetPose','sheetMode','sheetCam','sheetFree','sheetSit'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); }
 function showWalkUI(on){ ['joy','btnDown'].forEach(i=>$(i).classList.toggle('hidden',!on)); if(!on) joy.reset(); }
@@ -2324,8 +2364,8 @@ $('btnFreeRise').onclick=async()=>{
   try{ wakeLock?.release(); }catch{} wakeLock=null; standUp(); bell(.6);
   const paint=()=>{ const g=fs.secs>0?fs.secs:sec; // once the server answers, both lines show the server's number, so they always agree
     $('endTime').innerHTML=EN(g<60?`${g} 秒`:`${Math.floor(g/60)} 分 ${g%60} 秒`,enDur(g));
-    $('endSub').innerHTML=`🪷 謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b><span class="en">Thank you for adding ${enDur(g)} to the world's silence.</span><span style="font-size:12.5px;color:var(--ink-faint)">${EN('自由靜坐計入全球累積，不計入個人時數','A free sit counts for the world, not your own hours')}</span>`
-      +(nLikes?EN(`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`,`${nLikes} ${nLikes>1?'people':'person'} cheered you on`):EN('隨喜 🙏','Well sat 🙏'))+byeEndHTML(byes)+compLine()
+    $('endSub').innerHTML=`<div>🪷 ${EN(`謝謝你，為全球靜默貢獻了 <b style="color:var(--gold)">${shortFmt(g)}</b>`,`Thank you for adding <b>${enDur(g)}</b> to the world's silence.`)}</div><div style="font-size:12.5px;color:var(--ink-faint)">${EN('自由靜坐計入全球累積，不計入個人時數','A free sit counts for the world, not your own hours')}</div>`
+      +`<div>${nLikes?EN(`有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`,`Cheered on by ${nLikes} 🙏`):EN('隨喜 🙏','Well sat 🙏')}</div>`+byeEndHTML(byes)+compLine()
       +nextSitHTML(true)+`<div class="end-all"><span>${EN('全山一起注入的靜默','Silence shared by the whole mountain')}</span><b>${durU(mountainTotalAll())}</b><small>${EN('想累積個人時數？下次選「正式共修活動」🌏','To keep your own hours, choose a formal sit next time')}</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   await ending; setTimeout(paint,1200); // after the server answers and the board refreshes
@@ -2361,7 +2401,7 @@ let zhVoice=null;
 function pickVoice(){ try{ const v=speechSynthesis.getVoices(); zhVoice=v.find(x=>/zh[-_]TW/i.test(x.lang))||v.find(x=>/zh[-_](HK|Hant)/i.test(x.lang))||v.find(x=>/^zh/i.test(x.lang))||null; }catch{} }
 try{ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }catch{}
 function sayGently(text,delay=900,en){ setTimeout(()=>{ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
-  const useEn=!ZH&&en; const u=new SpeechSynthesisUtterance(useEn?en:text); u.lang=useEn?'en-US':(zhVoice?.lang||'zh-TW'); if(zhVoice&&!useEn) u.voice=zhVoice; u.rate=.88; u.pitch=1; u.volume=.75; speechSynthesis.speak(u); }catch{} },delay); }
+  const useEn=LANG!=='zh'&&en; const u=new SpeechSynthesisUtterance(useEn?tr(en).replace(/<[^>]+>/g,''):text); u.lang=useEn?LOC[LANG]:(zhVoice?.lang||'zh-TW'); if(zhVoice&&!useEn) u.voice=zhVoice; u.rate=.88; u.pitch=1; u.volume=.75; speechSynthesis.speak(u); }catch{} },delay); }
 function primeVoice(){ try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch{} } // phones only allow speech after a tap
 function faceAlerts(gone,found){
   if(found&&faceAlert){ faceAlert=0; softTones([523.3,784],.09,.32,1.4); sayGently('已恢復計時',700,'Timer resumed.'); return; }
@@ -2398,9 +2438,9 @@ function faceSeen(v){ // is a person there? a confident face, or a person's shap
 /* camera check */
 let stream=null, wakeLock=null, snapTimer=null, tickTimer=null, checkTimer=null, hiddenAt=0, lastSnap=null;
 const camPrev=$('camPrev'), sitPrev=$('sitPrev'), snapC=$('snapC'), sctx=snapC.getContext('2d',{willReadFrequently:true});
-function setCk(id,state,text,en){ const li=$(id); li.className=state; li.innerHTML=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+text+(en?`<span class="en i">${en}</span>`:''); }
+function setCk(id,state,text,en){ const li=$(id); li.className=state; li.innerHTML=(state==='ok'?'✓ ':state==='bad'?'✕ ':'○ ')+EN(text,en||text); }
 let camCheckT0=0;
-function camHelp(txt,en){ $('camHelpTxt').innerHTML=EN(txt,en||''); $('camHelp').classList.remove('hidden'); }
+function camHelp(txt,en){ $('camHelpTxt').innerHTML=EN(txt,en||txt); $('camHelp').classList.remove('hidden'); }
 function resetCamCheck(){ camCheckT0=performance.now(); { const e=evText(); $('camSound').classList.toggle('hidden',!(e&&e.live)&&!QS.get('bellsim')); } $('camHelp').classList.add('hidden'); if(IN_APP) camHelp('你正在 LINE／FB／IG 裡開啟，這裡常常無法使用鏡頭。請用 Chrome 或 Safari 開啟本站；或先自由靜坐，一樣計入全球累積。','Opened inside LINE/FB/IG, where the camera often fails. Open this site in Chrome or Safari, or sit freely for now.'); setCk('ck1','','鏡頭開啟','Camera'); setCk('ck2','','畫面亮度','Light'); setCk('ck3','','偵測到你','Sees you'); setCk('ck4','','架好手機、坐穩','Phone steady'); loadFace();
   $('camOpen').classList.remove('hidden'); $('camStart').classList.add('hidden'); $('camStart').disabled=true;
   $('camHint').innerHTML=EN('準備好了再按開始，不用急。','Press start when you are ready. No rush.'); }
@@ -2482,8 +2522,8 @@ function tick(){
   if(me.sitSec%5===0) srvGuard();
   $('sitTime').textContent=fmt(me.sitSec); $('dimTime').textContent=fmt(me.sitSec);
   const st=$('sitStatus'), n=[...peers.values()].filter(p=>p.info.phase==='sit').length;
-  if(reason){ const left=Math.max(0,Math.ceil(FACE_LIMIT-gone)), auto=reason==='沒有偵測到人'; st.innerHTML=EN(`暫停計時：${reason}`+(auto?`，${left} 秒後自動起座`:''),`Paused: ${reasonEn}`+(auto?`, ends in ${left}s`:'')); st.classList.add('warn'); }
-  else { st.innerHTML=n?EN(`與 ${n} 位同修一起靜坐`,`Sitting with ${n} ${n>1?'others':'other'}`):EN('靜坐中・山陪著你','Sitting · the mountain is with you'); st.classList.remove('warn'); }
+  if(reason){ const left=Math.max(0,Math.ceil(FACE_LIMIT-gone)), auto=reason==='沒有偵測到人'; st.innerHTML=EN(`暫停計時：${reason}`+(auto?`，${left} 秒後自動起座`:''),`Paused: <bdi>${tr(reasonEn)}</bdi>`+(auto?`, ends in ${left}s`:'')); st.classList.add('warn'); }
+  else { st.innerHTML=n?EN(`與 ${n} 位同修一起靜坐`,`Sitting together · ${n+1}`):EN('靜坐中・山陪著你','Sitting · the mountain is with you'); st.classList.remove('warn'); }
   $('dimHint').innerHTML=reason?st.innerHTML:srv.code?EN('✓ 已完成・可以繼續坐，也可以慢慢起座','✓ Done. Keep sitting, or rise slowly'):EN('省電模式・輕觸畫面恢復亮度','Power saving · tap to brighten');
   updateHud();
 }
@@ -2512,7 +2552,7 @@ function rise(msg){
   const startedAt=srv.startedAt||Date.now()-sec*1000;
   const nLikes=likesGot.length, byes=byesGot.slice(); clearLikes();
   const bStart=srv.badgeStart??badgeIdx(me.total-sec);
-  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?msg+'<br>':'')+EN(`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}`,`Well done. Your time on this mountain: ${enHrs(tot)}`)+(nLikes?EN(`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`,`${nLikes} ${nLikes>1?'people':'person'} cheered you on`):EN('隨喜 🙏','Well sat 🙏'))+byeEndHTML(byes)+compLine()+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
+  const paint=()=>{ const tot=srv.total??me.total; $('endSub').innerHTML=(msg?`<div>${msg}</div>`:'')+`<div>${EN(`🙏 恭喜你完成這一座<br>你在這座山上累積了 ${hrs(tot)}`,`🙏 Well done.<br>Your time on this mountain: ${enHrs(tot)}`)}</div><div>${nLikes?EN(`這一座有 <b style="color:var(--gold)">${nLikes} 位同修</b>為你隨喜 🙏`,`Cheered on by ${nLikes} 🙏`):EN('隨喜 🙏','Well sat 🙏')}</div>`+byeEndHTML(byes)+compLine()+badgeEndHTML(bStart,tot)+certHTML(startedAt)+nextSitHTML()
     +`<div class="end-all"><span>${EN('注入愛與和平的靜默','Silence for love and peace')}</span><b>${durU(mountainTotalAll())}</b><small>${EN('這座山上所有人一起坐下的時間','Time everyone here has sat together')}</small></div>`; };
   paint(); $('mEnd').classList.remove('hidden');
   if(srv.session){ $('endSub').insertAdjacentHTML('beforeend','<div class="cert-wait">正在向伺服器確認這一座…<span class="en">Confirming with the server…</span></div>'); srvEnd(false).then(()=>paint()); }
@@ -2525,7 +2565,7 @@ function badgeEndHTML(before,tot){
   if(now>before&&now>=0){ const b=BADGES[now]; store.set('badgeSeen',now);
     h+=`<div class="bdg-new"><div class="bk">🎉 恭喜獲得新徽章<span class="en">New badge</span></div><div class="bi">${b.i}</div><div class="bt">${EN(b.t,b.te)}</div><div class="home-note" style="margin-top:2px">${EN(b.d,b.de)}</div></div>`; }
   const nx=BADGES[now+1];
-  h+= nx ? `<div class="bdg-next">下一個徽章 ${nx.i} <b>${nx.t}</b>，還差 <b>${shortFmt(nx.m*60-tot)}</b><span class="en">Next: ${nx.te}, ${enDur(nx.m*60-tot)} to go</span><button data-badges>${EN('看我的徽章','My badges')}</button></div>`
+  h+= nx ? `<div class="bdg-next">下一個徽章 ${nx.i} <b>${nx.t}</b>，還差 <b>${shortFmt(nx.m*60-tot)}</b><span class="en">Next: <bdi>${nx.i} ${tr(nx.te)}</bdi>, ${enDur(nx.m*60-tot)} to go</span><button data-badges>${EN('看我的徽章','My badges')}</button></div>`
          : `<div class="bdg-next">你已集滿所有徽章 🌌<span class="en">You have every badge. Thank you for being here.</span><button data-badges>${EN('看我的徽章','My badges')}</button></div>`;
   return h;
 }
@@ -2542,10 +2582,10 @@ document.addEventListener('click',e=>{ if(e.target.closest('[data-badges]')) ope
 let badgeLive=null, badgeTold=false;
 function checkBadges(){ // quiet note while sitting; a one-time welcome for badges earned before this feature existed
   const k=badgeIdx(me.total);
-  if(badgeLive!==null&&k>badgeLive&&me.phase==='sit'){ const el=document.createElement('div'); el.className='float-bdg'; el.innerHTML=EN(`${BADGES[k].i} 獲得新徽章・${BADGES[k].t}`,`New badge: ${BADGES[k].te}`); document.body.appendChild(el);
+  if(badgeLive!==null&&k>badgeLive&&me.phase==='sit'){ const el=document.createElement('div'); el.className='float-bdg'; el.innerHTML=EN(`${BADGES[k].i} 獲得新徽章・${BADGES[k].t}`,`New badge: <bdi>${BADGES[k].i} ${tr(BADGES[k].te)}</bdi>`); document.body.appendChild(el);
     requestAnimationFrame(()=>el.classList.add('on')); setTimeout(()=>el.classList.remove('on'),4200); setTimeout(()=>el.remove(),6000); }
   badgeLive=k; self?.setInfo({});
-  if(!badgeTold&&me.phase==='walk'&&srv.board&&k>=0&&store.get('badgeSeen',-1)<k){ badgeTold=true; store.set('badgeSeen',k); toast(`你已解鎖 ${k+1} 個靜坐徽章 ${BADGES[k].i}，點排行榜上自己的名字看看`,`You have ${k+1} badge${k?'s':''}. Tap your name in the ranking to see them.`); }
+  if(!badgeTold&&me.phase==='walk'&&srv.board&&k>=0&&store.get('badgeSeen',-1)<k){ badgeTold=true; store.set('badgeSeen',k); toast(`你已解鎖 ${k+1} 個靜坐徽章 ${BADGES[k].i}，點排行榜上自己的名字看看`,`Badges unlocked: ${k+1}. Tap your name in the ranking to see them.`); }
 }
 setInterval(checkBadges,5000);
 
@@ -2559,8 +2599,8 @@ function openHome(){
   const body=$('homeBody'), url='https://global-silence.vercel.app/?openExternalBrowser=1';
   if(IN_APP){
     const line=/\bLine\//i.test(UA);
-    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">目前是在 ${line?'LINE':'App'} 裡面開啟的，<br>請先用 ${IS_IOS?'Safari':'Chrome'} 打開，才能放到桌面。<span class="en">Open this page in ${IS_IOS?'Safari':'Chrome'} first.</span></p>`
-      +(line?`<button class="ev-share" id="homeOut">${EN(`用 ${IS_IOS?'Safari':'瀏覽器'} 打開`,`Open in ${IS_IOS?'Safari':'browser'}`)}</button>`:`<button class="ev-share" id="homeOut">${EN('複製網址','Copy link')}</button>`);
+    body.innerHTML=`<p class="home-note" style="font-size:13.5px;color:var(--ink-dim)">目前是在 ${line?'LINE':'App'} 裡面開啟的，<br>請先用 ${IS_IOS?'Safari':'Chrome'} 打開，才能放到桌面。<span class="en">${IS_IOS?'Open this page in Safari first.':'Open this page in Chrome first.'}</span></p>`
+      +(line?`<button class="ev-share" id="homeOut">${EN(`用 ${IS_IOS?'Safari':'瀏覽器'} 打開`,IS_IOS?'Open in Safari':'Open in browser')}</button>`:`<button class="ev-share" id="homeOut">${EN('複製網址','Copy link')}</button>`);
     $('homeOut').onclick=()=>{ if(line) location.href=url; else navigator.clipboard?.writeText(url).then(()=>toast('已複製，貼到瀏覽器打開','Copied. Paste it into your browser.'),()=>toast(url)); };
   } else if(IS_IOS){
     const chrome=/CriOS/.test(UA);
@@ -2626,7 +2666,7 @@ function musGraph(){
 function musFade(to,sec){ if(musGain){ const t=actx.currentTime; musGain.gain.cancelScheduledValues(t); musGain.gain.setValueAtTime(musGain.gain.value,t); musGain.gain.linearRampToValueAtTime(to*to,t+sec); } else bgm.volume=to; }
 function musPlay(){ if(!musOn||me.phase==='intro') return; clearTimeout(musStopT); musGraph(); bgm.play().then(()=>musFade(musVol,2.5)).catch(()=>{}); musUI(); }
 function musStop(){ musFade(0,1); clearTimeout(musStopT); musStopT=setTimeout(()=>bgm.pause(),1100); musUI(); }
-function musUI(){ $('btnMusic').classList.toggle('on',musOn); $('musToggle').classList.toggle('on',musOn); $('musLbl').textContent=musOn?'音樂 Music':'音樂 關 Off'; $('musVol').value=Math.round(musVol*100); }
+function musUI(){ $('btnMusic').classList.toggle('on',musOn); $('musToggle').classList.toggle('on',musOn); $('musLbl').textContent=musOn?EN('音樂','Music'):EN('音樂 關','Music off'); $('musVol').value=Math.round(musVol*100); }
 musUI();
 $('btnMusic').onclick=e=>{ e.stopPropagation(); $('musPanel').classList.toggle('hidden'); };
 $('musPanel').onclick=e=>e.stopPropagation();
@@ -2646,8 +2686,8 @@ function personCard(p){
   const top=document.createElement('div'); top.className='p-top';
   const img=document.createElement(p.hasImg?'img':'div'); img.className='p-img'; if(p.hasImg) img.src=p.imgEl.src;
   const box=document.createElement('div');
-  const nm=document.createElement('div'); nm.className='p-name'; nm.textContent=info.name+(isSelf?'（你 you）':'');
-  const bk=badgeIdx(isSelf?me.total:(info.total||0)); const mt=document.createElement('div'); mt.className='p-meta'; mt.textContent=`${info.country}`+(bk>=0?`\n${BADGES[bk].i} ${BADGES[bk].t} ${BADGES[bk].te}`:'');
+  const nm=document.createElement('div'); nm.className='p-name'; nm.textContent=info.name+(isSelf?EN('（你）',' (you)'):'');
+  const bk=badgeIdx(isSelf?me.total:(info.total||0)); const mt=document.createElement('div'); mt.className='p-meta'; mt.textContent=`${info.country}`+(bk>=0?`\n${BADGES[bk].i} ${EN(BADGES[bk].t,BADGES[bk].te)}`:'');
   box.append(nm,mt); top.append(img,box);
   const grid=document.createElement('div'); grid.className='p-grid';
   const c1=document.createElement('div'); c1.className='p-cell'; const b1=document.createElement('b'); const s1=document.createElement('span'); s1.innerHTML=EN('這一座','This sit'); c1.append(b1,s1);
@@ -2673,7 +2713,7 @@ function renderRank(){
   const h=document.createElement('h2'); h.className='m-title'; h.innerHTML=EN('同修榜','People');
   const sub=document.createElement('div'); sub.className='hud-stat'; sub.innerHTML=EN('此刻在山上的人','On the mountain now');
   const tabs=document.createElement('div'); tabs.className='tabs';
-  [['now','這一座 This sit'],['total','累積時數 All time']].forEach(([k,t])=>{ const b=document.createElement('button'); b.className='chip'+(rankTab===k?' on':''); b.textContent=t; b.onclick=()=>{rankTab=k;renderRank();}; tabs.appendChild(b); });
+  [['now',EN('這一座','This sit')],['total',EN('累積時數','All time')]].forEach(([k,t])=>{ const b=document.createElement('button'); b.className='chip'+(rankTab===k?' on':''); b.textContent=t; b.onclick=()=>{rankTab=k;renderRank();}; tabs.appendChild(b); });
   const ul=document.createElement('ul'); ul.className='rank';
   if(rankTab==='total'){ // everyone who has ever sat here, as far as this phone has heard
     sub.innerHTML=EN('所有來過這座山的同修','Everyone who has sat here');
@@ -2685,14 +2725,14 @@ function renderRank(){
     { const ppl=srv.board?srv.board.people:rows.length, myT=srv.board?.me?.t??rows[myRank-1]?.t??0; mine.innerHTML=EN(`你目前第 ${myRank||'—'} 名・共 ${ppl} 位同修・你累積 ${longFmt(myT)}`,`You are #${myRank||'—'} of ${ppl} · ${enDur(myT)}`); }
     rows.slice(0,50).forEach((r,i)=>{ const li=document.createElement('li'); if(r.k===UID) li.style.color='var(--gold)';
       const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
-      const w=document.createElement('span'); w.className='who'; w.textContent=r.n+(r.k===UID?'（你 you）':''); const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm);
+      const w=document.createElement('span'); w.className='who'; w.textContent=r.n+(r.k===UID?EN('（你）',' (you)'):''); const sm=document.createElement('small'); sm.textContent=r.c; w.appendChild(sm);
       const v=document.createElement('span'); v.className='v'; v.textContent=durU(r.t); li.append(n,w,v); ul.appendChild(li); });
     el.append(h,sub,tabs,mine,ul); return;
   }
   const all=everyone().sort((a,b)=>b.live-a.live);
   all.forEach((p,i)=>{ const li=document.createElement('li');
     const n=document.createElement('span'); n.className='n'; n.textContent=i+1;
-    const w=document.createElement('span'); w.className='who'; w.textContent=p.name+(p.self?'（你 you）':''); const sm=document.createElement('small'); sm.textContent=p.country; w.appendChild(sm);
+    const w=document.createElement('span'); w.className='who'; w.textContent=p.name+(p.self?EN('（你）',' (you)'):''); const sm=document.createElement('small'); sm.textContent=p.country; w.appendChild(sm);
     const v=document.createElement('span'); v.className='v'; v.textContent=p.phase==='sit'?fmt(p.live):'—';
     li.append(n,w,v); ul.appendChild(li); });
   el.append(h,sub,tabs,ul);
@@ -2712,13 +2752,13 @@ const likedAt=new Map(); // peerId -> time I last 隨喜'd them (once per sit is
 const canLike=p=>p&&!p.stale&&p.peerId&&(p.info.phase==='sit'||p.info.phase==='free')&&!(likedAt.get(p.peerId)>(p.info.sitStartedAt||0));
 function floatOver(p,text,en){
   const v=new THREE.Vector3(p.x,hAt(p.x,p.z)+1.9,p.z); v.project(camera); if(v.z>1||Math.abs(v.x)>.95||Math.abs(v.y)>.95) return false;
-  const d=document.createElement('div'); d.className='float-like'; d.innerHTML=escT(text)+(en?`<span class="en">${escT(en)}</span>`:'');
+  const d=document.createElement('div'); d.className='float-like'; d.innerHTML=EN(escT(text),en??escT(text));
   d.style.left=((v.x+1)/2*innerWidth)+'px'; d.style.top=((1-v.y)/2*innerHeight)+'px'; document.body.appendChild(d); setTimeout(()=>d.remove(),2700); return true;
 }
 function sendLike(p){
   if(!canLike(p)) return; likedAt.set(p.peerId,Date.now());
   try{ aLike?.send({n:me.name,c:me.country},{target:p.peerId}); }catch{}
-  if(!floatOver(p,'好厲害！！隨喜 🙏','Well sat!')) toast(`已為 ${p.info.name} 隨喜：好厲害！！🙏`,`You cheered ${p.info.name} on 🙏`); likeShown=null; $('likeAsk').classList.add('hidden');
+  if(!floatOver(p,'好厲害！！隨喜 🙏','Well sat!')) toast(`已為 ${p.info.name} 隨喜：好厲害！！🙏`,`You cheered <bdi>${escT(p.info.name)}</bdi> on 🙏`); likeShown=null; $('likeAsk').classList.add('hidden');
 }
 // walking past someone who is sitting: offer a 隨喜
 let likeShown=null;
@@ -2729,11 +2769,11 @@ function likeNear(){
       const near=Math.hypot(self.x-p.x,self.z-p.z)<3.2; if(!near){ p.lingerFrom=0; continue; }
       p.lingerFrom=p.lingerFrom||now; if(now-p.lingerFrom>45000&&now-(p.shhAt||0)>90000){ p.shhAt=now; shh(); } } }
   let hi=false; if(!best&&self&&me.phase==='walk'){ bd=2.8; for(const p of peers.values()){ if(!canHi(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bd){ bd=d; best=p; hi=true; } } }
-  if(best!==likeShown||hi!==likeHi){ likeShown=best; likeHi=hi; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.innerHTML=hi?EN(`👋 和 ${escT(best.info.name)} 打招呼`,`Wave to ${escT(best.info.name)}`):EN(`🙏 為 ${escT(best.info.name)} 隨喜`,`Cheer ${escT(best.info.name)} on`); }
+  if(best!==likeShown||hi!==likeHi){ likeShown=best; likeHi=hi; const b=$('likeAsk'); b.classList.toggle('hidden',!best); if(best) b.innerHTML=hi?EN(`👋 和 ${escT(best.info.name)} 打招呼`,`👋 Wave to <bdi>${escT(best.info.name)}</bdi>`):EN(`🙏 為 ${escT(best.info.name)} 隨喜`,`🙏 Cheer <bdi>${escT(best.info.name)}</bdi> on`); }
   if(best) $('elderAsk').classList.add('hidden');
   { let bt=null, bb=2.8; // goodbye is its own thing: offered whether or not you already gave this person a 隨喜
     if(self&&me.phase==='walk') for(const p of peers.values()){ if(!canBye(p)) continue; const d=Math.hypot(self.x-p.x,self.z-p.z); if(d<bb){ bb=d; bt=p; } }
-    const b=$('byeAsk'), show=!!bt; if(show!==!b.classList.contains('hidden')||(show&&b.dataset.pid!==bt.peerId)){ b.classList.toggle('hidden',!show); if(show){ b.dataset.pid=bt.peerId; b.innerHTML=EN(`👋 跟 ${escT(bt.info.name)} 說：先走囉`,`Say bye to ${escT(bt.info.name)}`); } }
+    const b=$('byeAsk'), show=!!bt; if(show!==!b.classList.contains('hidden')||(show&&b.dataset.pid!==bt.peerId)){ b.classList.toggle('hidden',!show); if(show){ b.dataset.pid=bt.peerId; b.innerHTML=EN(`👋 跟 ${escT(bt.info.name)} 說：先走囉`,`👋 Say bye to <bdi>${escT(bt.info.name)}</bdi>`); } }
     b.classList.toggle('solo',$('likeAsk').classList.contains('hidden')); if(show) $('elderAsk').classList.add('hidden'); }
 }
 /* leaving before a friend who is still sitting: a quiet goodbye that waits until they open their eyes */
@@ -2742,7 +2782,7 @@ const canBye=p=>p&&!p.stale&&p.peerId&&['sit','free'].includes(p.info.phase)&&Da
 function sendBye(p){
   if(!canBye(p)) return; byeSent.set(p.peerId,Date.now());
   try{ aBye?.send({n:me.name,c:me.country},{target:p.peerId}); }catch{}
-  if(!(self&&floatOver(self,'👋 byebye！先走了，下次見！','Bye! See you next time'))) toast(`已向 ${p.info.name} 道別：byebye！下次見 👋`,`You said bye to ${p.info.name} 👋`);
+  if(!(self&&floatOver(self,'👋 byebye！先走了，下次見！','Bye! See you next time'))) toast(`已向 ${p.info.name} 道別：byebye！下次見 👋`,`You said bye to <bdi>${escT(p.info.name)}</bdi> 👋`);
   $('byeAsk').classList.add('hidden');
 }
 $('byeAsk').onclick=()=>{ const p=peers.get($('byeAsk').dataset.pid); if(p) sendBye(p); };
@@ -2751,10 +2791,10 @@ function gotBye(d,peerId){
   if(Date.now()-(byeFrom.get(peerId)||0)<60000) return; byeFrom.set(peerId,Date.now());
   const n=String(d.n||'同修').slice(0,16), c=String(d.c||'').slice(0,16);
   if(seatedNow()){ byesGot.push({n,c}); renderLikes(); return; } // never disturb someone sitting: it waits for the end of the sit
-  const p=peers.get(peerId); if(!(p&&floatOver(p,'👋 byebye！下次見！','See you next time'))) toast(`👋 ${n}：byebye！先走了，下次見！`,`${n} is heading off. See you!`);
+  const p=peers.get(peerId); if(!(p&&floatOver(p,'👋 byebye！下次見！','See you next time'))) toast(`👋 ${n}：byebye！先走了，下次見！`,`<bdi>${escT(n)}</bdi> is heading off. See you!`);
 }
 const escH=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const byeEndHTML=list=>list.length?`<div class="bye-end">${list.map(b=>`👋 <b>${escH(b.n)}</b>${b.c?'・'+escH(b.c):''} 先下山了：byebye，下次見！<span class="en i">left: bye, see you!</span>`).join('<br>')}</div>`:'';
+const byeEndHTML=list=>list.length?`<div class="bye-end">${list.map(b=>`👋 <b>${escH(b.n)}</b>${b.c?'・'+escH(b.c):''} 先下山了：byebye，下次見！<span class="en"><bdi><b>${escH(b.n)}</b></bdi> left: bye, see you!</span>`).join('<br>')}</div>`:'';
 $('likeAsk').onclick=()=>{ if(!likeShown) return; if(likeHi) sendHi(likeShown); else sendLike(likeShown); };
 /* 打招呼: two people walking near each other can just say 嗨 — nothing more */
 let likeHi=false; const hiAt=new Map(), hiFrom=new Map();
@@ -2790,8 +2830,8 @@ function gotLike(d,peerId){
 function renderLikes(){
   const el=$('likes'); el.innerHTML=''; el.classList.toggle('hidden',!likesGot.length&&!byesGot.length); if(!likesGot.length&&!byesGot.length) return;
   if(likesGot.length){ const h=document.createElement('div'); h.className='lk-h'; h.innerHTML=EN(`${likesGot.length} 位同修為你隨喜 🙏`,`${likesGot.length} cheered you on`); el.appendChild(h); }
-  likesGot.slice(-4).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`${l.n}${l.c?'・'+l.c:''}：好厲害！！隨喜 Well sat!`; el.appendChild(x); });
-  byesGot.slice(-3).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`👋 ${l.n}：byebye！下次見！ Bye!`; el.appendChild(x); });
+  likesGot.slice(-4).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`${l.n}${l.c?'・'+l.c:''}：`+EN('好厲害！！隨喜','Well sat!'); el.appendChild(x); });
+  byesGot.slice(-3).forEach(l=>{ const x=document.createElement('div'); x.className='lk'; x.textContent=`👋 ${l.n}：`+EN('byebye！下次見！','Bye! See you!'); el.appendChild(x); });
 }
 function clearLikes(){ likesGot.length=0; likeFrom.clear(); byesGot.length=0; renderLikes(); }
 
@@ -2807,7 +2847,7 @@ const WISDOM_EN=["Close your eyes and let everything go. Don't chase calm, don't
 let lastW=-1;
 function pickWisdom(){ let i; do{ i=Math.floor(Math.random()*WISDOM.length); }while(i===lastW&&WISDOM.length>1); lastW=i;
   const p=$('abWisdom'); p.innerHTML=EN(WISDOM[i],WISDOM_EN[i]); p.style.animation='none'; void p.offsetWidth; p.style.animation=''; }
-function openAbout(){ pickWisdom(); { const n=nextSit(); $('abNext').innerHTML=`${sitWhen(n)}${n.extra?'（加開場次 extra）':''}<span class="en">${sitWhenEn(n)} (Taiwan)</span>`; } $('mAbout').classList.remove('hidden'); }
+function openAbout(){ pickWisdom(); { const n=nextSit(); $('abNext').innerHTML=EN(`${sitWhen(n)}${n.extra?'（加開場次）':''}`,`<bdi>${sitWhenEn(n)}</bdi> (Taiwan time)`+(n.extra?' · extra sit':'')); } $('mAbout').classList.remove('hidden'); }
 $('elderYes').onclick=()=>{ elderDismissed=true; $('elderAsk').classList.add('hidden'); elderShown=false; openAbout(); bell(.25); };
 $('abClose').onclick=()=>$('mAbout').classList.add('hidden');
 
@@ -2825,7 +2865,7 @@ const twHour=t=>{ const h=+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Taipe
 function nextSit(after=Date.now()){ const w=nextWeekly(after), x=EXTRA_SITS.filter(t=>t>after).sort((a,b)=>a-b)[0]; return x&&x<w?{t:x,extra:true}:{t:w,extra:false}; }
 const sitWhen=n=>`${twDay(n.t)} ${twHour(n.t)}`;
 /* English: "Sun, Nov 22, 10:00 PM" (Taiwan time) */
-const sitWhenEn=n=>new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(n.t);
+const sitWhenEn=n=>new Intl.DateTimeFormat(LOC[LANG]||'en-US',{timeZone:'Asia/Taipei',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(n.t);
 const weeklyLiveNow=()=>{ const n=nextSit(Date.now()-WEEKLY_LIVE); return Date.now()>=n.t&&Date.now()<n.t+WEEKLY_LIVE; };
 const isEventDay=()=>{ const n=Date.now(); return n>EVENT.start-15*6e4&&n<EVENT.start+9*36e5; }; // 11/8 20:45 → 11/9 06:00 (Taiwan)
 function nextSitHTML(free){
@@ -2833,7 +2873,7 @@ function nextSitHTML(free){
   return `<div class="next-sit">${thanks}<div class="ns-lead">今天的靜默，是下一次相遇的開始。<span class="en">Today's silence is where we meet next.</span></div>
     <div class="ns-k">每週日晚上 10:00・全球固定共修<span class="en">Every Sunday, 10 PM Taiwan time · group sit</span></div>
     <div class="ns-p">想安靜一下，隨時歡迎回來。<span class="en">Come back whenever you want some quiet.</span></div>
-    <div class="ns-next"><span>下一次共修${nx.extra?'・加開場次':''}<span class="en">Next sit${nx.extra?' (extra)':''}</span></span><b>${sitWhen(nx)}</b><small>（台灣時間）</small><span class="en">${sitWhenEn(nx)} (Taiwan)</span></div></div>`;
+    <div class="ns-next"><span>下一次共修${nx.extra?'・加開場次':''}<span class="en">${nx.extra?'Next sit (extra)':'Next sit'}</span></span><b>${sitWhen(nx)}</b><small>（台灣時間）</small><span class="en"><bdi>${sitWhenEn(nx)}</bdi> (Taiwan time)</span></div></div>`;
 }
 const EVENT={start:Date.UTC(2026,10,8,13,0), live:180*60*1000}; // Sun 8 Nov 2026, 21:00 Taiwan (UTC+8); shown as live until midnight, when starting a sit stops counting
 function evText(){
@@ -2855,9 +2895,9 @@ function updateEvent(){
     const cd=days?`${days} 天 ${h} 小時`:h?`${h} 小時 ${m} 分`:`${m} 分`; const cdEn=days?`${days}d ${h}h`:h?`${h}h ${m}m`:`${m}m`;
     ['evCard','evPill'].forEach(id=>$(id).classList.remove('hidden'));
     { const md=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'numeric',day:'numeric'}).format(nx.t), wd=twDay(nx.t).match(/（.）/)[0];
-      $('evPill').innerHTML=live?'<b>●</b> 共修活動進行中 · Sitting now':`<span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.4"><span>下次共修倒數 <b>${cd}</b></span><span style="font-size:.84em;opacity:.8">Next sit in ${cdEn}</span><span>${md}${wd}${twHour(nx.t)}</span>${nx.extra?'<span style="opacity:.85">加開場次 Extra</span>':''}</span>`; } requestAnimationFrame(()=>document.documentElement.style.setProperty('--pill-extra',Math.max(0,$('evPill').offsetHeight-28)+'px')); // the buttons below make room for a taller pill
+      $('evPill').innerHTML=live?'<b>●</b> '+EN('共修活動進行中','Group sit now'):`<span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.4"><span>${EN(`下次共修倒數 <b>${cd}</b>`,`Next sit in <b>${cdEn}</b>`)}</span><span>${LANG==='zh'?`${md}${wd}${twHour(nx.t)}`:sitWhenEn(nx)}</span>${nx.extra?`<span style="opacity:.85">${EN('加開場次','Extra sit')}</span>`:''}</span>`; } requestAnimationFrame(()=>document.documentElement.style.setProperty('--pill-extra',Math.max(0,$('evPill').offsetHeight-28)+'px')); // the buttons below make room for a taller pill
     $('evCard').classList.toggle('live',live); $('evK').innerHTML=live?EN('共修活動・進行中','Group sit · now'):nx.extra?EN('加開共修活動','Extra group sit'):EN('每週日固定共修活動','Weekly Sunday group sit');
-    $('evT').innerHTML=EN(`${sitWhen(nx)}（台灣時間），全球一起上山靜坐`,`${sitWhenEn(nx)} Taiwan time · the world sits together`); $('evC').innerHTML=live?EN('共修活動進行中・現在上山一起坐','Happening now · come and sit'):''; $('evC').classList.toggle('hidden',!live); // one line with the date is enough
+    $('evT').innerHTML=EN(`${sitWhen(nx)}（台灣時間），全球一起上山靜坐`,`<bdi>${sitWhenEn(nx)}</bdi> Taiwan time · the world sits together`); $('evC').innerHTML=live?EN('共修活動進行中・現在上山一起坐','Happening now · come and sit'):''; $('evC').classList.toggle('hidden',!live); // one line with the date is enough
     return; }
   ['evCard','evPill'].forEach(id=>$(id).classList.toggle('hidden',!e));
   $('evPill').innerHTML=e.live?'🪷 共修活動進行中・怎麼參加？':e.pill; $('evPill').classList.toggle('live',e.live);
@@ -2949,7 +2989,7 @@ function heartNear(){
   if(near<0){ heartCard.classList.remove('on'); return; }
   if(!heartDeck.length){ heartDeck=HEART.map((_,k)=>k).sort(()=>Math.random()-.5); if(heartDeck[heartDeck.length-1]===lastHeart) heartDeck.unshift(heartDeck.pop()); }
   const i=heartDeck.pop(); lastHeart=i; // a shuffled deck: no line comes back until every line has been read
-  heartCard.innerHTML=`<div class="hk">心之語 · Heart words</div><div class="ht">${HEART[i].replace(/，/g,'，<br>').replace(/([。；])(?=.)/g,'$1<br>')}<span class="en">${HEART_EN[i]}</span></div>`; // lines are our own text, safe to break at commas
+  heartCard.innerHTML=`<div class="hk">${EN('心之語','Heart words')}</div><div class="ht">${HEART[i].replace(/，/g,'，<br>').replace(/([。；])(?=.)/g,'$1<br>')}<span class="en">${HEART_EN[i]}</span></div>`; // lines are our own text, safe to break at commas
   heartCard.classList.add('on');
 }
 
@@ -3031,7 +3071,7 @@ $('lotusAsk').onclick=()=>{
   if(Date.now()-lastLotus<120000){ { const w=Math.ceil((120000-(Date.now()-lastLotus))/1000); toast(`下一朵蓮花，${w} 秒後可以種 🪷`,`Next lotus in ${w}s`); } return; }
   $('lotusWish').value=''; $('lotusGo').disabled=true; $('mLotus').classList.remove('hidden');
 };
-document.querySelectorAll('#lotusChips button').forEach(b=>b.onclick=()=>{ const w=$('lotusWish'); w.value=(w.value?w.value+' ':'')+(ZH?b.dataset.w:b.dataset.we); w.dispatchEvent(new Event('input')); });
+document.querySelectorAll('#lotusChips button').forEach(b=>b.onclick=()=>{ const w=$('lotusWish'); w.value=(w.value?w.value+' ':'')+EN(b.dataset.w,b.dataset.we); w.dispatchEvent(new Event('input')); });
 $('lotusWish').addEventListener('input',()=>{ $('lotusGo').disabled=!$('lotusWish').value.trim(); });
 $('lotusCancel').onclick=()=>$('mLotus').classList.add('hidden');
 $('lotusGo').onclick=()=>{
@@ -3104,7 +3144,7 @@ $('lanAsk').onclick=()=>{
   $('lanCount').innerHTML=lanWeek?EN(`這 7 天，山上已經放飛了 ${lanWeek} 盞燈`,`${lanWeek} lanterns released this week`):EN('你可以點亮這座山的第一盞燈','Light the first lantern on this mountain');
   $('mLan').classList.remove('hidden');
 };
-document.querySelectorAll('#lanChips button').forEach(b=>b.onclick=()=>{ const w=$('lanWish'); w.value=(w.value?w.value+' ':'')+(ZH?b.dataset.w:b.dataset.we); w.dispatchEvent(new Event('input')); });
+document.querySelectorAll('#lanChips button').forEach(b=>b.onclick=()=>{ const w=$('lanWish'); w.value=(w.value?w.value+' ':'')+EN(b.dataset.w,b.dataset.we); w.dispatchEvent(new Event('input')); });
 $('lanWish').addEventListener('input',()=>{ $('lanGo').disabled=!$('lanWish').value.trim(); });
 $('lanCancel').onclick=()=>$('mLan').classList.add('hidden');
 $('lanGo').onclick=()=>{
